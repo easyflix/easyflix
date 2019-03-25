@@ -4,6 +4,9 @@
 /dist
 /tmp
 /out-tsc
+/target
+/project/target
+/project/project/target
 # Only exists if Bazel was run
 /bazel-out
 
