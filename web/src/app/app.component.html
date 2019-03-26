@@ -1,9 +1,11 @@
 <mat-sidenav-container>
-  <mat-sidenav #sidenav mode="side" [(opened)]="opened">
+  <mat-sidenav #sidenav mode="side" (openedStart)="opening = true" (closed)="opening = false" [(opened)]="opened">
     <app-drawer></app-drawer>
   </mat-sidenav>
 
   <mat-sidenav-content>
-    <p><button mat-button (click)="sidenav.toggle()">sidenav.toggle()</button></p>
+    <button mat-icon-button (click)="sidenav.toggle()">
+      <mat-icon>{{ opening ? 'arrow_left' : 'menu' }}</mat-icon>
+    </button>
   </mat-sidenav-content>
 </mat-sidenav-container>

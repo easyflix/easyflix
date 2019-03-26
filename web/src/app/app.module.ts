@@ -13,14 +13,16 @@ import {AppEffects} from './app.effects';
 import {MaterialModule} from "./material.module";
 import {DrawerComponent} from './drawer/drawer.component';
 import {PanelDirective} from './panel.directive';
-import { FolderComponent } from './folder/folder.component';
+import {FolderComponent} from './folder/folder.component';
+import {SettingsComponent} from './settings/settings.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     DrawerComponent,
     PanelDirective,
-    FolderComponent
+    FolderComponent,
+    SettingsComponent
   ],
   imports: [
     BrowserModule,
@@ -33,6 +35,6 @@ import { FolderComponent } from './folder/folder.component';
   ],
   providers: [],
   bootstrap: [AppComponent],
-  entryComponents: [FolderComponent]
+  entryComponents: [FolderComponent, SettingsComponent]
 })
 export class AppModule { }

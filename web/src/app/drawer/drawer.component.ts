@@ -10,6 +10,7 @@ import {
 import {PanelDirective} from "../panel.directive";
 import {FolderComponent} from "../folder/folder.component";
 import {Subscription} from "rxjs";
+import {SettingsComponent} from "../settings/settings.component";
 
 @Component({
   selector: 'app-drawer',
@@ -20,7 +21,8 @@ import {Subscription} from "rxjs";
 export class DrawerComponent implements OnInit {
 
   DRAWER_ANIMATION_TIME = 400;
-  animating = false;
+  isAnimating = false;
+  isSettingsOpen = false;
 
   state: string = 's0';
 
@@ -28,8 +30,10 @@ export class DrawerComponent implements OnInit {
   panels: PanelDirective;
 
   folderFactory: ComponentFactory<FolderComponent>;
+  settingsFactory: ComponentFactory<SettingsComponent>;
 
   subscriptions: [Subscription[], Subscription[]] = [[], []];
+  closeSettingsSubscription: Subscription;
 
   constructor(
     private cdRef: ChangeDetectorRef,
@@ -37,7 +41,49 @@ export class DrawerComponent implements OnInit {
 
   ngOnInit() {
     this.folderFactory = this.componentFactoryResolver.resolveComponentFactory(FolderComponent);
+    this.settingsFactory = this.componentFactoryResolver.resolveComponentFactory(SettingsComponent);
     this.addPanel();
+  }
+
+  toggleSettings() {
+    if (this.isSettingsOpen) {
+      this.closeSettings();
+    } else {
+      this.openSettings();
+    }
+  }
+
+  openSettings() {
+    if (!this.isAnimating) {
+      this.isAnimating = true;
+      this.state = 's-left';
+      const settingsRef = this.settingsFactory.create(this.panels.viewContainerRef.injector);
+      this.closeSettingsSubscription = settingsRef.instance.close.subscribe(() => this.closeSettings());
+      this.panels.viewContainerRef.insert(settingsRef.hostView, 0);
+      setTimeout(() => {
+        this.isAnimating = false;
+        this.state = 's0';
+        settingsRef.instance.focus();
+        this.removePanel(1);
+        this.isSettingsOpen = true;
+        this.cdRef.detectChanges();
+      }, this.DRAWER_ANIMATION_TIME);
+    }
+  }
+
+  closeSettings() {
+    if (!this.isAnimating) {
+      this.isAnimating = true;
+      this.state = 's-right';
+      this.addPanel(1);
+      setTimeout(() => {
+        this.isAnimating = false;
+        this.state = 's0';
+        this.removePanel(0);
+        this.isSettingsOpen = false;
+        this.cdRef.detectChanges();
+      }, this.DRAWER_ANIMATION_TIME);
+    }
   }
 
   addPanel(index?: 0 | 1) {
@@ -58,12 +104,12 @@ export class DrawerComponent implements OnInit {
   }
 
   next() {
-    if (!this.animating) {
-      this.animating = true;
+    if (!this.isAnimating) {
+      this.isAnimating = true;
       this.state = 's-right';
       this.addPanel(1);
       setTimeout(() => {
-        this.animating = false;
+        this.isAnimating = false;
         this.state = 's0';
         this.removePanel(0);
         this.cdRef.detectChanges();
@@ -72,12 +118,12 @@ export class DrawerComponent implements OnInit {
   }
 
   prev() {
-    if (!this.animating) {
-      this.animating = true;
+    if (!this.isAnimating) {
+      this.isAnimating = true;
       this.state = 's-left';
       this.addPanel(0);
       setTimeout(() => {
-        this.animating = false;
+        this.isAnimating = false;
         this.state = 's0';
         this.removePanel(1);
         this.cdRef.detectChanges();

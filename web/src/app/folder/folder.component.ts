@@ -1,4 +1,4 @@
-import {Component, EventEmitter, OnInit, Output, ViewChild} from '@angular/core';
+import {Component, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {MatButton} from "@angular/material";
 
 @Component({
@@ -8,8 +8,8 @@ import {MatButton} from "@angular/material";
 })
 export class FolderComponent implements OnInit {
 
-  @Output() next: EventEmitter<void> = new EventEmitter();
-  @Output() prev: EventEmitter<void> = new EventEmitter();
+  next: EventEmitter<void> = new EventEmitter();
+  prev: EventEmitter<void> = new EventEmitter();
 
   @ViewChild('back')
   back: MatButton;

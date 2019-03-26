@@ -8,6 +8,7 @@ import {MatSidenav} from "@angular/material";
 })
 export class AppComponent {
   opened: boolean = true;
+  opening: boolean = false;
   @ViewChild('sidenav')
   sidenav: MatSidenav;
 }
