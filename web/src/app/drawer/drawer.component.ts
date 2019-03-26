@@ -20,6 +20,7 @@ import {Subscription} from "rxjs";
 export class DrawerComponent implements OnInit {
 
   DRAWER_ANIMATION_TIME = 400;
+  animating = false;
 
   state: string = 's0';
 
@@ -57,23 +58,31 @@ export class DrawerComponent implements OnInit {
   }
 
   next() {
-    this.state = 's-right';
-    this.addPanel(1);
-    setTimeout(() => {
-      this.state = 's0';
-      this.removePanel(0);
-      this.cdRef.detectChanges();
-    }, this.DRAWER_ANIMATION_TIME);
+    if (!this.animating) {
+      this.animating = true;
+      this.state = 's-right';
+      this.addPanel(1);
+      setTimeout(() => {
+        this.animating = false;
+        this.state = 's0';
+        this.removePanel(0);
+        this.cdRef.detectChanges();
+      }, this.DRAWER_ANIMATION_TIME);
+    }
   }
 
   prev() {
-    this.state = 's-left';
-    this.addPanel(0);
-    setTimeout(() => {
-      this.state = 's0';
-      this.removePanel(1);
-      this.cdRef.detectChanges();
-    }, this.DRAWER_ANIMATION_TIME);
+    if (!this.animating) {
+      this.animating = true;
+      this.state = 's-left';
+      this.addPanel(0);
+      setTimeout(() => {
+        this.animating = false;
+        this.state = 's0';
+        this.removePanel(1);
+        this.cdRef.detectChanges();
+      }, this.DRAWER_ANIMATION_TIME);
+    }
   }
 
 }

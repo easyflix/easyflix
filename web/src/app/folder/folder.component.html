@@ -1,11 +1,12 @@
+<div (click)="prev.emit()" class="back">
+  <button mat-icon-button (click)="prev.emit(); $event.stopPropagation()" #back>
+    <mat-icon>chevron_left</mat-icon>
+  </button>
+  <span>..</span>
+</div>
+<mat-divider></mat-divider>
+
 <mat-list dense>
-  <mat-list-item (click)="prev.emit()" class="back">
-    <button matListAvatar mat-icon-button (click)="prev.emit(); $event.stopPropagation()" #back>
-      <mat-icon>chevron_left</mat-icon>
-    </button>
-    <h3 matLine>..</h3>
-  </mat-list-item>
-  <mat-divider></mat-divider>
   <mat-list-item>
     <mat-icon matListIcon>folder</mat-icon>
     <h3 matLine> Folder 1 </h3>
