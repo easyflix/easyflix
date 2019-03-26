@@ -7,7 +7,7 @@ import {MatSidenav} from "@angular/material";
   styleUrls: ['./app.component.sass']
 })
 export class AppComponent {
-  opened: boolean;
+  opened: boolean = true;
   @ViewChild('sidenav')
   sidenav: MatSidenav;
 }

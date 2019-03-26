@@ -11,10 +11,16 @@ import {environment} from '../environments/environment';
 import {EffectsModule} from '@ngrx/effects';
 import {AppEffects} from './app.effects';
 import {MaterialModule} from "./material.module";
+import {DrawerComponent} from './drawer/drawer.component';
+import {PanelDirective} from './panel.directive';
+import { FolderComponent } from './folder/folder.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    DrawerComponent,
+    PanelDirective,
+    FolderComponent
   ],
   imports: [
     BrowserModule,
@@ -26,6 +32,7 @@ import {MaterialModule} from "./material.module";
     MaterialModule
   ],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
+  entryComponents: [FolderComponent]
 })
 export class AppModule { }
