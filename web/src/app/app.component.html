@@ -4,8 +4,10 @@
   </mat-sidenav>
 
   <mat-sidenav-content>
-    <button mat-icon-button (click)="sidenav.toggle()">
-      <mat-icon>{{ opening ? 'arrow_left' : 'menu' }}</mat-icon>
-    </button>
+    <app-controls
+      [opening]="opening"
+      (sidenavToggle)="sidenav.toggle()">
+    </app-controls>
+    <app-video></app-video>
   </mat-sidenav-content>
 </mat-sidenav-container>

@@ -15,6 +15,8 @@ import {DrawerComponent} from './drawer/drawer.component';
 import {PanelDirective} from './panel.directive';
 import {FolderComponent} from './folder/folder.component';
 import {SettingsComponent} from './settings/settings.component';
+import { ControlsComponent } from './controls/controls.component';
+import { VideoComponent } from './video/video.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +24,9 @@ import {SettingsComponent} from './settings/settings.component';
     DrawerComponent,
     PanelDirective,
     FolderComponent,
-    SettingsComponent
+    SettingsComponent,
+    ControlsComponent,
+    VideoComponent
   ],
   imports: [
     BrowserModule,

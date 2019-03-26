@@ -1,0 +1,53 @@
+<section class="top">
+  <button mat-icon-button (click)="sidenavToggle.emit()">
+    <mat-icon>{{ opening ? 'chevron_left' : 'menu' }}</mat-icon>
+  </button>
+  <button mat-icon-button class="close">
+    <mat-icon>close</mat-icon>
+  </button>
+</section>
+
+<section class="middle">
+  <button mat-icon-button class="next">
+    <mat-icon>arrow_right</mat-icon>
+  </button>
+</section>
+
+<section class="bottom">
+  <div class="seeker">
+    <mat-slider></mat-slider>
+  </div>
+  <div class="time">
+    <span class="left">00:00:00</span>
+    <span class="right">01:45:38</span>
+  </div>
+  <div class="controls">
+    <div class="g1">
+      <button mat-icon-button>
+        <mat-icon class="material-icons-outlined">volume_up</mat-icon>
+      </button>
+      <button mat-icon-button>
+        <mat-icon class="material-icons-outlined">speaker_notes</mat-icon>
+      </button>
+    </div>
+    <div class="g2">
+      <button mat-icon-button class="md-36">
+        <mat-icon class="material-icons-outlined">replay_10</mat-icon>
+      </button>
+      <button mat-icon-button class="md-48">
+        <mat-icon class="material-icons-outlined">play_arrow</mat-icon>
+      </button>
+      <button mat-icon-button class="md-36">
+        <mat-icon class="material-icons-outlined">forward_30</mat-icon>
+      </button>
+    </div>
+    <div class="g3">
+      <button mat-icon-button>
+        <mat-icon class="material-icons-outlined">fullscreen</mat-icon>
+      </button>
+      <button mat-icon-button>
+        <mat-icon class="material-icons-outlined">more_horiz</mat-icon>
+      </button>
+    </div>
+  </div>
+</section>
