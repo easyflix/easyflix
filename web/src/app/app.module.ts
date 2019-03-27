@@ -17,6 +17,7 @@ import {FolderComponent} from './folder/folder.component';
 import {SettingsComponent} from './settings/settings.component';
 import { ControlsComponent } from './controls/controls.component';
 import { VideoComponent } from './video/video.component';
+import {VideoService} from './video.service';
 
 @NgModule({
   declarations: [
@@ -37,7 +38,7 @@ import { VideoComponent } from './video/video.component';
     EffectsModule.forRoot([AppEffects]),
     MaterialModule
   ],
-  providers: [],
+  providers: [VideoService],
   bootstrap: [AppComponent],
   entryComponents: [FolderComponent, SettingsComponent]
 })
