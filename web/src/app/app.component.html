@@ -1,10 +1,33 @@
 <mat-sidenav-container>
   <mat-sidenav #sidenav mode="side" (openedStart)="sideNavOpening = true" (closed)="sideNavOpening = false" [(opened)]="sideNavOpened">
-    <app-drawer></app-drawer>
+    <!--<app-drawer></app-drawer>-->
+    <nav class="sidenav-links">
+      <button mat-icon-button [routerLink]="[{ outlets: { sidenav: ['library'] } }]">
+        <mat-icon>video_library</mat-icon>
+      </button>
+      <button mat-icon-button [routerLink]="[{ outlets: { sidenav: ['search'] } }]">
+        <mat-icon>search</mat-icon>
+      </button>
+      <button mat-icon-button [routerLink]="[{ outlets: { sidenav: ['history'] } }]">
+        <mat-icon>history</mat-icon>
+      </button>
+      <button mat-icon-button [routerLink]="[{ outlets: { sidenav: ['settings'] } }]">
+        <mat-icon>settings</mat-icon>
+      </button>
+      <button mat-icon-button [routerLink]="[{ outlets: { sidenav: ['about'] } }]" class="about">
+        <mat-icon>info</mat-icon>
+      </button>
+      <button mat-icon-button>
+        <mat-icon>close</mat-icon>
+      </button>
+    </nav>
+    <mat-divider></mat-divider>
+    <router-outlet name="sidenav"></router-outlet>
   </mat-sidenav>
 
   <mat-sidenav-content>
-    <app-video></app-video>
+    <router-outlet #routerOutlet="outlet"></router-outlet>
+    <!--<app-video></app-video>
     <app-controls
       [sideNavOpening]="sideNavOpening"
       [playing]="playing$ | async"
@@ -17,6 +40,6 @@
       (pause)="pause()"
       (seekForward)="seekForward()"
       (seekBackward)="seekBackward()">
-    </app-controls>
+    </app-controls>-->
   </mat-sidenav-content>
 </mat-sidenav-container>

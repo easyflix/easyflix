@@ -8,8 +8,6 @@ import {MatButton} from '@angular/material';
 })
 export class SettingsComponent  implements OnInit {
 
-  close: EventEmitter<void> = new EventEmitter();
-
   @ViewChild('closeButton')
   closeButton: MatButton;
 

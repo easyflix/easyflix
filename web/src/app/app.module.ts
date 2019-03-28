@@ -14,9 +14,8 @@ import {RouterModule, Routes} from '@angular/router';
 import {HttpClientModule} from '@angular/common/http';
 import {FormsModule} from '@angular/forms';
 import {SharedModule} from './shared/shared.module';
-import {ComponentsModule} from "./components/components.module";
-
-const routes: Routes = [];
+import {ComponentsModule} from './components/components.module';
+import {routes} from './routes';
 
 @NgModule({
   declarations: [

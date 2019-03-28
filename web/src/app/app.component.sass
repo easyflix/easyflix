@@ -7,9 +7,20 @@ mat-sidenav
 mat-sidenav-content
   position: relative
 
-app-controls
-  position: absolute
-  left: 0
-  top: 0
-  right: 0
-  bottom: 0
+.sidenav-links
+  padding: 0 0.6rem
+  display: flex
+  flex-direction: row
+  align-items: center
+  min-height: 60px
+  button:not(:last-of-type)
+    margin-right: 0.6rem
+  .about
+    margin-left: auto
+
+//app-controls
+//  position: absolute
+//  left: 0
+//  top: 0
+//  right: 0
+//  bottom: 0

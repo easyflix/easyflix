@@ -8,6 +8,8 @@ import {SearchComponent} from './search/search.component';
 import {LibraryComponent} from './library/library.component';
 import {HistoryComponent} from './history/history.component';
 import {SharedModule} from '../shared/shared.module';
+import {HomeComponent} from './home/home.component';
+import {AboutComponent} from './about/about.component';
 
 const COMPONENTS = [
   DrawerComponent,
@@ -16,8 +18,10 @@ const COMPONENTS = [
   ControlsComponent,
   VideoComponent,
   SearchComponent,
+  AboutComponent,
   LibraryComponent,
-  HistoryComponent
+  HistoryComponent,
+  HomeComponent
 ];
 
 @NgModule({
