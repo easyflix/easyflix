@@ -7,10 +7,10 @@ import {
   OnInit,
   ViewChild
 } from '@angular/core';
-import {PanelDirective} from "../panel.directive";
-import {FolderComponent} from "../folder/folder.component";
-import {Subscription} from "rxjs";
-import {SettingsComponent} from "../settings/settings.component";
+import {PanelDirective} from '../panel.directive';
+import {FolderComponent} from '../folder/folder.component';
+import {Subscription} from 'rxjs';
+import {SettingsComponent} from '../settings/settings.component';
 
 @Component({
   selector: 'app-drawer',
@@ -24,7 +24,7 @@ export class DrawerComponent implements OnInit {
   isAnimating = false;
   isSettingsOpen = false;
 
-  state: string = 's0';
+  state = 's0';
 
   @ViewChild('panels', {read: PanelDirective})
   panels: PanelDirective;
@@ -88,7 +88,7 @@ export class DrawerComponent implements OnInit {
 
   addPanel(index?: 0 | 1) {
     const componentRef = this.folderFactory.create(this.panels.viewContainerRef.injector);
-    let i = index === undefined ? 0 : index;
+    const i = index === undefined ? 0 : index;
     this.subscriptions[i] = [
       componentRef.instance.next.subscribe(() => this.next()),
       componentRef.instance.prev.subscribe(() => this.prev())
@@ -99,7 +99,7 @@ export class DrawerComponent implements OnInit {
 
   removePanel(index?: 0 | 1) {
     this.panels.viewContainerRef.remove(index);
-    let i = index === undefined ? 1 : index;
+    const i = index === undefined ? 1 : index;
     this.subscriptions[i].forEach(sub => sub.unsubscribe());
   }
 

@@ -1,6 +1,6 @@
 <section class="top">
   <button mat-icon-button (click)="sidenavToggle.emit()">
-    <mat-icon>{{ opening ? 'chevron_left' : 'menu' }}</mat-icon>
+    <mat-icon>{{ sideNavOpening ? 'chevron_left' : 'menu' }}</mat-icon>
   </button>
   <button mat-icon-button class="close">
     <mat-icon>close</mat-icon>
@@ -8,18 +8,28 @@
 </section>
 
 <section class="middle">
-  <button mat-icon-button class="next">
+  <!--<button mat-icon-button class="next">
     <mat-icon>arrow_right</mat-icon>
-  </button>
+  </button>-->
 </section>
 
 <section class="bottom">
   <div class="seeker">
-    <mat-slider></mat-slider>
+    <mat-progress-bar
+      *ngIf="loading"
+      mode="indeterminate"></mat-progress-bar>
+    <mat-slider
+      *ngIf="!loading"
+      color="primary"
+      [step]="1"
+      [disabled]="!duration"
+      [max]="duration"
+      [value]="currentTime"
+      (change)="seekTo.emit($event.value)"></mat-slider>
   </div>
   <div class="time">
-    <span class="left">00:00:00</span>
-    <span class="right">01:45:38</span>
+    <span class="left">{{ currentTime }}</span>
+    <span class="right">{{ duration }}</span>
   </div>
   <div class="controls">
     <div class="g1">
@@ -31,13 +41,16 @@
       </button>
     </div>
     <div class="g2">
-      <button mat-icon-button class="md-36">
+      <button mat-icon-button class="md-36" (click)="seekBackward.emit()">
         <mat-icon class="material-icons-outlined">replay_10</mat-icon>
       </button>
-      <button mat-icon-button class="md-48">
-        <mat-icon class="material-icons-outlined">play_arrow</mat-icon>
+      <button mat-icon-button
+              class="playPause md-48"
+              [disabled]="false"
+              (click)="playing ? pause.emit() : resume.emit()">
+        <mat-icon class="material-icons-outlined">{{ playing ? 'pause' : 'play_arrow' }}</mat-icon>
       </button>
-      <button mat-icon-button class="md-36">
+      <button mat-icon-button class="md-36" (click)="seekForward.emit()">
         <mat-icon class="material-icons-outlined">forward_30</mat-icon>
       </button>
     </div>

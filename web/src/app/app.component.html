@@ -1,13 +1,22 @@
 <mat-sidenav-container>
-  <mat-sidenav #sidenav mode="side" (openedStart)="opening = true" (closed)="opening = false" [(opened)]="opened">
+  <mat-sidenav #sidenav mode="side" (openedStart)="sideNavOpening = true" (closed)="sideNavOpening = false" [(opened)]="sideNavOpened">
     <app-drawer></app-drawer>
   </mat-sidenav>
 
   <mat-sidenav-content>
     <app-video></app-video>
     <app-controls
-      [opening]="opening"
-      (sidenavToggle)="sidenav.toggle()">
+      [sideNavOpening]="sideNavOpening"
+      [playing]="playing$ | async"
+      [currentTime]="currentTime$ | async"
+      [duration]="duration$ | async"
+      [loading]="loading$ | async"
+      (seekTo)="seekTo($event)"
+      (sidenavToggle)="sidenav.toggle()"
+      (resume)="play()"
+      (pause)="pause()"
+      (seekForward)="seekForward()"
+      (seekBackward)="seekBackward()">
     </app-controls>
   </mat-sidenav-content>
 </mat-sidenav-container>

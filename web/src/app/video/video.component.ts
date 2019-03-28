@@ -25,7 +25,7 @@ export class VideoComponent implements OnInit {
     this.video.videoRoot = this.videoRoot;
 
     this.store.dispatch(new SetVideoVolume(0));
-    // this.store.dispatch(new SetVideoSource(videoUrl));
+    this.store.dispatch(new SetVideoSource(videoUrl));
 
   }
 
