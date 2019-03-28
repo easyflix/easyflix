@@ -1,8 +1,7 @@
 import {NgModule} from '@angular/core';
-import {DrawerComponent} from './drawer/drawer.component';
 import {FolderComponent} from './folder/folder.component';
 import {SettingsComponent} from './settings/settings.component';
-import {ControlsComponent} from './controls/controls.component';
+import {ControlsComponent} from './video/controls/controls.component';
 import {VideoComponent} from './video/video.component';
 import {SearchComponent} from './search/search.component';
 import {LibraryComponent} from './library.component';
@@ -13,7 +12,6 @@ import {AboutComponent} from './about/about.component';
 import {SidenavComponent} from './sidenav.component';
 
 const COMPONENTS = [
-  DrawerComponent,
   FolderComponent,
   SettingsComponent,
   ControlsComponent,

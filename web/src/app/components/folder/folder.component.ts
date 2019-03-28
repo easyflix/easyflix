@@ -1,5 +1,5 @@
 import {Component, EventEmitter, OnInit, ViewChild} from '@angular/core';
-import {MatButton} from "@angular/material";
+import {MatButton} from '@angular/material';
 
 @Component({
   selector: 'app-folder',
