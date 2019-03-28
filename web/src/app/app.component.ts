@@ -1,40 +1,55 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnInit, ViewChild} from '@angular/core';
 import {MatSidenav} from '@angular/material';
 import {VideoService} from './services/video.service';
-import {Observable, zip} from 'rxjs';
-import {take} from 'rxjs/operators';
+import {Observable} from 'rxjs';
+import {CoreService} from "./services/core.service";
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.sass']
+  styleUrls: ['./app.component.sass'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent implements OnInit {
 
-  sideNavOpened = true;
+  // sideNavOpened = true;
+
+
   sideNavOpening = false;
 
-  playing$: Observable<boolean>;
-  currentTime$: Observable<number>;
-  duration$: Observable<number>;
-  loading$: Observable<boolean>;
-
+  // playing$: Observable<boolean>;
+  // currentTime$: Observable<number>;
+  // duration$: Observable<number>;
+  // loading$: Observable<boolean>;
+  showSidenav$: Observable<boolean>;
 
   @ViewChild('sidenav')
   sidenav: MatSidenav;
 
-  constructor(private video: VideoService) {
+  constructor(
+    private core: CoreService,
+    // private video: VideoService
+  ) {
 
   }
 
   ngOnInit() {
-    this.playing$ = this.video.getPlaying();
+/*    this.playing$ = this.video.getPlaying();
     this.currentTime$ = this.video.getCurrentTime();
     this.duration$ = this.video.getDuration();
-    this.loading$ = this.video.getLoading();
+    this.loading$ = this.video.getLoading();*/
+    this.showSidenav$ = this.core.getShowSidenav();
   }
 
-  play() {
+  openSidenav() {
+    this.core.openSidenav();
+  }
+
+  closeSidenav() {
+    this.core.closeSidenav();
+  }
+
+/*  play() {
     this.video.play();
   }
 
@@ -60,6 +75,6 @@ export class AppComponent implements OnInit {
     this.currentTime$.pipe(take(1)).subscribe(
       currentTime => this.video.seekTo(Math.max(currentTime - 10, 0))
     );
-  }
+  }*/
 
 }

@@ -10,6 +10,7 @@ import {HistoryComponent} from './history/history.component';
 import {SharedModule} from '../shared/shared.module';
 import {HomeComponent} from './home/home.component';
 import {AboutComponent} from './about/about.component';
+import {SidenavComponent} from './sidenav.component';
 
 const COMPONENTS = [
   DrawerComponent,
@@ -21,7 +22,8 @@ const COMPONENTS = [
   AboutComponent,
   LibraryComponent,
   HistoryComponent,
-  HomeComponent
+  HomeComponent,
+  SidenavComponent
 ];
 
 @NgModule({

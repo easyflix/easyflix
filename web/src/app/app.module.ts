@@ -10,12 +10,13 @@ import {environment} from '../environments/environment';
 import {EffectsModule} from '@ngrx/effects';
 import {AppEffects} from './app.effects';
 import {VideoService} from './services/video.service';
-import {RouterModule, Routes} from '@angular/router';
+import {RouterModule} from '@angular/router';
 import {HttpClientModule} from '@angular/common/http';
 import {FormsModule} from '@angular/forms';
 import {SharedModule} from './shared/shared.module';
 import {ComponentsModule} from './components/components.module';
 import {routes} from './routes';
+import {CoreService} from './services/core.service';
 
 @NgModule({
   declarations: [
@@ -38,7 +39,7 @@ import {routes} from './routes';
     SharedModule,
     ComponentsModule
   ],
-  providers: [VideoService],
+  providers: [CoreService, VideoService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

@@ -6,9 +6,9 @@ import {Store} from '@ngrx/store';
 import * as fromStore from '../reducers';
 import {SetVideoDuration, SetVideoLoading, SetVideoMuted, SetVideoPlaying, SetVideoVolume} from '../actions/video.actions';
 
-@Injectable({
+@Injectable(/*{
   providedIn: 'root'
-})
+}*/)
 export class VideoService {
 
   public renderer: Renderer2;

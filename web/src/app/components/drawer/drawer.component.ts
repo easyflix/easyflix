@@ -58,7 +58,7 @@ export class DrawerComponent implements OnInit {
       this.isAnimating = true;
       this.state = 's-left';
       const settingsRef = this.settingsFactory.create(this.panels.viewContainerRef.injector);
-      this.closeSettingsSubscription = settingsRef.instance.close.subscribe(() => this.closeSettings());
+      // this.closeSettingsSubscription = settingsRef.instance.close.subscribe(() => this.closeSettings());
       this.panels.viewContainerRef.insert(settingsRef.hostView, 0);
       setTimeout(() => {
         this.isAnimating = false;

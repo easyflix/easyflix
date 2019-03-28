@@ -1,5 +1,4 @@
 import {NgModule} from '@angular/core';
-import {CommonModule} from '@angular/common';
 import {HttpClientModule} from '@angular/common/http';
 import {FormsModule} from '@angular/forms';
 import {BrowserModule} from '@angular/platform-browser';
@@ -13,11 +12,10 @@ import {DirectivesModule} from './directives.module';
 
 export const SHARED_MODULES = [
   // Angular Modules
-  CommonModule,
-  HttpClientModule,
-  FormsModule,
   BrowserModule,
   BrowserAnimationsModule,
+  FormsModule,
+  HttpClientModule,
   RouterModule,
 
   // My Modules
