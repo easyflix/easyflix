@@ -1,7 +1,7 @@
 import {Directive, ViewContainerRef} from '@angular/core';
 
 @Directive({
-  selector: '[app-panels]'
+  selector: '[appPanels]'
 })
 export class PanelDirective {
 

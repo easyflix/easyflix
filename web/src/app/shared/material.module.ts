@@ -1,9 +1,6 @@
-import {Injectable, NgModule} from '@angular/core';
-import {HAMMER_GESTURE_CONFIG} from '@angular/platform-browser';
+import {NgModule} from '@angular/core';
 import {BreakpointObserver} from '@angular/cdk/layout';
 import {
-  GestureConfig,
-  HammerManager,
   MatButtonModule,
   MatCheckboxModule,
   MatChipsModule,
@@ -29,15 +26,6 @@ import {
   MatToolbarModule,
   MatTooltipModule
 } from '@angular/material';
-
-@Injectable()
-export class MyHammerConfig extends GestureConfig {
-  buildHammer(element: HTMLElement) {
-    const mc = <HammerManager>super.buildHammer(element);
-    mc.set({ touchAction: 'pan-y' });
-    return mc;
-  }
-}
 
 const MATERIAL_MODULES = [
   MatButtonModule,
@@ -70,10 +58,6 @@ const MATERIAL_MODULES = [
   imports: MATERIAL_MODULES,
   exports: MATERIAL_MODULES,
   providers: [
-    {
-      provide: HAMMER_GESTURE_CONFIG,
-      useClass: MyHammerConfig
-    },
     BreakpointObserver
   ]
 })

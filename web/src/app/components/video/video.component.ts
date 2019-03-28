@@ -1,8 +1,8 @@
 import {Component, ElementRef, OnInit, Renderer2} from '@angular/core';
-import {VideoService} from '../video.service';
+import {VideoService} from '../../services/video.service';
 import {Store} from '@ngrx/store';
-import * as fromStore from '../reducers/index';
-import {SetVideoSource, SetVideoVolume} from '../video.actions';
+import * as fromStore from '../../reducers';
+import {SetVideoSource, SetVideoVolume} from '../../actions/video.actions';
 
 @Component({
   selector: 'app-video',

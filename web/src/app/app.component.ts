@@ -1,8 +1,8 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {MatSidenav} from '@angular/material';
-import {VideoService} from './video.service';
+import {VideoService} from './services/video.service';
 import {Observable, zip} from 'rxjs';
-import {combineAll, take} from 'rxjs/operators';
+import {take} from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',

@@ -1,7 +1,7 @@
 /**
  * State
  */
-import {VideoActionsUnion, VideoActionTypes} from '../video.actions';
+import {VideoActionsUnion, VideoActionTypes} from '../actions/video.actions';
 
 export interface State {
   videoInput: {

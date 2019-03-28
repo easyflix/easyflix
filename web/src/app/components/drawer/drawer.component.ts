@@ -7,7 +7,7 @@ import {
   OnInit,
   ViewChild
 } from '@angular/core';
-import {PanelDirective} from '../panel.directive';
+import {PanelDirective} from '../../shared/directives/panel.directive';
 import {FolderComponent} from '../folder/folder.component';
 import {Subscription} from 'rxjs';
 import {SettingsComponent} from '../settings/settings.component';
@@ -26,7 +26,7 @@ export class DrawerComponent implements OnInit {
 
   state = 's0';
 
-  @ViewChild('panels', {read: PanelDirective})
+  @ViewChild('myPanels', {read: PanelDirective})
   panels: PanelDirective;
 
   folderFactory: ComponentFactory<FolderComponent>;

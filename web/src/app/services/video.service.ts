@@ -3,8 +3,8 @@ import {Observable, Subject} from 'rxjs';
 import {filter, map, publishReplay, refCount, throttleTime} from 'rxjs/operators';
 import {Store} from '@ngrx/store';
 
-import * as fromStore from './reducers/index';
-import {SetVideoDuration, SetVideoLoading, SetVideoMuted, SetVideoPlaying, SetVideoVolume} from './video.actions';
+import * as fromStore from '../reducers';
+import {SetVideoDuration, SetVideoLoading, SetVideoMuted, SetVideoPlaying, SetVideoVolume} from '../actions/video.actions';
 
 @Injectable({
   providedIn: 'root'

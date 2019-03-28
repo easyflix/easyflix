@@ -1,7 +1,7 @@
 /**
  * State
  */
-import {CoreActionsUnion, CoreActionTypes} from '../core.actions';
+import {CoreActionsUnion, CoreActionTypes} from '../actions/core.actions';
 
 export interface State {
   showSidenav: boolean;
