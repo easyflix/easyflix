@@ -1,8 +1,7 @@
-import {ChangeDetectionStrategy, Component, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, HostListener, OnInit, ViewChild} from '@angular/core';
 import {MatSidenav} from '@angular/material';
-import {VideoService} from './services/video.service';
 import {Observable} from 'rxjs';
-import {CoreService} from "./services/core.service";
+import {CoreService} from './services/core.service';
 
 @Component({
   selector: 'app-root',
@@ -45,8 +44,14 @@ export class AppComponent implements OnInit {
     this.core.openSidenav();
   }
 
+  @HostListener('document:keyup.escape')
   closeSidenav() {
     this.core.closeSidenav();
+  }
+
+  @HostListener('document:keyup.²')
+  toggleSidenav() {
+    this.core.toggleSidenav();
   }
 
 /*  play() {

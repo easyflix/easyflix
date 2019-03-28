@@ -27,6 +27,11 @@ import {ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output} from '
     <router-outlet name="nav"></router-outlet>
   `,
   styles: [`
+    :host {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
     nav {
       padding: 0 0.6rem;
       display: flex;

@@ -5,7 +5,7 @@ import {SettingsComponent} from './settings/settings.component';
 import {ControlsComponent} from './controls/controls.component';
 import {VideoComponent} from './video/video.component';
 import {SearchComponent} from './search/search.component';
-import {LibraryComponent} from './library/library.component';
+import {LibraryComponent} from './library.component';
 import {HistoryComponent} from './history/history.component';
 import {SharedModule} from '../shared/shared.module';
 import {HomeComponent} from './home/home.component';

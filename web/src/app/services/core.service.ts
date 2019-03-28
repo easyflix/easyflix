@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {Store} from '@ngrx/store';
 import * as fromStore from '../reducers';
 import {Observable} from 'rxjs';
-import {CloseSidenav, OpenSidenav} from '../actions/core.actions';
+import {CloseSidenav, OpenSidenav, ToggleSidenav} from '../actions/core.actions';
 
 @Injectable(/*{
   providedIn: 'root'
@@ -25,6 +25,10 @@ export class CoreService {
 
   closeSidenav() {
     this.store.dispatch(new CloseSidenav());
+  }
+
+  toggleSidenav() {
+    this.store.dispatch(new ToggleSidenav());
   }
 
 }
