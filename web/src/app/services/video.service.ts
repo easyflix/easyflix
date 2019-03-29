@@ -4,7 +4,14 @@ import {filter, map, publishReplay, refCount, throttleTime} from 'rxjs/operators
 import {Store} from '@ngrx/store';
 
 import * as fromStore from '../reducers';
-import {SetVideoDuration, SetVideoLoading, SetVideoMuted, SetVideoPlaying, SetVideoVolume} from '../actions/video.actions';
+import {
+  SetVideoDuration,
+  SetVideoLoading,
+  SetVideoMuted,
+  SetVideoPlaying,
+  SetVideoSource,
+  SetVideoVolume
+} from '../actions/video.actions';
 
 @Injectable()
 export class VideoService {
@@ -45,10 +52,14 @@ export class VideoService {
   }
 
   seekTo(time: number) {
-    this.videoElement.currentTime = time;
-    if (!this.isTimeInBuffer(time)) {
+    /*if (!this.isTimeInBuffer(time)) {
       this.store.dispatch(new SetVideoLoading(true));
-    }
+    }*/
+    this.videoElement.currentTime = time;
+  }
+
+  setSource(videoUrl: string) {
+    this.store.dispatch(new SetVideoSource(videoUrl));
   }
 
   setMuted(muted: boolean) {
@@ -87,14 +98,14 @@ export class VideoService {
     return this.ended$;
   }
 
-  private isTimeInBuffer(time: number): boolean {
-    for (let i = 0; i < this.videoElement.buffered.length; i++) {
-      if (time >= this.videoElement.buffered.start(i) && time <= this.videoElement.buffered.end(i)) {
-        return true;
-      }
-    }
-    return false;
-  }
+  // private isTimeInBuffer(time: number): boolean {
+  //   for (let i = 0; i < this.videoElement.buffered.length; i++) {
+  //     if (time >= this.videoElement.buffered.start(i) && time <= this.videoElement.buffered.end(i)) {
+  //       return true;
+  //     }
+  //   }
+  //   return false;
+  // }
 
   private setVideo(src: string, volume: number) {
     if (this.videoElement && this.videoElement.src === src) {
@@ -124,10 +135,13 @@ export class VideoService {
     this.listeners.push(
       this.renderer.listen(video, 'loadedmetadata', (event) =>  this.store.dispatch(new SetVideoDuration(event.target.duration))),
       this.renderer.listen(video, 'timeupdate', (event) => this.currentTimeSubject.next(event.target.currentTime)),
+      this.renderer.listen(video, 'play', () => this.store.dispatch(new SetVideoPlaying(true))),
       this.renderer.listen(video, 'playing', () => this.store.dispatch(new SetVideoPlaying(true))),
       this.renderer.listen(video, 'pause', () => this.store.dispatch(new SetVideoPlaying(false))),
       this.renderer.listen(video, 'ended', () => this.store.dispatch(new SetVideoPlaying(false))),
       this.renderer.listen(video, 'canplay', () => this.store.dispatch(new SetVideoLoading(false))),
+      this.renderer.listen(video, 'canplaythrough', () => this.store.dispatch(new SetVideoLoading(false))),
+      this.renderer.listen(video, 'waiting', () => this.store.dispatch(new SetVideoLoading(true))),
       this.renderer.listen(video, 'ended', () => this.endedSubject.next()),
       this.renderer.listen(video, 'error', (event) => {
         console.error('An video error occurred!', event);

@@ -30,5 +30,6 @@ interface ILibrary extends GenericFile, INumberOfVideos {
  *
  */
 export type File = IFolder | IFile;
+export type URLFile = IFile;
 export type Library = ILibrary;
 export type Folder = IFolder | ILibrary;

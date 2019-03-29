@@ -13,8 +13,8 @@ export class FilesService {
   testUrl = 'http://127.0.0.1:8887/Captain.Fantastic.2016.1080p.BluRay.6CH.ShAaNiG.mkv?static=1';
 
   files: File[] = [
-    { path: '/f/movie2.mkv', name: 'movie2.mkv', parent: '/f', type: 'file', size: 1, url: this.testUrl },
-    { path: '/f/movie1.mkv', name: 'movie1.mkv', parent: '/f', type: 'file', size: 1, url: this.testUrl },
+    { path: '/f/movie2.mkv', name: 'movie2.mkv', parent: '/f', type: 'file', size: 1, url: 'http://127.0.0.1:8887/Assassins.Creed.2016.1080p.BluRay.x265.ShAaNiG.mkv?static=1' },
+    { path: '/f/movie1.mkv', name: 'movie1.mkv', parent: '/f', type: 'file', size: 1, url: 'http://127.0.0.1:8887/Alice%20Au%20Pays%20Des%20Merveilles%20-%20Multi%20-%201080p%20mHDgz.mkv?static=1' },
     { path: '/f/subfolder', name: 'subfolder', parent: '/f', type: 'folder', numberOfVideos: 2 },
     { path: '/f/subfolder/sub-movie1.mkv', name: 'sub-movie1.mkv', parent: '/f/subfolder', type: 'file', size: 1, url: this.testUrl },
     { path: '/f/subfolder/sub-movie2.mkv', name: 'sub-movie2.mkv', parent: '/f/subfolder', type: 'file', size: 1, url: this.testUrl },

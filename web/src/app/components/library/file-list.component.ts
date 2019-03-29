@@ -4,23 +4,24 @@ import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 
 import {FilesService} from '@app/services/files.service';
-import {File, Folder} from '@app/models/file';
+import {File, Folder, URLFile} from '@app/models/file';
+import {VideoService} from '@app/services/video.service';
 
 @Component({
   selector: 'app-folder',
   template: `
     <mat-action-list dense>
-      <button mat-list-item (click)="prev.emit()" #back>
+      <button mat-list-item (click)='prev.emit()' #back>
         <mat-icon matListIcon>chevron_left</mat-icon>
         <p matLine>Back</p>
         <p matLine></p>
         <mat-divider></mat-divider>
       </button>
-      <ng-template ngFor let-file [ngForOf]="folders$ | async">
-        <mat-list-item tabindex="0"
-                       (click)="next.emit(file)"
-                       (keyup.space)="next.emit(file)"
-                       (keyup.enter)="next.emit(file)">
+      <ng-template ngFor let-file [ngForOf]='folders$ | async'>
+        <mat-list-item tabindex='0'
+                       (click)='next.emit(file)'
+                       (keyup.space)='next.emit(file)'
+                       (keyup.enter)='next.emit(file)'>
           <mat-icon matListIcon>
             folder
           </mat-icon>
@@ -32,9 +33,10 @@ import {File, Folder} from '@app/models/file';
           <mat-divider></mat-divider>
         </mat-list-item>
       </ng-template>
-      <ng-template ngFor let-file [ngForOf]="files$ | async">
-        <mat-list-item tabindex="0">
-          <mat-icon matListIcon class="material-icons-outlined">
+      <ng-template ngFor let-file [ngForOf]='files$ | async'>
+        <mat-list-item tabindex='0'
+                       (click)='playFile(file)'>
+          <mat-icon matListIcon class='material-icons-outlined'>
             movie
           </mat-icon>
           <h3 matLine>{{ file.name }}</h3>
@@ -80,22 +82,28 @@ export class FileListComponent implements OnInit {
   prev: EventEmitter<void> = new EventEmitter();
 
   folders$: Observable<Folder[]>;
-  files$: Observable<File[]>;
+  files$: Observable<URLFile[]>;
   current: Folder;
 
   @ViewChild('back')
   back: MatButton;
 
-  constructor(private filesService: FilesService) {
-  }
+  constructor(
+    private filesService: FilesService,
+    private video: VideoService
+  ) {}
 
   ngOnInit() {
     this.files$ = this.filesService.getFiles(this.current).pipe(
-      map(files => files.filter(f => f.type === 'file'))
+      map(files => files.filter(f => f.type === 'file') as URLFile[])
     );
     this.folders$ = this.filesService.getFiles(this.current).pipe(
       map(files => files.filter(f => f.type === 'folder') as Folder[])
     );
+  }
+
+  playFile(file: URLFile) {
+    this.video.setSource(file.url);
   }
 
   focus() {

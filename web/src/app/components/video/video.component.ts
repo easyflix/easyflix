@@ -19,13 +19,11 @@ export class VideoComponent implements OnInit {
   duration$: Observable<number>;
   loading$: Observable<boolean>;
 
-  @ViewChild('videoContainer')
-  videoContainerRef: ElementRef;
-
   constructor(
     private core: CoreService,
     private video: VideoService,
     private renderer: Renderer2,
+    private rootRef: ElementRef,
     private store: Store<fromStore.State>
   ) { }
 
@@ -33,7 +31,7 @@ export class VideoComponent implements OnInit {
     const videoUrl =
       'http://127.0.0.1:8887/Atlantide%20L\'empire%20Perdu%20-%20Multi%20-%201080p%20mHDgz.mkv?static=1';
     this.video.renderer = this.renderer;
-    this.video.videoRoot = this.videoContainerRef;
+    this.video.videoRoot = this.rootRef;
 
     this.store.dispatch(new SetVideoVolume(0));
     this.store.dispatch(new SetVideoSource(videoUrl));
