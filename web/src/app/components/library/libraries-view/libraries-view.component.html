@@ -6,7 +6,7 @@
       </mat-icon>
       <h3 matLine>{{ library.name }}</h3>
       <p matLine>
-        <span>12 videos</span>
+        <span>{{ library.numberOfVideos }} videos</span>
       </p>
       <button mat-icon-button (click)="openLibrary.emit(library)">
         <mat-icon>chevron_right</mat-icon>

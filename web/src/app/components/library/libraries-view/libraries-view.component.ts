@@ -1,7 +1,7 @@
 import {Component, EventEmitter, OnInit} from '@angular/core';
 import {FilesService} from '@app/services/files.service';
 import {Observable} from 'rxjs';
-import {Library} from '@app/models/library';
+import {Library} from '@app/models/file';
 
 @Component({
   selector: 'app-libraries-view',

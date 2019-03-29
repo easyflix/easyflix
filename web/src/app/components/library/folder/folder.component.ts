@@ -1,10 +1,10 @@
-import {AfterViewInit, Component, EventEmitter, OnInit, ViewChild} from '@angular/core';
+import {Component, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {MatButton} from '@angular/material';
 import {Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
 
 import {FilesService} from '@app/services/files.service';
-import {File} from '@app/models/file';
-import {Folder} from '@app/models/folder';
+import {File, Folder} from '@app/models/file';
 
 @Component({
   selector: 'app-folder',
@@ -16,6 +16,7 @@ export class FolderComponent implements OnInit {
   next: EventEmitter<Folder> = new EventEmitter();
   prev: EventEmitter<void> = new EventEmitter();
 
+  folders$: Observable<Folder[]>;
   files$: Observable<File[]>;
   current: Folder;
 
@@ -26,8 +27,12 @@ export class FolderComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.files$ = this.filesService.getFiles(this.current);
-    console.log(this.current);
+    this.files$ = this.filesService.getFiles(this.current).pipe(
+      map(files => files.filter(f => f.type === 'file'))
+    );
+    this.folders$ = this.filesService.getFiles(this.current).pipe(
+      map(files => files.filter(f => f.type === 'folder') as Folder[])
+    );
   }
 
   focus() {

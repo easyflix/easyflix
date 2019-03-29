@@ -4,98 +4,35 @@
   </button>
   <span>..</span>
 </div>
+
 <mat-divider></mat-divider>
 
 <mat-list dense>
-  <!--<mat-list-item>
-    <mat-icon matListIcon>folder</mat-icon>
-    <h3 matLine> Folder 1 </h3>
-    <p matLine>
-      <span>32 movies</span>
-    </p>
-    <button mat-icon-button (click)="next.emit()">
-      <mat-icon>chevron_right</mat-icon>
-    </button>
-  </mat-list-item>
-  <mat-divider></mat-divider>
-  <mat-list-item>
-    <mat-icon matListIcon>folder</mat-icon>
-    <h3 matLine> Folder 2 </h3>
-    <p matLine>
-      <span>32 movies</span>
-    </p>
-    <button mat-icon-button (click)="next.emit()">
-      <mat-icon>chevron_right</mat-icon>
-    </button>
-  </mat-list-item>
-  <mat-divider></mat-divider>
-
-  <mat-list-item>
-    <mat-icon matListIcon>folder</mat-icon>
-    <h3 matLine> Folder 3 </h3>
-    <p matLine>
-      <span>32 movies</span>
-    </p>
-    <button mat-icon-button (click)="next.emit()">
-      <mat-icon>chevron_right</mat-icon>
-    </button>
-  </mat-list-item>
-  <mat-divider></mat-divider>
-
-  <mat-list-item>
-    <mat-icon matListIcon class="material-icons-outlined">
-      movie
-    </mat-icon>
-    <h3 matLine> Movie 1 </h3>
-    <p matLine>
-      <span>2Go</span>
-    </p>
-  </mat-list-item>
-  <mat-divider></mat-divider>
-  <mat-list-item>
-    <mat-icon matListIcon class="material-icons-outlined">
-      movie
-    </mat-icon>
-    <h3 matLine> Movie 2 </h3>
-    <p matLine>
-      <span>2Go</span>
-    </p>
-  </mat-list-item>
-  <mat-divider></mat-divider>
-  <mat-list-item>
-    <mat-icon matListIcon class="material-icons-outlined">
-      movie
-    </mat-icon>
-    <h3 matLine> Movie 3 </h3>
-    <p matLine>
-      <span>2Go</span>
-    </p>
-  </mat-list-item>-->
-
-  <ng-template ngFor let-file [ngForOf]="files$ | async" let-i="index">
-    <mat-list-item *ngIf="file.isDirectory">
+  <ng-template ngFor let-file [ngForOf]="folders$ | async">
+    <mat-list-item>
       <mat-icon matListIcon>
         folder
       </mat-icon>
-      <h3 matLine>{{ file.path }}</h3>
+      <h3 matLine>{{ file.name }}</h3>
       <p matLine>
-        <span>2Go</span>
+        <span>{{ file.numberOfVideos }} videos</span>
       </p>
       <button mat-icon-button (click)="next.emit(file)">
         <mat-icon>chevron_right</mat-icon>
       </button>
       <mat-divider></mat-divider>
     </mat-list-item>
-    <mat-list-item *ngIf="!file.isDirectory">
+  </ng-template>
+  <ng-template ngFor let-file [ngForOf]="files$ | async">
+    <mat-list-item>
       <mat-icon matListIcon class="material-icons-outlined">
         movie
       </mat-icon>
-      <h3 matLine>{{ file.path }}</h3>
+      <h3 matLine>{{ file.name }}</h3>
       <p matLine>
-        <span>2Go</span>
+        <span>{{ file.size }} ko : {{ file.url }}</span>
       </p>
       <mat-divider></mat-divider>
     </mat-list-item>
   </ng-template>
-
 </mat-list>

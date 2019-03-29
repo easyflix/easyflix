@@ -13,7 +13,7 @@ import {PanelDirective} from '@app/shared/directives/panel.directive';
 import {FolderComponent} from './folder/folder.component';
 import {Subscription} from 'rxjs';
 import {LibrariesViewComponent} from './libraries-view/libraries-view.component';
-import {Folder} from '@app/models/folder';
+import {Folder, Library} from '@app/models/file';
 
 @Component({
   selector: 'app-library',
@@ -85,9 +85,8 @@ export class LibraryComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.libraries = this.librariesFactory.create(this.panels.viewContainerRef.injector);
-    this.librariesSub = this.libraries.instance.openLibrary.subscribe(library => {
-      this.create(library);
-    });
+    this.librariesSub =
+      this.libraries.instance.openLibrary.subscribe(library => this.create(library));
     this.panels.viewContainerRef.insert(this.libraries.hostView, 0);
   }
 
