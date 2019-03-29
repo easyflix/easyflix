@@ -5,6 +5,7 @@ import {LibraryComponent} from './components/library/library.component';
 import {SettingsComponent} from './components/settings/settings.component';
 import {SearchComponent} from './components/search/search.component';
 import {AboutComponent} from './components/about/about.component';
+import {VideoComponent} from './components/video/video.component';
 
 const navOutletName = 'nav';
 
@@ -12,6 +13,7 @@ export const routes: Routes = [
   { path: '', redirectTo: '/home(nav:library)', pathMatch: 'full' },
   { path: 'home', component: HomeComponent },
   { path: 'history', component: HistoryComponent },
+  { path: 'player', component: VideoComponent },
   { path: 'library', component: LibraryComponent, outlet: navOutletName },
   { path: 'search', component: SearchComponent, outlet: navOutletName },
   { path: 'history', component: HistoryComponent, outlet: navOutletName },

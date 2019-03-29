@@ -7,13 +7,17 @@ import {Library} from '@app/models/file';
 @Component({
   selector: 'app-libraries-view',
   template: `
+    <header>
+      <h2>Video Libraries</h2>
+    </header>
+    <mat-divider></mat-divider>
     <mat-action-list dense>
       <ng-template ngFor let-library [ngForOf]="libraries$ | async">
         <mat-list-item tabindex="0"
                        (click)="openLibrary.emit(library)"
                        (keyup.space)="openLibrary.emit(library)"
                        (keyup.enter)="openLibrary.emit(library)">
-          <mat-icon matListIcon>
+          <mat-icon matListIcon class="material-icons-outlined">
             video_library
           </mat-icon>
           <h3 matLine>{{ library.name }}</h3>
@@ -25,7 +29,7 @@ import {Library} from '@app/models/file';
         </mat-list-item>
       </ng-template>
       <mat-list-item tabindex="0">
-        <mat-icon matListIcon>
+        <mat-icon matListIcon class="material-icons-outlined">
           library_add
         </mat-icon>
         <h3 matLine>Add a library</h3>
@@ -40,6 +44,13 @@ import {Library} from '@app/models/file';
       min-width: 50%;
       display: flex;
       flex-direction: column;
+    }
+    h2 {
+      height: 59px;
+      font-size: 18px;
+      margin: 0 0 0 1.25rem;
+      display: flex;
+      align-items: center;
     }
     mat-action-list {
       padding: 0 !important;

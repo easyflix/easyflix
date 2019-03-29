@@ -28,9 +28,7 @@ import {File, Folder} from '@app/models/file';
           <p matLine>
             <span>{{ file.numberOfVideos }} videos</span>
           </p>
-          <button mat-icon-button (click)="next.emit(file); $event.stopPropagation()">
-            <mat-icon>chevron_right</mat-icon>
-          </button>
+          <mat-icon>chevron_right</mat-icon>
           <mat-divider></mat-divider>
         </mat-list-item>
       </ng-template>

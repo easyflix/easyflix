@@ -8,10 +8,9 @@ import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output}
 })
 export class ControlsComponent implements OnInit {
 
-  @Input() sideNavOpening: boolean;
   @Input() playing: boolean;
 
-  @Output() sidenavToggle: EventEmitter<void> = new EventEmitter();
+  @Output() openSidenav: EventEmitter<void> = new EventEmitter();
   @Output() pause: EventEmitter<void> = new EventEmitter();
   @Output() resume: EventEmitter<void> = new EventEmitter();
   @Output() seekForward: EventEmitter<void> = new EventEmitter();

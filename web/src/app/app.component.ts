@@ -11,15 +11,7 @@ import {CoreService} from './services/core.service';
 })
 export class AppComponent implements OnInit {
 
-  // sideNavOpened = true;
-
-
   sideNavOpening = false;
-
-  // playing$: Observable<boolean>;
-  // currentTime$: Observable<number>;
-  // duration$: Observable<number>;
-  // loading$: Observable<boolean>;
   showSidenav$: Observable<boolean>;
 
   @ViewChild('sidenav')

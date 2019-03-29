@@ -1,0 +1,13 @@
+<div #videoContainer></div>
+<app-controls
+  [playing]="playing$ | async"
+  [currentTime]="currentTime$ | async"
+  [duration]="duration$ | async"
+  [loading]="loading$ | async"
+  (seekTo)="seekTo($event)"
+  (openSidenav)="openSidenav()"
+  (resume)="play()"
+  (pause)="pause()"
+  (seekForward)="seekForward()"
+  (seekBackward)="seekBackward()">
+</app-controls>
