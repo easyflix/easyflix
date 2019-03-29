@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, EventEmitter, OnInit} from '@angular/core';
 import {FilesService} from '@app/services/files.service';
 import {Observable} from 'rxjs';
 import {Library} from '@app/models/library';
@@ -11,6 +11,8 @@ import {Library} from '@app/models/library';
 export class LibrariesViewComponent implements OnInit {
 
   libraries$: Observable<Library[]>;
+
+  openLibrary: EventEmitter<Library> = new EventEmitter();
 
   constructor(private filesService: FilesService) {
     this.libraries$ = this.filesService.getLibraries();

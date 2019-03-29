@@ -1,9 +1,6 @@
-import {Library} from '@app/models/library';
-
 export interface File {
-  isDirectory: boolean;
   path: string;
-  parent: string | Library;
+  parent: string;
+  isDirectory: boolean;
   size?: number;
-  lastModified: Date;
 }

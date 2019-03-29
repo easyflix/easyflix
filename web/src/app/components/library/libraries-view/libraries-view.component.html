@@ -8,10 +8,18 @@
       <p matLine>
         <span>12 videos</span>
       </p>
-      <button mat-icon-button (click)="next.emit()">
+      <button mat-icon-button (click)="openLibrary.emit(library)">
         <mat-icon>chevron_right</mat-icon>
       </button>
       <mat-divider></mat-divider>
     </mat-list-item>
   </ng-template>
+  <mat-list-item>
+    <mat-icon matListIcon>
+      library_add
+    </mat-icon>
+    <h3 matLine>Add a library</h3>
+    <p matLine></p>
+    <mat-divider></mat-divider>
+  </mat-list-item>
 </mat-list>
