@@ -1,5 +1,5 @@
 import {NgModule} from '@angular/core';
-import {FolderComponent} from './library/folder/folder.component';
+import {FileListComponent} from './library/file-list.component';
 import {SettingsComponent} from './settings/settings.component';
 import {ControlsComponent} from './video/controls/controls.component';
 import {VideoComponent} from './video/video.component';
@@ -10,10 +10,10 @@ import {SharedModule} from '../shared/shared.module';
 import {HomeComponent} from './home/home.component';
 import {AboutComponent} from './about/about.component';
 import {SidenavComponent} from './sidenav.component';
-import {LibrariesViewComponent} from './library/libraries-view/libraries-view.component';
+import {LibraryListComponent} from './library/library-list.component';
 
 const COMPONENTS = [
-  FolderComponent,
+  FileListComponent,
   SettingsComponent,
   ControlsComponent,
   VideoComponent,
@@ -23,7 +23,7 @@ const COMPONENTS = [
   HistoryComponent,
   HomeComponent,
   SidenavComponent,
-  LibrariesViewComponent
+  LibraryListComponent
 ];
 
 @NgModule({
@@ -31,8 +31,8 @@ const COMPONENTS = [
   declarations: COMPONENTS,
   exports: COMPONENTS,
   entryComponents: [
-    LibrariesViewComponent,
-    FolderComponent
+    LibraryListComponent,
+    FileListComponent
   ]
 })
 export class ComponentsModule {}

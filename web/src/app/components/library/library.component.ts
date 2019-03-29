@@ -10,10 +10,10 @@ import {
   ViewChild
 } from '@angular/core';
 import {PanelDirective} from '@app/shared/directives/panel.directive';
-import {FolderComponent} from './folder/folder.component';
+import {FileListComponent} from './file-list.component';
 import {Subscription} from 'rxjs';
-import {LibrariesViewComponent} from './libraries-view/libraries-view.component';
-import {Folder, Library} from '@app/models/file';
+import {LibraryListComponent} from './library-list.component';
+import {Folder} from '@app/models/file';
 
 @Component({
   selector: 'app-library',
@@ -67,20 +67,20 @@ export class LibraryComponent implements OnInit, OnDestroy {
   @ViewChild('myPanels', {read: PanelDirective})
   panels: PanelDirective;
 
-  libraries: ComponentRef<LibrariesViewComponent>;
+  libraries: ComponentRef<LibraryListComponent>;
   librariesSub: Subscription;
 
   subscriptions: [Subscription[], Subscription[]] = [[], []];
 
-  private readonly folderFactory: ComponentFactory<FolderComponent>;
-  private readonly librariesFactory: ComponentFactory<LibrariesViewComponent>;
+  private readonly folderFactory: ComponentFactory<FileListComponent>;
+  private readonly librariesFactory: ComponentFactory<LibraryListComponent>;
 
   constructor(
     private cdRef: ChangeDetectorRef,
     private componentFactoryResolver: ComponentFactoryResolver
   ) {
-    this.folderFactory = this.componentFactoryResolver.resolveComponentFactory(FolderComponent);
-    this.librariesFactory = this.componentFactoryResolver.resolveComponentFactory(LibrariesViewComponent);
+    this.folderFactory = this.componentFactoryResolver.resolveComponentFactory(FileListComponent);
+    this.librariesFactory = this.componentFactoryResolver.resolveComponentFactory(LibraryListComponent);
   }
 
   ngOnInit() {
@@ -94,25 +94,9 @@ export class LibraryComponent implements OnInit, OnDestroy {
     this.librariesSub.unsubscribe();
   }
 
-/*  createLibrary(library: Library) {
-    const folderRef = this.folderFactory.create(this.panels.viewContainerRef.injector);
-    folderRef.instance.current = library;
-    folderRef.instance.prev.subscribe(() => this.closeTo(this.libraries));
-    folderRef.instance.next.subscribe(f => this.createFolder(f, folderRef));
-    this.openTo(folderRef);
-  }
-
-  createFolder<T>(folder: File, parentRef: ComponentRef<T>) {
-    const folderRef = this.folderFactory.create(this.panels.viewContainerRef.injector);
-    folderRef.instance.current = folder;
-    folderRef.instance.prev.subscribe(() => this.closeTo(parentRef));
-    folderRef.instance.next.subscribe(f => this.createFolder(f, folderRef));
-    this.openTo(folderRef);
-  }*/
-
   create(
-      folder: Folder,
-      parentRef: ComponentRef<LibrariesViewComponent | FolderComponent> = this.libraries
+    folder: Folder,
+    parentRef: ComponentRef<LibraryListComponent | FileListComponent> = this.libraries
   ) {
     const folderRef = this.folderFactory.create(this.panels.viewContainerRef.injector);
     folderRef.instance.current = folder;
@@ -128,23 +112,6 @@ export class LibraryComponent implements OnInit, OnDestroy {
   closeTo<T>(component: ComponentRef<T>) {
     this.animateTo(component, false, false);
   }
-
-  // addPanel<T>(componentRef: ComponentRef<T>, index: 0 | 1 = 0) {
-  //   // const componentRef = this.folderFactory.create(this.panels.viewContainerRef.injector);
-  //   // const i = index === undefined ? 0 : index;
-  //   // this.subscriptions[i] = [
-  //   //   componentRef.instance.next.subscribe(() => this.next()),
-  //   //   componentRef.instance.prev.subscribe(() => this.prev())
-  //   // ];
-  //   this.panels.viewContainerRef.insert(componentRef.hostView, index);
-  //   // setTimeout(() => componentRef.instance.focus(), this.DRAWER_ANIMATION_TIME);
-  // }
-  //
-  // removePanel(index: 0 | 1 = 1) {
-  //   this.panels.viewContainerRef.remove(index);
-  //   // const i = index === undefined ? 1 : index;
-  //   // this.subscriptions[i].forEach(sub => sub.unsubscribe());
-  // }
 
   /**
    * Creates a new component and animates the transition to it
@@ -167,33 +134,5 @@ export class LibraryComponent implements OnInit, OnDestroy {
       }, this.DRAWER_ANIMATION_TIME);
     }
   }
-
-  // next() {
-  //   if (!this.isAnimating) {
-  //     this.isAnimating = true;
-  //     this.state = 's-right';
-  //     this.addPanel(1);
-  //     setTimeout(() => {
-  //       this.isAnimating = false;
-  //       this.state = 's0';
-  //       this.removePanel(0);
-  //       this.cdRef.detectChanges();
-  //     }, this.DRAWER_ANIMATION_TIME);
-  //   }
-  // }
-  //
-  // prev() {
-  //   if (!this.isAnimating) {
-  //     this.isAnimating = true;
-  //     this.state = 's-left';
-  //     this.addPanel(0);
-  //     setTimeout(() => {
-  //       this.isAnimating = false;
-  //       this.state = 's0';
-  //       this.removePanel(1);
-  //       this.cdRef.detectChanges();
-  //     }, this.DRAWER_ANIMATION_TIME);
-  //   }
-  // }
 
 }
