@@ -3,22 +3,24 @@ import {MatButton} from '@angular/material';
 import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 
-import {FilesService} from '../../services/files.service';
-import {File, Folder} from '../../models/file';
+import {FilesService} from '@app/services/files.service';
+import {File, Folder} from '@app/models/file';
 
 @Component({
   selector: 'app-folder',
   template: `
-    <div (click)="prev.emit()" class="back">
-      <button mat-icon-button (click)="prev.emit(); $event.stopPropagation()" #back>
-        <mat-icon>chevron_left</mat-icon>
+    <mat-action-list dense>
+      <button mat-list-item (click)="prev.emit()" #back>
+        <mat-icon matListIcon>chevron_left</mat-icon>
+        <p matLine>Back</p>
+        <p matLine></p>
+        <mat-divider></mat-divider>
       </button>
-      <span>..</span>
-    </div>
-    <mat-divider></mat-divider>
-    <mat-list dense>
       <ng-template ngFor let-file [ngForOf]="folders$ | async">
-        <mat-list-item (click)="next.emit(file)">
+        <mat-list-item tabindex="0"
+                       (click)="next.emit(file)"
+                       (keyup.space)="next.emit(file)"
+                       (keyup.enter)="next.emit(file)">
           <mat-icon matListIcon>
             folder
           </mat-icon>
@@ -33,7 +35,7 @@ import {File, Folder} from '../../models/file';
         </mat-list-item>
       </ng-template>
       <ng-template ngFor let-file [ngForOf]="files$ | async">
-        <mat-list-item>
+        <mat-list-item tabindex="0">
           <mat-icon matListIcon class="material-icons-outlined">
             movie
           </mat-icon>
@@ -44,7 +46,7 @@ import {File, Folder} from '../../models/file';
           <mat-divider></mat-divider>
         </mat-list-item>
       </ng-template>
-    </mat-list>
+    </mat-action-list>
   `,
   styles: [`
     :host {
@@ -53,7 +55,7 @@ import {File, Folder} from '../../models/file';
       display: flex;
       flex-direction: column;
     }
-    mat-list {
+    mat-action-list {
       padding: 0 !important;
       flex-grow: 1;
       overflow-y: auto
@@ -66,7 +68,8 @@ import {File, Folder} from '../../models/file';
       display: flex !important;
       flex-direction: row;
       align-items: center;
-      cursor: pointer
+      cursor: pointer;
+      font-size: 12px;
     }
     .back button {
       margin: 0 0.6rem;

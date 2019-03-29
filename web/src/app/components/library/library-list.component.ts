@@ -1,14 +1,18 @@
 import {Component, EventEmitter, OnInit} from '@angular/core';
-import {FilesService} from '../../services/files.service';
 import {Observable} from 'rxjs';
-import {Library} from '../../models/file';
+
+import {FilesService} from '@app/services/files.service';
+import {Library} from '@app/models/file';
 
 @Component({
   selector: 'app-libraries-view',
   template: `
-    <mat-list dense>
+    <mat-action-list dense>
       <ng-template ngFor let-library [ngForOf]="libraries$ | async">
-        <mat-list-item (click)="openLibrary.emit(library)">
+        <mat-list-item tabindex="0"
+                       (click)="openLibrary.emit(library)"
+                       (keyup.space)="openLibrary.emit(library)"
+                       (keyup.enter)="openLibrary.emit(library)">
           <mat-icon matListIcon>
             video_library
           </mat-icon>
@@ -16,13 +20,11 @@ import {Library} from '../../models/file';
           <p matLine>
             <span>{{ library.numberOfVideos }} videos</span>
           </p>
-          <button mat-icon-button (click)="openLibrary.emit(library); $event.stopPropagation()">
-            <mat-icon>chevron_right</mat-icon>
-          </button>
+          <mat-icon>chevron_right</mat-icon>
           <mat-divider></mat-divider>
         </mat-list-item>
       </ng-template>
-      <mat-list-item>
+      <mat-list-item tabindex="0">
         <mat-icon matListIcon>
           library_add
         </mat-icon>
@@ -30,7 +32,7 @@ import {Library} from '../../models/file';
         <p matLine></p>
         <mat-divider></mat-divider>
       </mat-list-item>
-    </mat-list>
+    </mat-action-list>
   `,
   styles: [`
     :host {
@@ -39,7 +41,7 @@ import {Library} from '../../models/file';
       display: flex;
       flex-direction: column;
     }
-    mat-list {
+    mat-action-list {
       padding: 0 !important;
       flex-grow: 1;
       overflow-y: auto
