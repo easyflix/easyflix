@@ -4,9 +4,7 @@ import * as fromStore from '../reducers';
 import {Observable} from 'rxjs';
 import {CloseSidenav, OpenSidenav, ToggleSidenav} from '../actions/core.actions';
 
-@Injectable(/*{
-  providedIn: 'root'
-}*/)
+@Injectable()
 export class CoreService {
 
   private readonly showSidenav$: Observable<boolean>;

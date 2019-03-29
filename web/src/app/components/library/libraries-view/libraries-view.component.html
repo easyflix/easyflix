@@ -1,0 +1,17 @@
+<mat-list dense>
+  <ng-template ngFor let-library [ngForOf]="libraries$ | async">
+    <mat-list-item>
+      <mat-icon matListIcon>
+        video_library
+      </mat-icon>
+      <h3 matLine>{{ library.name }}</h3>
+      <p matLine>
+        <span>12 videos</span>
+      </p>
+      <button mat-icon-button (click)="next.emit()">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+      <mat-divider></mat-divider>
+    </mat-list-item>
+  </ng-template>
+</mat-list>

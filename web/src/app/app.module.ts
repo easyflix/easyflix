@@ -6,7 +6,7 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {StoreModule} from '@ngrx/store';
 import {metaReducers, reducers} from './reducers';
 import {StoreDevtoolsModule} from '@ngrx/store-devtools';
-import {environment} from '../environments/environment';
+import {environment} from '@env/environment';
 import {EffectsModule} from '@ngrx/effects';
 import {AppEffects} from './app.effects';
 import {VideoService} from './services/video.service';
@@ -17,6 +17,7 @@ import {SharedModule} from './shared/shared.module';
 import {ComponentsModule} from './components/components.module';
 import {routes} from './routes';
 import {CoreService} from './services/core.service';
+import {FilesService} from './services/files.service';
 
 @NgModule({
   declarations: [
@@ -39,7 +40,11 @@ import {CoreService} from './services/core.service';
     SharedModule,
     ComponentsModule
   ],
-  providers: [CoreService, VideoService],
+  providers: [
+    CoreService,
+    VideoService,
+    FilesService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

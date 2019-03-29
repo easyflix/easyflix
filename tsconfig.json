@@ -2,7 +2,7 @@
   "compileOnSave": false,
   "compilerOptions": {
     "baseUrl": "./",
-    "outDir": "./dist/out-tsc",
+    "outDir": "./target/out-tsc",
     "sourceMap": true,
     "declaration": false,
     "module": "es2015",
@@ -17,10 +17,6 @@
     "lib": [
       "es2018",
       "dom"
-    ],
-    "paths": {
-      "@app/*": ["app/*"],
-      "@env/*": ["environments/*"]
-    }
+    ]
   }
 }
