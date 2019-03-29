@@ -1,8 +1,5 @@
-import {Component, ElementRef, OnInit, Renderer2, ViewChild} from '@angular/core';
-import {Store} from '@ngrx/store';
+import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {VideoService} from '@app/services/video.service';
-import {SetVideoSource, SetVideoVolume} from '@app/actions/video.actions';
-import * as fromStore from '../../reducers';
 import {Observable, zip} from 'rxjs';
 import {take} from 'rxjs/operators';
 import {CoreService} from '@app/services/core.service';
@@ -14,6 +11,13 @@ import {CoreService} from '@app/services/core.service';
 })
 export class VideoComponent implements OnInit {
 
+  @ViewChild('video')
+  videoRef: ElementRef;
+
+  src$: Observable<string>;
+  volume$: Observable<number>;
+  currentTime = 0;
+
   playing$: Observable<boolean>;
   currentTime$: Observable<number>;
   duration$: Observable<number>;
@@ -22,19 +26,11 @@ export class VideoComponent implements OnInit {
   constructor(
     private core: CoreService,
     private video: VideoService,
-    private renderer: Renderer2,
-    private rootRef: ElementRef,
-    private store: Store<fromStore.State>
   ) { }
 
   ngOnInit() {
-    const videoUrl =
-      'http://127.0.0.1:8887/Atlantide%20L\'empire%20Perdu%20-%20Multi%20-%201080p%20mHDgz.mkv?static=1';
-    this.video.renderer = this.renderer;
-    this.video.videoRoot = this.rootRef;
-
-    this.store.dispatch(new SetVideoVolume(0));
-    this.store.dispatch(new SetVideoSource(videoUrl));
+    this.src$ = this.video.getSource();
+    this.volume$ = this.video.getVolume();
 
     this.playing$ = this.video.getPlaying();
     this.currentTime$ = this.video.getCurrentTime();
@@ -47,15 +43,15 @@ export class VideoComponent implements OnInit {
   }
 
   play() {
-    this.video.play();
+    (this.videoRef.nativeElement as HTMLMediaElement).play();
   }
 
   pause() {
-    this.video.pause();
+    (this.videoRef.nativeElement as HTMLMediaElement).pause();
   }
 
   seekTo(time: number) {
-    this.video.seekTo(time);
+    this.currentTime = time;
   }
 
   seekForward() {
@@ -63,17 +59,55 @@ export class VideoComponent implements OnInit {
       arr => {
         const currentTime = arr[0];
         const duration = arr[1];
-        this.video.seekTo(Math.min(currentTime + 30, duration));
+        this.seekTo(Math.min(currentTime + 30, duration));
       }
     );
   }
 
   seekBackward() {
     this.currentTime$.pipe(take(1)).subscribe(
-      currentTime => this.video.seekTo(Math.max(currentTime - 10, 0))
+      currentTime => this.seekTo(Math.max(currentTime - 10, 0))
     );
   }
 
+  onPlay() {
+    this.video.setPlaying(true);
+  }
 
+  onPlaying() {
+    this.video.setPlaying(true);
+  }
+
+  onPause() {
+    this.video.setPlaying(false);
+  }
+
+  onEnded() {
+    this.video.setPlaying(false);
+  }
+
+  onCanPlay() {
+    this.video.setLoading(false);
+  }
+
+  onCanPlayThrough() {
+    this.video.setLoading(false);
+  }
+
+  onLoadedMetadata(event) {
+    this.video.setDuration(event.target.duration);
+  }
+
+  onTimeUpdate(event) {
+    this.video.updateCurrentTime(event.target.currentTime);
+  }
+
+  onWaiting() {
+    this.video.setLoading(true);
+  }
+
+  onError(event) {
+    console.error('VideoError', event);
+  }
 
 }

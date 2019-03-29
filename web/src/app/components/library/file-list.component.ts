@@ -6,6 +6,7 @@ import {map} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
 import {File, Folder, URLFile} from '@app/models/file';
 import {VideoService} from '@app/services/video.service';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-folder',
@@ -90,7 +91,8 @@ export class FileListComponent implements OnInit {
 
   constructor(
     private filesService: FilesService,
-    private video: VideoService
+    private video: VideoService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -103,7 +105,9 @@ export class FileListComponent implements OnInit {
   }
 
   playFile(file: URLFile) {
-    this.video.setSource(file.url);
+    this.router.navigate(['/player']).then(
+      () => this.video.setSource(file.url)
+    );
   }
 
   focus() {
