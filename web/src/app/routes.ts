@@ -10,6 +10,8 @@ import {VideoGuard} from './components/video/video.guard';
 import {MoviesComponent} from './components/movies/movies.component';
 import {ShowsComponent} from './components/shows/shows.component';
 import {MainComponent} from './components/main.component';
+import {VideoGridComponent} from './components/common/video-grid/video-grid.component';
+import {VideoDetailedListComponent} from './components/common/video-detailed-list/video-detailed-list.component';
 
 const navOutletName = 'nav';
 
@@ -18,9 +20,18 @@ export const routes: Routes = [
   {
     path: 'browse',
     component: MainComponent,
+    data: { animation: 'main' },
     children: [
       { path: '', component: HomeComponent, data: { animation: 'home' } },
-      { path: 'movies', component: MoviesComponent, data: { animation: 'movies' } },
+      {
+        path: 'movies',
+        component: MoviesComponent,
+        children: [
+          { path: '', component: VideoGridComponent, data: { animation: 'grid' } },
+          { path: 'list', component: VideoDetailedListComponent, data: { animation: 'list' } }
+        ],
+        data: { animation: 'movies' }
+      },
       { path: 'shows', component: ShowsComponent, data: { animation: 'shows' } },
     ]
   },

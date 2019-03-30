@@ -38,13 +38,15 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <button mat-icon-button>
+      <button mat-icon-button routerLink="./">
         <mat-icon class="material-icons-outlined">view_module</mat-icon>
       </button>
-      <button mat-icon-button>
+      <button mat-icon-button routerLink="./list">
         <mat-icon class="material-icons-outlined">view_stream</mat-icon>
       </button>
     </div>
   </header>
-  <app-video-grid></app-video-grid>
+  <main [@routeAnimation]="getAnimationData(routerOutlet)">
+    <router-outlet #routerOutlet="outlet"></router-outlet>
+  </main>
 </section>
