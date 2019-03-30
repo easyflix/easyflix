@@ -1,12 +1,12 @@
-import {Component, EventEmitter, OnInit, ViewChild} from '@angular/core';
-import {MatButton} from '@angular/material';
+import {Component, ElementRef, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 
 import {FilesService} from '@app/services/files.service';
-import {File, Folder, URLFile} from '@app/models/file';
+import {Folder, URLFile} from '@app/models/file';
 import {VideoService} from '@app/services/video.service';
 import {Router} from '@angular/router';
+import {Focusable} from '@app/components/library/library.component';
 
 @Component({
   selector: 'app-folder',
@@ -72,7 +72,7 @@ import {Router} from '@angular/router';
     }
   `]
 })
-export class FileListComponent implements OnInit {
+export class FileListComponent implements OnInit, Focusable {
 
   next: EventEmitter<Folder> = new EventEmitter();
   prev: EventEmitter<void> = new EventEmitter();
@@ -81,8 +81,8 @@ export class FileListComponent implements OnInit {
   files$: Observable<URLFile[]>;
   current: Folder;
 
-  @ViewChild('back')
-  back: MatButton;
+  @ViewChild('back', { read: ElementRef })
+  back: ElementRef;
 
   constructor(
     private filesService: FilesService,
@@ -106,7 +106,9 @@ export class FileListComponent implements OnInit {
   }
 
   focus() {
-    this.back._elementRef.nativeElement.focus();
+    const back = this.back.nativeElement as HTMLElement;
+    const first = back.nextElementSibling as HTMLElement;
+    if (first) { first.focus(); }
   }
 
 }

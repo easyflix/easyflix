@@ -2,7 +2,8 @@
   <mat-sidenav #sidenav mode="side"
       (openedStart)="sideNavOpening = true"
       (closed)="sideNavOpening = false"
-      [opened]="showSidenav$ | async">
+      [opened]="showSidenav$ | async"
+      [cdkTrapFocus]="showSidenav$ | async">
     <app-sidenav (closeSidenav)="closeSidenav()"></app-sidenav>
   </mat-sidenav>
 

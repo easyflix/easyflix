@@ -26,6 +26,7 @@ import {
   MatToolbarModule,
   MatTooltipModule
 } from '@angular/material';
+import {A11yModule} from '@angular/cdk/a11y';
 
 const MATERIAL_MODULES = [
   MatButtonModule,
@@ -51,7 +52,8 @@ const MATERIAL_MODULES = [
   MatTableModule,
   MatTabsModule,
   MatToolbarModule,
-  MatTooltipModule
+  MatTooltipModule,
+  A11yModule
 ];
 
 @NgModule({
