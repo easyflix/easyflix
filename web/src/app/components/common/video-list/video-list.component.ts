@@ -21,7 +21,7 @@ export class VideoListComponent implements OnInit {
   @ViewChild('section')
   section: ElementRef;
 
-  itemWidth = 170;
+  itemWidth = 190;
   translation = 0;
 
   /**
