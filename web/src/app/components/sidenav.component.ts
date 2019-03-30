@@ -1,10 +1,21 @@
-import {ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  EventEmitter,
+  OnDestroy,
+  OnInit,
+  Output,
+  ViewChild
+} from '@angular/core';
+import {Subscription} from 'rxjs';
+import {CoreService} from '@app/services/core.service';
 
 @Component({
   selector: 'app-sidenav',
   template: `
     <nav>
-      <button mat-icon-button [routerLink]="[{ outlets: { nav: ['library'] } }]">
+      <button mat-icon-button [routerLink]="[{ outlets: { nav: ['library'] } }]" #firstButton>
         <mat-icon>video_library</mat-icon>
       </button>
       <button mat-icon-button [routerLink]="[{ outlets: { nav: ['search'] } }]">
@@ -48,8 +59,31 @@ import {ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output} from '
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SidenavComponent {
+export class SidenavComponent implements OnInit, OnDestroy {
 
   @Output() closeSidenav: EventEmitter<void> = new EventEmitter();
+
+  @ViewChild('firstButton', { read: ElementRef })
+  first: ElementRef;
+
+  private subscription: Subscription;
+
+  constructor(private core: CoreService) {}
+
+  ngOnInit(): void {
+    this.subscription = this.core.getShowSidenav().subscribe(
+      show => show ? this.focus() : {}
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+  }
+
+  focus() {
+    const firstElement = this.first.nativeElement as HTMLElement;
+    setTimeout(() => firstElement.focus(), 400);
+  }
+
 
 }
