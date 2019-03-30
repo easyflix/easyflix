@@ -21,7 +21,7 @@ export class VideoListComponent implements OnInit {
   @ViewChild('section')
   section: ElementRef;
 
-  itemWidth = 180;
+  itemWidth = 170;
   translation = 0;
 
   /**
@@ -29,6 +29,32 @@ export class VideoListComponent implements OnInit {
    */
   @HostListener('window:resize')
   resize() {}
+
+  @HostListener('keydown.tab')
+  tab() {
+    const target = event.target as HTMLElement;
+    const next = target.nextElementSibling as HTMLElement;
+    if (next) {
+      next.focus({ preventScroll: true });
+      if (!this.isItemVisible(next)) {
+        this.next();
+      }
+      return false;
+    }
+  }
+
+  @HostListener('keydown.shift.tab', ['$event'])
+  altTab(event) {
+    const target = event.target as HTMLElement;
+    const previous = target.previousElementSibling as HTMLElement;
+    if (previous) {
+      previous.focus({ preventScroll: true });
+      if (!this.isItemVisible(previous)) {
+        this.prev();
+      }
+      return false;
+    }
+  }
 
   constructor(
     private core: CoreService,
@@ -51,6 +77,12 @@ export class VideoListComponent implements OnInit {
     } catch (e) {
       console.log(e);
     }*/
+  }
+
+  isItemVisible(item: HTMLElement): boolean {
+    const c1 = item.offsetLeft + item.offsetWidth + this.translation < this.root.nativeElement.offsetWidth;
+    const c2 = item.offsetLeft + this.translation >= 0;
+    return c1 && c2;
   }
 
   prev() {
