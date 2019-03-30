@@ -11,6 +11,9 @@ import {HomeComponent} from './home/home.component';
 import {AboutComponent} from './about/about.component';
 import {SidenavComponent} from './sidenav.component';
 import {LibraryListComponent} from './library/library-list.component';
+import {MoviesComponent} from './movies/movies.component';
+import {ShowsComponent} from './shows/shows.component';
+import {TopNavComponent} from './top-nav/top-nav.component';
 
 const COMPONENTS = [
   FileListComponent,
@@ -23,7 +26,10 @@ const COMPONENTS = [
   HistoryComponent,
   HomeComponent,
   SidenavComponent,
-  LibraryListComponent
+  LibraryListComponent,
+  MoviesComponent,
+  ShowsComponent,
+  TopNavComponent
 ];
 
 @NgModule({

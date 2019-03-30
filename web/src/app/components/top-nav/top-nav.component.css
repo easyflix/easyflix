@@ -1,0 +1,32 @@
+header {
+  height: 60px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0 60px;
+}
+
+h1 {
+  margin: 0 1rem 0 0;
+}
+
+mat-icon {
+  margin-left: auto;
+  cursor: pointer;
+}
+
+input {
+  width: 0;
+  padding: 0.5rem 0;
+  margin: 0 0 0 0.25rem;
+  border: none;
+  border-bottom: 1px solid black;
+  outline: none;
+  background: transparent;
+  transition: width 300ms ease;
+}
+
+input:focus {
+  width: 250px;
+  padding: 0.5rem 0.25rem;
+}

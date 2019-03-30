@@ -1,0 +1,13 @@
+:host {
+  display: block;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+
+
+section {
+  padding: 0 60px;
+}
+

@@ -1,0 +1,15 @@
+<header>
+  <h1>Webflix</h1>
+  <nav>
+    <a routerLink="/" routerLinkActive="active">Home</a> |
+    <a routerLink="/movies" routerLinkActive="active">Movies</a> |
+    <a routerLink="/shows" routerLinkActive="active">TV Shows</a>
+  </nav>
+  <mat-icon (click)="searchInput.focus()">search</mat-icon>
+  <input #searchInput
+         placeholder="Titles, people, genres"
+         value="" type="search" autocomplete="off"
+         [class.active]="searchFocused"
+         (focus)="searchFocused = true"
+         (blur)="searchFocused = false">
+</header>
