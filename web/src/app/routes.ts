@@ -6,6 +6,7 @@ import {SettingsComponent} from './components/settings/settings.component';
 import {SearchComponent} from './components/search/search.component';
 import {AboutComponent} from './components/about/about.component';
 import {VideoComponent} from './components/video/video.component';
+import {VideoGuard} from '@app/components/video/video.guard';
 
 const navOutletName = 'nav';
 
@@ -13,7 +14,7 @@ export const routes: Routes = [
   { path: '', redirectTo: '/home(nav:library)', pathMatch: 'full' },
   { path: 'home', component: HomeComponent, data: { animation: 'home' } },
   { path: 'history', component: HistoryComponent, data: { animation: 'history' } },
-  { path: 'player', component: VideoComponent, data: { animation: 'player' } },
+  { path: 'player', component: VideoComponent, canActivate: [VideoGuard], data: { animation: 'player' } },
   { path: 'library', component: LibraryComponent, outlet: navOutletName },
   { path: 'search', component: SearchComponent, outlet: navOutletName },
   { path: 'history', component: HistoryComponent, outlet: navOutletName },

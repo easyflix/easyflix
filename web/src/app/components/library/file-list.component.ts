@@ -100,9 +100,8 @@ export class FileListComponent implements OnInit, Focusable {
   }
 
   playFile(file: URLFile) {
-    this.router.navigate(['/player']).then(
-      () => this.video.setSource(file.url)
-    );
+    this.video.setSource(file.url);
+    this.router.navigate(['/player']);
   }
 
   focus() {

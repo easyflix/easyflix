@@ -82,7 +82,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
   focus() {
     const firstElement = this.first.nativeElement as HTMLElement;
-    setTimeout(() => firstElement.focus(), 400);
+    setTimeout(() => firstElement.focus(), 400); // TODO export 400ms somewhere
   }
 
 
