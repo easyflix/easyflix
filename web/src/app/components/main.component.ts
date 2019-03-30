@@ -1,24 +1,87 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {fadeInAnimation} from '../animations';
 import {RouterOutlet} from '@angular/router';
+import {Observable} from 'rxjs';
+import {CoreService} from '@app/services/core.service';
+import {map} from 'rxjs/operators';
 
 @Component({
   selector: 'app-main',
   template: `
-    <app-top-nav></app-top-nav>
+    <button mat-icon-button class="menu" *ngIf="showMenuButton$ | async" (click)="openSidenav()">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <header>
+      <h1>Webflix</h1>
+      <nav>
+        <a routerLink="./" routerLinkActive="active">Home</a> |
+        <a routerLink="./movies" routerLinkActive="active">Movies</a> |
+        <a routerLink="./shows" routerLinkActive="active">TV Shows</a>
+      </nav>
+      <mat-icon (click)="searchInput.focus()">search</mat-icon>
+      <input #searchInput
+             placeholder="Titles, people, genres"
+             value="" type="search" autocomplete="off"
+             [class.active]="searchFocused"
+             (focus)="searchFocused = true"
+             (blur)="searchFocused = false">
+    </header>
     <div [@routeAnimation]="getAnimationData(routerOutlet)">
       <router-outlet #routerOutlet="outlet"></router-outlet>
     </div>
   `,
-  styles: [],
+  styles: [`
+    .menu {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+    }
+    header {
+      height: 60px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding: 0 60px;
+    }
+    h1 {
+      margin: 0 1rem 0 0;
+    }
+    mat-icon {
+      margin-left: auto;
+      cursor: pointer;
+    }
+    input {
+      width: 0;
+      padding: 0.5rem 0;
+      margin: 0 0 0 0.25rem;
+      border: none;
+      border-bottom: 1px solid black;
+      outline: none;
+      background: transparent;
+      transition: width 300ms ease;
+    }
+    input:focus {
+      width: 250px;
+      padding: 0.5rem 0.25rem;
+    }
+  `],
   animations: [fadeInAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MainComponent implements OnInit {
 
-  constructor() { }
+  searchFocused = false;
+  showMenuButton$: Observable<boolean>;
+
+  constructor(private core: CoreService) {
+    this.showMenuButton$ = core.getShowSidenav().pipe(map(b => !b));
+  }
 
   ngOnInit() {
+  }
+
+  openSidenav() {
+    this.core.openSidenav();
   }
 
   getAnimationData(outlet: RouterOutlet) {
