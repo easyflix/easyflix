@@ -1,3 +1,50 @@
-<p>
-  movies works!
-</p>
+<section>
+  <header>
+    <h2>Movies</h2>
+    <div class="filters">
+      <mat-form-field floatLabel="never">
+        <mat-label>Genre</mat-label>
+        <mat-select>
+          <mat-option>-- None --</mat-option>
+          <mat-option value="test">
+            Test
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field floatLabel="never">
+        <mat-label>Year</mat-label>
+        <mat-select>
+          <mat-option>-- None --</mat-option>
+          <mat-option value="test">
+            Test
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field floatLabel="never">
+        <mat-label>Language</mat-label>
+        <mat-select>
+          <mat-option>-- None --</mat-option>
+          <mat-option value="test">
+            Test
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field floatLabel="never">
+        <mat-label>Format</mat-label>
+        <mat-select>
+          <mat-option>-- None --</mat-option>
+          <mat-option value="test">
+            Test
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button mat-icon-button>
+        <mat-icon class="material-icons-outlined">view_module</mat-icon>
+      </button>
+      <button mat-icon-button>
+        <mat-icon class="material-icons-outlined">view_stream</mat-icon>
+      </button>
+    </div>
+  </header>
+  <app-video-grid></app-video-grid>
+</section>

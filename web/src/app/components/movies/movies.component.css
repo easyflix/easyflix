@@ -1,0 +1,38 @@
+:host {
+  display: block;
+  padding-bottom: 30px;
+}
+
+section {
+  padding: 0 0 0 60px;
+}
+
+header {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: -6px;
+  padding-right: 60px;
+}
+
+h2 {
+  margin: 0;
+  display: flex;
+  height: 60px;
+  align-items: center;
+}
+
+.filters {
+  min-height: 60px;
+  margin-left: auto;
+}
+
+mat-form-field {
+  margin: 0 0 0 1rem;
+}
+
+button {
+  border-radius: 1px;
+  border: 1px solid rgba(0,0,0,0.3);
+  margin-left: 1rem
+}
+
