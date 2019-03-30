@@ -3,6 +3,7 @@ import {VideoService} from '@app/services/video.service';
 import {Observable, zip} from 'rxjs';
 import {take} from 'rxjs/operators';
 import {CoreService} from '@app/services/core.service';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-video',
@@ -26,6 +27,7 @@ export class VideoComponent implements OnInit {
   constructor(
     private core: CoreService,
     private video: VideoService,
+    private router: Router
   ) { }
 
   ngOnInit() {
@@ -108,6 +110,13 @@ export class VideoComponent implements OnInit {
 
   onError(event) {
     console.error('VideoError', event);
+  }
+
+  closeVideo() {
+    this.video.updateCurrentTime(0);
+    this.router.navigate(['/home']).then(() => {
+      this.video.setSource(null);
+    });
   }
 
 }

@@ -15,6 +15,7 @@ export class ControlsComponent implements OnInit {
   @Output() resume: EventEmitter<void> = new EventEmitter();
   @Output() seekForward: EventEmitter<void> = new EventEmitter();
   @Output() seekBackward: EventEmitter<void> = new EventEmitter();
+  @Output() closeVideo: EventEmitter<void> = new EventEmitter();
 
   @Input() loading: boolean;
   @Input() currentTime: number;

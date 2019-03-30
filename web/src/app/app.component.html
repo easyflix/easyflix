@@ -6,24 +6,7 @@
     <app-sidenav (closeSidenav)="closeSidenav()"></app-sidenav>
   </mat-sidenav>
 
-  <mat-sidenav-content>
-<!--    <button mat-icon-button (click)="openSidenav()" *ngIf="!sideNavOpening" class="menu">
-      <mat-icon>menu</mat-icon>
-    </button>-->
+  <mat-sidenav-content [@routeAnimation]="getAnimationData(routerOutlet)">
     <router-outlet #routerOutlet="outlet"></router-outlet>
-    <!--<app-video></app-video>
-    <app-controls
-      [sideNavOpening]="sideNavOpening"
-      [playing]="playing$ | async"
-      [currentTime]="currentTime$ | async"
-      [duration]="duration$ | async"
-      [loading]="loading$ | async"
-      (seekTo)="seekTo($event)"
-      (sidenavToggle)="sidenav.toggle()"
-      (resume)="play()"
-      (pause)="pause()"
-      (seekForward)="seekForward()"
-      (seekBackward)="seekBackward()">
-    </app-controls>-->
   </mat-sidenav-content>
 </mat-sidenav-container>

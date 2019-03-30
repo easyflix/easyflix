@@ -2,12 +2,15 @@ import {ChangeDetectionStrategy, Component, HostListener, OnInit, ViewChild} fro
 import {MatSidenav} from '@angular/material';
 import {Observable} from 'rxjs';
 import {CoreService} from './services/core.service';
+import {fadeInAnimation} from '@app/animations';
+import {RouterOutlet} from '@angular/router';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.sass'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [ fadeInAnimation ]
 })
 export class AppComponent implements OnInit {
 
@@ -73,5 +76,9 @@ export class AppComponent implements OnInit {
       currentTime => this.video.seekTo(Math.max(currentTime - 10, 0))
     );
   }*/
+
+  getAnimationData(outlet: RouterOutlet) {
+    return outlet && outlet.activatedRouteData && outlet.activatedRouteData.animation; // ['animation'];
+  }
 
 }

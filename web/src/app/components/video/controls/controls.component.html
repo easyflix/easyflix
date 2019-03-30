@@ -2,7 +2,7 @@
   <button mat-icon-button (click)="openSidenav.emit()">
     <mat-icon>{{ 'menu' }}</mat-icon>
   </button>
-  <button mat-icon-button class="close">
+  <button mat-icon-button class="close" (click)="closeVideo.emit()">
     <mat-icon>close</mat-icon>
   </button>
 </section>

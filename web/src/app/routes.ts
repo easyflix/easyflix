@@ -11,9 +11,9 @@ const navOutletName = 'nav';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home(nav:library)', pathMatch: 'full' },
-  { path: 'home', component: HomeComponent },
+  { path: 'home', component: HomeComponent, data: { animation: 'home' } },
   { path: 'history', component: HistoryComponent },
-  { path: 'player', component: VideoComponent },
+  { path: 'player', component: VideoComponent, data: { animation: 'player' } },
   { path: 'library', component: LibraryComponent, outlet: navOutletName },
   { path: 'search', component: SearchComponent, outlet: navOutletName },
   { path: 'history', component: HistoryComponent, outlet: navOutletName },

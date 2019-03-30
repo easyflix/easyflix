@@ -13,7 +13,7 @@ import {Router} from '@angular/router';
   template: `
     <mat-action-list dense>
       <button mat-list-item (click)='prev.emit()' #back>
-        <mat-icon matListIcon>chevron_left</mat-icon>
+        <mat-icon matListIcon class="back-icon">chevron_left</mat-icon>
         <p matLine>Back</p>
         <p matLine></p>
         <mat-divider></mat-divider>
@@ -64,16 +64,11 @@ import {Router} from '@angular/router';
     mat-list-item {
       cursor: pointer;
     }
-    .back {
-      min-height: 60px;
-      display: flex !important;
-      flex-direction: row;
-      align-items: center;
-      cursor: pointer;
-      font-size: 12px;
-    }
-    .back button {
-      margin: 0 0.6rem;
+    .back-icon {
+      width: 24px !important;
+      height: 24px !important;
+      font-size: 24px !important;
+      padding: 2px !important;
     }
   `]
 })
