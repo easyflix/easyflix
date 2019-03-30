@@ -114,7 +114,7 @@ export class VideoComponent implements OnInit {
 
   closeVideo() {
     this.video.updateCurrentTime(0);
-    this.router.navigate(['/']).then(() => {
+    this.router.navigate(['/browse']).then(() => {
       this.video.setSource(null);
     });
   }

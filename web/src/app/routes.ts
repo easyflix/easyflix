@@ -9,15 +9,21 @@ import {VideoComponent} from './components/video/video.component';
 import {VideoGuard} from './components/video/video.guard';
 import {MoviesComponent} from './components/movies/movies.component';
 import {ShowsComponent} from './components/shows/shows.component';
+import {MainComponent} from './components/main.component';
 
 const navOutletName = 'nav';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/(nav:library)', pathMatch: 'full' },
-  { path: '', component: HomeComponent, data: { animation: 'home' } },
-  { path: 'movies', component: MoviesComponent, data: { animation: 'movies' } },
-  { path: 'shows', component: ShowsComponent, data: { animation: 'shows' } },
-  { path: 'history', component: HistoryComponent, data: { animation: 'history' } },
+  { path: '', redirectTo: '/browse(nav:library)', pathMatch: 'full' },
+  {
+    path: 'browse',
+    component: MainComponent,
+    children: [
+      { path: '', component: HomeComponent, data: { animation: 'home' } },
+      { path: 'movies', component: MoviesComponent, data: { animation: 'movies' } },
+      { path: 'shows', component: ShowsComponent, data: { animation: 'shows' } },
+    ]
+  },
   { path: 'player', component: VideoComponent, canActivate: [VideoGuard], data: { animation: 'player' } },
   { path: 'library', component: LibraryComponent, outlet: navOutletName },
   { path: 'search', component: SearchComponent, outlet: navOutletName },
