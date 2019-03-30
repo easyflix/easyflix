@@ -14,6 +14,7 @@ import {LibraryListComponent} from './library/library-list.component';
 import {MoviesComponent} from './movies/movies.component';
 import {ShowsComponent} from './shows/shows.component';
 import {MainComponent} from './main.component';
+import {VideoListComponent} from '@app/components/common/video-list/video-list.component';
 
 const COMPONENTS = [
   FileListComponent,
@@ -29,7 +30,8 @@ const COMPONENTS = [
   LibraryListComponent,
   MoviesComponent,
   ShowsComponent,
-  MainComponent
+  MainComponent,
+  VideoListComponent
 ];
 
 @NgModule({

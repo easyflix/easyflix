@@ -1,0 +1,71 @@
+:host {
+  display: flex;
+  overflow-x: visible;
+  position: relative;
+}
+
+section {
+  display: flex;
+  transition: transform ease 0.8s;
+}
+
+.item {
+  height: 180px;
+  min-width: 150px;
+  margin: 0 15px;
+  box-sizing: border-box;
+  transition-property: transform, box-shadow;
+  transition: 300ms ease;
+  background-color: cadetblue;
+}
+
+.item:last-of-type {
+  margin-right: 0;
+}
+
+.item:first-of-type {
+  margin-left: 0;
+}
+
+.item:hover {
+  transform: scale(1.25);
+  z-index: 1;
+  box-shadow: 0 0 5px rgba(0,0,0,0.75);
+  border: 1px solid rgba(0,0,0,0.75);
+}
+
+.button {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  height: 180px;
+  width: 50px;
+  opacity: 0;
+  transition: opacity 300ms ease;
+  border-radius: 1px;
+  background-color: rgba(0,0,0,0.2);
+}
+
+section:hover ~ .controls .button,
+.button:hover, .button:focus {
+  opacity: 1;
+}
+
+button[disabled] {
+  opacity: 0 !important;
+}
+
+.button mat-icon {
+  height: 50px;
+  width: 50px;
+  font-size: 50px;
+  line-height: 50px;
+}
+
+.prev {
+  left: -60px;
+}
+
+.next {
+  right: 0;
+}

@@ -31,8 +31,6 @@ export interface Focusable {
       flex-grow: 1;
       display: flex;
       flex-direction: column;
-      height: 100%;
-      width: 100%;
       overflow-x: hidden
     }
     .content {

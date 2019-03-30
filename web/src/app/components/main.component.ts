@@ -26,18 +26,23 @@ import {map} from 'rxjs/operators';
              (focus)="searchFocused = true"
              (blur)="searchFocused = false">
     </header>
-    <div [@routeAnimation]="getAnimationData(routerOutlet)">
+    <main [@routeAnimation]="getAnimationData(routerOutlet)">
       <router-outlet #routerOutlet="outlet"></router-outlet>
-    </div>
+    </main>
   `,
   styles: [`
+    :host {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
     .menu {
       position: absolute;
       top: 10px;
       left: 10px;
     }
     header {
-      height: 60px;
+      min-height: 60px;
       display: flex;
       flex-direction: row;
       align-items: center;
@@ -63,6 +68,11 @@ import {map} from 'rxjs/operators';
     input:focus {
       width: 250px;
       padding: 0.5rem 0.25rem;
+    }
+    main {
+      flex-grow: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
   `],
   animations: [fadeInAnimation],
