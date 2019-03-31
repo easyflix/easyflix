@@ -22,7 +22,7 @@ export class VideoListComponent implements OnInit, OnDestroy {
   @ViewChild('section')
   section: ElementRef;
 
-  itemWidth = 190;
+  itemWidth = 202;
   translation = 0;
 
   subscription: Subscription;

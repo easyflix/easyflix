@@ -12,7 +12,7 @@ section {
 .item {
   height: 210px;
   min-width: 170px;
-  margin: 0 10px;
+  margin: 0 16px;
   box-sizing: border-box;
   transition-property: transform, box-shadow;
   transition: 300ms ease;

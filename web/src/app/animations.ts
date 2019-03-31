@@ -1,6 +1,6 @@
 import {
   trigger, group,
-  transition, animate, style, query
+  transition, animate, style, query, animateChild
 } from '@angular/animations';
 
 const debug = (name: string) => {
@@ -15,13 +15,13 @@ const DEFAULT_TIMING = '300ms';
 const fadeIn = [
   query(':enter', [
     style({ opacity: 0 }),
-    animate(DEFAULT_TIMING + ' ease', style({ opacity: '1'}))
+    animate(DEFAULT_TIMING + ' ease-in-out', style({ opacity: '1'}))
   ])
 ];
 
 const fadeOut = [
   query(':leave', [
-    animate(DEFAULT_TIMING + ' ease', style({ opacity: '0'}))
+    animate(DEFAULT_TIMING + ' ease-in-out', style({ opacity: '0'}))
   ])
 ];
 
@@ -31,16 +31,21 @@ const superimpose =
       position: 'absolute',
       top: 0,
       left: 0,
-      width: '100%'
+      width: '100%',
+      minHeight: '100%'
     })
   ]);
 
 const fadeInOut = [
   superimpose,
+  query(':leave', animateChild()),
   group([
     fadeIn[0],
     fadeOut[0]
-  ])
+  ]),
+  // FIX to prevent child routes to remove their component https://github.com/angular/angular/issues/15477
+  query('router-outlet ~ *', [style({}), animate(1, style({}))], { optional: true }),
+  query(':enter', animateChild())
 ];
 
 const fadeOver = [
