@@ -2,14 +2,14 @@ import {ChangeDetectionStrategy, Component, HostListener, OnInit, ViewChild} fro
 import {MatSidenav} from '@angular/material';
 import {Observable} from 'rxjs';
 import {CoreService} from './services/core.service';
-import {fadeInAnimation} from '@app/animations';
+import {playerAnimations} from '@app/animations';
 import {RouterOutlet} from '@angular/router';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.sass'],
-  animations: [fadeInAnimation],
+  animations: [playerAnimations],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent implements OnInit {
@@ -43,7 +43,7 @@ export class AppComponent implements OnInit {
   }
 
   getAnimationData(outlet: RouterOutlet) {
-    return outlet && outlet.activatedRouteData && outlet.activatedRouteData.animation;
+    return outlet && outlet.activatedRouteData && outlet.activatedRouteData.animation || 'void';
   }
 
 }

@@ -9,36 +9,35 @@ import {VideoComponent} from './components/video/video.component';
 import {VideoGuard} from './components/video/video.guard';
 import {MoviesComponent} from './components/movies/movies.component';
 import {ShowsComponent} from './components/shows/shows.component';
-import {MainComponent} from './components/main.component';
 import {VideoGridComponent} from './components/common/video-grid/video-grid.component';
 import {VideoDetailedListComponent} from './components/common/video-detailed-list/video-detailed-list.component';
 
 const navOutletName = 'nav';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/browse(nav:library)', pathMatch: 'full' },
+  // { path: '', redirectTo: '/browse(nav:library)', pathMatch: 'full' },
+  { path: '', component: HomeComponent, data: { animation: 'home' } },
+  { path: 'home', component: HomeComponent, data: { animation: 'home' } },
   {
-    path: 'browse',
-    component: MainComponent,
-    data: { animation: 'main' },
+    path: 'movies',
+    component: MoviesComponent,
+    data: { animation: 'movies' },
     children: [
-      { path: '', component: HomeComponent, data: { animation: 'home' } },
-      {
-        path: 'movies',
-        component: MoviesComponent,
-        children: [
-          { path: '', component: VideoGridComponent, data: { animation: 'grid' } },
-          { path: 'list', component: VideoDetailedListComponent, data: { animation: 'list' } }
-        ],
-        data: { animation: 'movies' }
-      },
-      { path: 'shows', component: ShowsComponent, data: { animation: 'shows' } },
-    ]
+      { path: '', component: VideoGridComponent, data: { animation: 'grid' } },
+      { path: 'list', component: VideoDetailedListComponent, data: { animation: 'list' } }
+    ],
   },
-  { path: 'player', component: VideoComponent, canActivate: [VideoGuard], data: { animation: 'player' } },
-  { path: 'library', component: LibraryComponent, outlet: navOutletName },
-  { path: 'search', component: SearchComponent, outlet: navOutletName },
-  { path: 'history', component: HistoryComponent, outlet: navOutletName },
-  { path: 'settings', component: SettingsComponent, outlet: navOutletName },
-  { path: 'about', component: AboutComponent, outlet: navOutletName },
+  { path: 'shows', component: ShowsComponent, data: { animation: 'shows' } },
+  {
+    path: ':url',
+    component: VideoComponent,
+    canActivate: [VideoGuard],
+    outlet: 'player',
+    data: { animation: 'player' }
+  },
+  { path: 'library', component: LibraryComponent, outlet: navOutletName, data: { animation: 'library' } },
+  { path: 'search', component: SearchComponent, outlet: navOutletName, data: { animation: 'search' } },
+  { path: 'history', component: HistoryComponent, outlet: navOutletName, data: { animation: 'history' } },
+  { path: 'settings', component: SettingsComponent, outlet: navOutletName, data: { animation: 'settings' } },
+  { path: 'about', component: AboutComponent, outlet: navOutletName, data: { animation: 'about' } },
 ];

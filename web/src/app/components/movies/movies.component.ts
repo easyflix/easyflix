@@ -1,12 +1,12 @@
 import {Component, OnInit} from '@angular/core';
 import {RouterOutlet} from '@angular/router';
-import {fadeInAnimation} from '@app/animations';
+import {moviesAnimations} from '@app/animations';
 
 @Component({
   selector: 'app-movies',
   templateUrl: './movies.component.html',
   styleUrls: ['./movies.component.css'],
-  animations: [fadeInAnimation]
+  animations: [moviesAnimations]
 })
 export class MoviesComponent implements OnInit {
 
@@ -16,7 +16,7 @@ export class MoviesComponent implements OnInit {
   }
 
   getAnimationData(outlet: RouterOutlet) {
-    return outlet && outlet.activatedRouteData && outlet.activatedRouteData.animation;
+    return outlet && outlet.activatedRouteData && outlet.activatedRouteData.animation || 'void';
   }
 
 }

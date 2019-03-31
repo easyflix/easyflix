@@ -1,4 +1,4 @@
-import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {Location} from '@angular/common';
 import {VideoService} from '@app/services/video.service';
 import {Observable, zip} from 'rxjs';
@@ -9,7 +9,8 @@ import {Router} from '@angular/router';
 @Component({
   selector: 'app-video',
   templateUrl: './video.component.html',
-  styleUrls: ['./video.component.sass']
+  styleUrls: ['./video.component.sass'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class VideoComponent implements OnInit {
 
@@ -116,11 +117,9 @@ export class VideoComponent implements OnInit {
 
   closeVideo() {
     this.video.updateCurrentTime(0);
-    this.video.setSource(null);
-    this.location.back();
-    /*this.router.navigate(['/browse']).then(() => {
-
-    });*/
+    this.router.navigate([{ outlets: { player: null } }]).then(() => {
+      this.video.setSource(null);
+    });
   }
 
 }

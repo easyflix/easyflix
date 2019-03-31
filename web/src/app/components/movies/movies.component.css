@@ -10,7 +10,6 @@ section {
 header {
   display: flex;
   flex-direction: row;
-  margin-bottom: -6px;
   padding-right: 60px;
 }
 
@@ -24,10 +23,15 @@ h2 {
 .filters {
   min-height: 60px;
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 mat-form-field {
   margin: 0 0 0 1rem;
+  height: 60px;
+  overflow-y: hidden;
 }
 
 button {
@@ -38,5 +42,9 @@ button {
 
 button:last-of-type {
   margin-left: -1px;
+}
+
+.animation-container {
+  position: relative;
 }
 

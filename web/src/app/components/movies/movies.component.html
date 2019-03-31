@@ -46,7 +46,7 @@
       </button>
     </div>
   </header>
-  <main [@routeAnimation]="getAnimationData(routerOutlet)">
-    <router-outlet #routerOutlet="outlet"></router-outlet>
-  </main>
+  <div class="animation-container" [@moviesAnimation]="getAnimationData(main)">
+    <router-outlet #main="outlet"></router-outlet>
+  </div>
 </section>

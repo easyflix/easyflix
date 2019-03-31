@@ -7,7 +7,9 @@
     <app-sidenav (closeSidenav)="closeSidenav()"></app-sidenav>
   </mat-sidenav>
 
-  <mat-sidenav-content [@routeAnimation]="getAnimationData(routerOutlet)">
-    <router-outlet #routerOutlet="outlet"></router-outlet>
+  <mat-sidenav-content [@playerAnimation]="getAnimationData(player)">
+    <app-main></app-main>
+    <router-outlet name="player" #player="outlet"></router-outlet>
   </mat-sidenav-content>
+
 </mat-sidenav-container>

@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
-import {fadeInAnimation} from '../animations';
+import {mainAnimations} from '../animations';
 import {RouterOutlet} from '@angular/router';
 import {Observable} from 'rxjs';
 import {CoreService} from '@app/services/core.service';
@@ -14,9 +14,9 @@ import {map} from 'rxjs/operators';
     <header>
       <h1>Webflix</h1>
       <nav>
-        <a routerLink="./" routerLinkActive="active">Home</a> |
-        <a routerLink="./movies" routerLinkActive="active">Movies</a> |
-        <a routerLink="./shows" routerLinkActive="active">TV Shows</a>
+        <a [routerLink]="['/home']" routerLinkActive="active">Home</a> |
+        <a routerLink="/movies" routerLinkActive="active">Movies</a> |
+        <a routerLink="/shows" routerLinkActive="active">TV Shows</a>
       </nav>
       <mat-icon (click)="searchInput.focus()">search</mat-icon>
       <input #searchInput
@@ -26,8 +26,8 @@ import {map} from 'rxjs/operators';
              (focus)="searchFocused = true"
              (blur)="searchFocused = false">
     </header>
-    <main [@routeAnimation]="getAnimationData(routerOutlet)">
-      <router-outlet #routerOutlet="outlet"></router-outlet>
+    <main [@mainAnimation]="getAnimationData(main)">
+      <router-outlet #main="outlet"></router-outlet>
     </main>
   `,
   styles: [`
@@ -73,9 +73,10 @@ import {map} from 'rxjs/operators';
       flex-grow: 1;
       overflow-y: auto;
       overflow-x: hidden;
+      position: relative;
     }
   `],
-  animations: [fadeInAnimation],
+  animations: [mainAnimations],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MainComponent implements OnInit {
@@ -95,7 +96,7 @@ export class MainComponent implements OnInit {
   }
 
   getAnimationData(outlet: RouterOutlet) {
-    return outlet && outlet.activatedRouteData && outlet.activatedRouteData.animation;
+    return outlet && outlet.activatedRouteData && outlet.activatedRouteData.animation || 'void';
   }
 
 }

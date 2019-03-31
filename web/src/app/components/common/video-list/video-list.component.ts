@@ -3,12 +3,13 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  HostListener,
+  HostListener, OnDestroy,
   OnInit,
   ViewChild
 } from '@angular/core';
 import {DomSanitizer} from '@angular/platform-browser';
 import {CoreService} from '@app/services/core.service';
+import {Subscription} from 'rxjs';
 
 @Component({
   selector: 'app-video-list',
@@ -16,13 +17,15 @@ import {CoreService} from '@app/services/core.service';
   styleUrls: ['./video-list.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VideoListComponent implements OnInit {
+export class VideoListComponent implements OnInit, OnDestroy {
 
   @ViewChild('section')
   section: ElementRef;
 
   itemWidth = 190;
   translation = 0;
+
+  subscription: Subscription;
 
   /**
    * Even empty this listener will trigger change detection on resize
@@ -64,7 +67,7 @@ export class VideoListComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.core.getShowSidenav().subscribe(
+    this.subscription = this.core.getShowSidenav().subscribe(
       () => {
         setTimeout(() => this.cdr.detectChanges(), 400);
       }
@@ -77,6 +80,10 @@ export class VideoListComponent implements OnInit {
     } catch (e) {
       console.log(e);
     }*/
+  }
+
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
   }
 
   isItemVisible(item: HTMLElement): boolean {
