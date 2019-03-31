@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import {RouterOutlet} from "@angular/router";
-import {fadeInAnimation} from "@app/animations";
+import {Component, OnInit} from '@angular/core';
+import {RouterOutlet} from '@angular/router';
+import {fadeInAnimation} from '@app/animations';
 
 @Component({
   selector: 'app-movies',

@@ -1,4 +1,5 @@
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {Location} from '@angular/common';
 import {VideoService} from '@app/services/video.service';
 import {Observable, zip} from 'rxjs';
 import {take} from 'rxjs/operators';
@@ -27,7 +28,8 @@ export class VideoComponent implements OnInit {
   constructor(
     private core: CoreService,
     private video: VideoService,
-    private router: Router
+    private router: Router,
+    private location: Location
   ) { }
 
   ngOnInit() {
@@ -114,9 +116,11 @@ export class VideoComponent implements OnInit {
 
   closeVideo() {
     this.video.updateCurrentTime(0);
-    this.router.navigate(['/browse']).then(() => {
-      this.video.setSource(null);
-    });
+    this.video.setSource(null);
+    this.location.back();
+    /*this.router.navigate(['/browse']).then(() => {
+
+    });*/
   }
 
 }

@@ -14,7 +14,7 @@ export class VideoGuard implements CanActivate {
   canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> {
     return this.video.getSource().pipe(
       take(1),
-      map(source => !!source || this.router.parseUrl('/home(nav:library)'))
+      map(source => !!source || this.router.parseUrl('/browse(nav:library)'))
     );
   }
 }

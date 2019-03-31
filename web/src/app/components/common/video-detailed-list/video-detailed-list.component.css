@@ -1,0 +1,63 @@
+section {
+  padding-right: 60px;
+}
+
+.item {
+  /*height: 700px;*/
+  border-top: 1px solid grey;
+  border-bottom: 1px solid grey;
+}
+
+.video {
+  padding: 4rem 0;
+  max-width: 950px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  grid-template-rows: 350px 220px auto;
+  grid-template-areas:
+    "poster meta"
+    "description description"
+    "cast cast";
+  justify-items: stretch;
+}
+
+.video > div {
+  /*border: 1px solid black;*/
+}
+
+.poster-area {
+  grid-area: poster;
+  background-color: cadetblue;
+}
+
+.meta-area {
+  grid-area: meta;
+  margin-left: 2rem;
+  background-color: lightgrey;
+}
+
+.description-area {
+  grid-area: description;
+  overflow-y: auto;
+  line-height: 1.5;
+  margin-top: 2rem;
+}
+
+p {
+  margin-top: 0
+}
+
+.cast-area {
+  grid-area: cast;
+  display: flex;
+  flex-direction: row;
+  margin-top: 2rem;
+  justify-content: space-between;
+}
+
+.people {
+  height: 150px;
+  width: 100px;
+  background-color: cadetblue;
+}
