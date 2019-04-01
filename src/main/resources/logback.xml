@@ -1,7 +1,7 @@
 <configuration>
 
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${cacheFolder:-./data}/logs/application.log</file>
+    <file>${cache-folder:-./data}/logs/application.log</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <fileNamePattern>./logs/application.%d{yyyy-MM-dd}.log</fileNamePattern>
       <maxHistory>10</maxHistory>

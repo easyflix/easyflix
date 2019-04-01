@@ -8,13 +8,18 @@ ThisBuild / organizationName := "creasource"
 lazy val root = (project in file("."))
   .settings(
     name := "movicalypse",
+    resolvers += Resolver.bintrayRepo("snimavat", "maven"),
+
     libraryDependencies += akkaHttp,
     libraryDependencies += akkaHttpSprayJson,
     libraryDependencies += akkaStream,
     libraryDependencies += akkaActor,
     libraryDependencies += akkaSlf4j,
     libraryDependencies += logback,
+    libraryDependencies += shortId,
+    
     libraryDependencies += scalaTest % Test,
+
     unmanagedResourceDirectories in Compile += baseDirectory.value / "config",
     unmanagedResourceDirectories in Compile += target.value / "front",
   ).enablePlugins(JavaAppPackaging)
