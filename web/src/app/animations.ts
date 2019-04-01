@@ -79,20 +79,20 @@ const slideLeft = [
 ];
 
 export const playerAnimations = trigger('playerAnimation', [
-  transition(debug('player'), []),
+  // transition(debug('player'), []),
   transition('void => player', fadeIn),
   transition('player => void', fadeOut)
 ]);
 
 export const mainAnimations = trigger('mainAnimation', [
-  transition(debug('main'), []),
+  // transition(debug('main'), []),
   transition('void => *', []),
   transition('* => void', fadeOut),
   transition('* => *', fadeInOut)
 ]);
 
 export const moviesAnimations = trigger('moviesAnimation', [
-  transition(debug('movies'), []),
+  // transition(debug('movies'), []),
   transition('void <=> *', []),
   transition('grid => list', slideLeft),
   transition('list => grid', slideRight),

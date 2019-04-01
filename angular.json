@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "target/front/movicalypse",
+            "outputPath": "target/front/web",
             "index": "web/src/index.html",
             "main": "web/src/main.ts",
             "polyfills": "web/src/polyfills.ts",
