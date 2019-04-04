@@ -63,9 +63,16 @@ class SocketActor(xhrRoutes: Route)(implicit materializer: ActorMaterializer, ap
   def handleMessages: PartialFunction[JsValue, Unit] = {
 
     case JsonMessage("HttpRequest", id, entity) =>
-      // TODO Handle exception
-      toHttpResponse(entity.convertTo[HttpRequest]) foreach { response =>
+      val f = toHttpResponse(entity.convertTo[HttpRequest])
+      f foreach { response =>
         client ! JsonMessage("HttpResponse", id, response.toJson).toJson
+      }
+      f.failed foreach { failure =>
+        client ! JsonMessage("HttpResponse", id, JsObject(
+          "status" -> 500.toJson,
+          "statusText" -> "Internal Server Error".toJson,
+          "entity" -> failure.getMessage.toJson
+        )).toJson
       }
 
 /*    case JsonMessage("ScanLibrary", id, _) =>
