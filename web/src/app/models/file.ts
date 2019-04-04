@@ -16,6 +16,7 @@ interface IFile extends GenericFile, IParent {
   type: 'file';
   size: number;
   url: string;
+  format: string;
 }
 
 interface IFolder extends GenericFile, IParent, INumberOfVideos {
@@ -29,7 +30,11 @@ interface ILibrary extends GenericFile, INumberOfVideos {
 /**
  *
  */
-export type File = IFolder | IFile;
+/*export type File = IFolder | IFile;
 export type URLFile = IFile;
 export type Library = ILibrary;
-export type Folder = IFolder | ILibrary;
+export type Folder = IFolder | ILibrary;*/
+export type File = IFile;
+export type Folder = IFolder;
+export type Library = ILibrary;
+export type LibraryFile = IFolder | IFile;

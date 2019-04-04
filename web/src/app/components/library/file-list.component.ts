@@ -3,7 +3,7 @@ import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 
 import {FilesService} from '@app/services/files.service';
-import {Folder, URLFile} from '@app/models/file';
+import {Folder, File} from '@app/models/file';
 import {VideoService} from '@app/services/video.service';
 import {Router} from '@angular/router';
 import {Focusable} from '@app/components/library/library.component';
@@ -18,17 +18,17 @@ import {Focusable} from '@app/components/library/library.component';
         <p matLine></p>
         <mat-divider></mat-divider>
       </button>
-      <ng-template ngFor let-file [ngForOf]='folders$ | async'>
+      <ng-template ngFor let-folder [ngForOf]='folders$ | async'>
         <mat-list-item tabindex='0'
-                       (click)='next.emit(file)'
-                       (keyup.space)='next.emit(file)'
-                       (keyup.enter)='next.emit(file)'>
+                       (click)='next.emit(folder)'
+                       (keyup.space)='next.emit(folder)'
+                       (keyup.enter)='next.emit(folder)'>
           <mat-icon matListIcon>
             folder
           </mat-icon>
-          <h3 matLine>{{ file.name }}</h3>
+          <h3 matLine>{{ folder.name }}</h3>
           <p matLine>
-            <span>{{ file.numberOfVideos }} videos</span>
+            <!--<span>{{ folder.numberOfVideos }} videos</span>-->
           </p>
           <mat-icon>chevron_right</mat-icon>
           <mat-divider></mat-divider>
@@ -42,7 +42,7 @@ import {Focusable} from '@app/components/library/library.component';
           </mat-icon>
           <h3 matLine>{{ file.name }}</h3>
           <p matLine>
-            <span>{{ file.size }} ko : {{ file.url }}</span>
+            <!--<span>{{ file.size | sgFileSize }}</span>-->
           </p>
           <mat-divider></mat-divider>
         </mat-list-item>
@@ -78,7 +78,7 @@ export class FileListComponent implements OnInit, Focusable {
   prev: EventEmitter<void> = new EventEmitter();
 
   folders$: Observable<Folder[]>;
-  files$: Observable<URLFile[]>;
+  files$: Observable<File[]>;
   current: Folder;
 
   @ViewChild('back', { read: ElementRef })
@@ -92,14 +92,14 @@ export class FileListComponent implements OnInit, Focusable {
 
   ngOnInit() {
     this.files$ = this.filesService.getFiles(this.current).pipe(
-      map(files => files.filter(f => f.type === 'file') as URLFile[])
+      map(files => files.filter(f => f.type === 'file') as File[])
     );
     this.folders$ = this.filesService.getFiles(this.current).pipe(
       map(files => files.filter(f => f.type === 'folder') as Folder[])
     );
   }
 
-  playFile(file: URLFile) {
+  playFile(file: File) {
     this.video.setSource(file.url);
     this.router.navigate([{ outlets: { player: encodeURIComponent(file.url) } }]);
   }

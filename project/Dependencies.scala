@@ -13,5 +13,7 @@ object Dependencies {
   lazy val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % akkaVersion
   lazy val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
+  lazy val alpakka = "com.lightbend.akka" %% "akka-stream-alpakka-file" % "1.0-RC1"
+
   lazy val shortId = "me.nimavat" % "shortid" % "1.0.1.RC1"
 }

@@ -17,7 +17,8 @@ lazy val root = (project in file("."))
     libraryDependencies += akkaSlf4j,
     libraryDependencies += logback,
     libraryDependencies += shortId,
-    
+    libraryDependencies += alpakka,
+
     libraryDependencies += scalaTest % Test,
 
     unmanagedResourceDirectories in Compile += baseDirectory.value / "config",
