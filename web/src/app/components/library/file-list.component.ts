@@ -3,7 +3,7 @@ import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 
 import {FilesService} from '@app/services/files.service';
-import {Folder, File} from '@app/models/file';
+import {Folder, Video} from '@app/models/file';
 import {VideoService} from '@app/services/video.service';
 import {Router} from '@angular/router';
 import {Focusable} from '@app/components/library/library.component';
@@ -78,7 +78,7 @@ export class FileListComponent implements OnInit, Focusable {
   prev: EventEmitter<void> = new EventEmitter();
 
   folders$: Observable<Folder[]>;
-  files$: Observable<File[]>;
+  files$: Observable<Video[]>;
   current: Folder;
 
   @ViewChild('back', { read: ElementRef })
@@ -92,16 +92,16 @@ export class FileListComponent implements OnInit, Focusable {
 
   ngOnInit() {
     this.files$ = this.filesService.getFiles(this.current).pipe(
-      map(files => files.filter(f => f.type === 'file') as File[])
+      map(files => files.filter(f => f.type === 'video') as Video[])
     );
     this.folders$ = this.filesService.getFiles(this.current).pipe(
       map(files => files.filter(f => f.type === 'folder') as Folder[])
     );
   }
 
-  playFile(file: File) {
-    this.video.setSource(file.url);
-    this.router.navigate([{ outlets: { player: encodeURIComponent(file.url) } }]);
+  playFile(file: Video) {
+    this.video.setSource(`http://localhost:8081/videos/${file.id}`);
+    this.router.navigate([{ outlets: { player: encodeURIComponent(file.id) } }]);
   }
 
   focus() {

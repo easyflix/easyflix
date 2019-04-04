@@ -28,8 +28,8 @@
       (change)="seekTo.emit($event.value)"></mat-slider>
   </div>
   <div class="time">
-    <span class="left">{{ currentTime }}</span>
-    <span class="right">{{ duration }}</span>
+    <span class="left">{{ currentTime | sgTime }}</span>
+    <span class="right">{{ duration | sgTime }}</span>
   </div>
   <div class="controls">
     <div class="g1">

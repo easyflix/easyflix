@@ -12,7 +12,7 @@ section {
   box-sizing: border-box;
   transition-property: transform, box-shadow;
   transition: 300ms ease;
-  background-color: cadetblue;
+  background-color: #424242;
 }
 
 .item:hover, .item:focus {

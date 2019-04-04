@@ -25,9 +25,7 @@ import {Focusable} from '@app/components/library/library.component';
             video_library
           </mat-icon>
           <h3 matLine>{{ library.name }}</h3>
-          <p matLine>
-            <span>{{ library.numberOfVideos }} videos</span>
-          </p>
+          <p matLine></p>
           <mat-icon>chevron_right</mat-icon>
           <mat-divider></mat-divider>
         </mat-list-item>
