@@ -1,42 +1,46 @@
 package net.creasource.model
 
-import java.net.URL
 import java.nio.file.Path
 
+import me.nimavat.shortid.ShortId
 import net.creasource.model.VideoFormat.VideoFormat
-import spray.json._
 import spray.json.DefaultJsonProtocol._
+import spray.json._
+
+case class Library(name: String, path: Path)
 
 sealed trait LibraryFile
+case class Folder(name: String, parent: Path) extends LibraryFile
+case class Video(id: String, name: String, parent: Path, size: Long, format: VideoFormat) extends LibraryFile
 
-case class Library(path: Path, name: String, numberOfVideos: Short) extends LibraryFile
+object Video {
+  def apply(name: String, parent: Path, size: Long, format: VideoFormat): Video =
+    Video(ShortId.generate(), name, parent, size, format)
+}
 
-case class Folder(path: Path, name: String, parent: Path, numberOfVideos: Short) extends LibraryFile
-
-case class Video(path: Path, name: String, parent: Path, size: Long, url: URL, format: VideoFormat) extends LibraryFile
+object Library {
+  implicit val formatter: RootJsonWriter[Library] = {
+    case Library(name, path) => JsObject(
+      "type" -> "library".toJson,
+      "name" -> name.toJson,
+      "path" -> path.toString.toJson
+    )
+  }
+}
 
 object LibraryFile {
   implicit val formatter: RootJsonWriter[LibraryFile] = {
-    case Library(path, name, numberOfVideos) => JsObject(
-      "type" -> "library".toJson,
-      "path" -> path.toString.toJson,
-      "name" -> name.toString.toJson,
-      "numberOfVideos" -> numberOfVideos.toJson
-    )
-    case Folder(path, name, parent, numberOfVideos) => JsObject(
+    case Folder(name, parent) => JsObject(
       "type" -> "folder".toJson,
-      "path" -> path.toString.toJson,
-      "name" -> name.toString.toJson,
-      "parent" -> parent.toString.toJson,
-      "numberOfVideos" -> numberOfVideos.toJson
+      "parent" -> parent.toString.replaceAll("""\\""", "/").toJson,
+      "name" -> name.toJson
     )
-    case Video(path, name, parent, size, url, format) => JsObject(
-      "type" -> "file".toJson,
-      "path" -> JsString(path.toString),
+    case Video(id, name, parent, size, format) => JsObject(
+      "type" -> "video".toJson,
+      "id" -> id.toJson,
+      "parent" -> parent.toString.replaceAll("""\\""", "/").toJson,
       "name" -> name.toJson,
-      "parent" -> parent.toString.toJson,
       "size" -> size.toJson,
-      "url" -> url.toString.toJson,
       "format" -> format.toString.toJson
     )
   }

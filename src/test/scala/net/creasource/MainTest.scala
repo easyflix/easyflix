@@ -9,6 +9,7 @@ import akka.stream.{ActorMaterializer, KillSwitch, KillSwitches}
 import akka.stream.alpakka.file.DirectoryChange
 import akka.stream.alpakka.file.scaladsl.DirectoryChangesSource
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
+import me.nimavat.shortid.ShortId
 import net.creasource.core.Application
 import net.creasource.model.{Folder, Library, LibraryFile, Video, VideoFormat}
 
@@ -37,37 +38,36 @@ class MainTest extends SimpleTest {
 
       import akka.stream.alpakka.file.scaladsl.Directory
 
-      val libraryPath = Paths.get("D:\\Vidéos\\Avatar - The Legend of Korra")
+      val videos = Library(name = "Vidéos", path = Paths.get("D:\\Vidéos\\Avatar - The Legend of Korra"))
 
-      val source: Source[Path, NotUsed] = Directory.walk(libraryPath)
+      val source: Source[Path, NotUsed] = Directory.walk(videos.path)
+
+      def getPath(path: Path) = {
+        Paths.get(videos.name).resolve(videos.path.relativize(path)).getParent
+      }
 
       val f = source
-          .filter(path => path !== libraryPath)
+          .filter(path => path !== videos.path)
           .map(path => {
             val file = path.toFile
             if (file.isFile) {
               VideoFormat.getFormat(file) match {
                 case Some(format) => Some(Video(
-                  path = path,
+                  parent = getPath(path),
                   name = file.getName,
-                  parent = path.getParent,
                   size = file.length,
-                  url = new URL("http", "localhost", "/" + URLEncoder.encode(file.getName, "UTF-8")),
                   format = format
                 ))
                 case _ => None
               }
             } else {
               Some(Folder(
-                path = path,
+                parent = getPath(path),
                 name = file.getName,
-                parent = path.getParent,
-                numberOfVideos = 0)
-              )
+              ))
             }
           })
-          .collect { case Some(libraryFile) => libraryFile }
-          .concat[LibraryFile, NotUsed](Source.single(Library(path = libraryPath, name = "Vidéos", numberOfVideos = 0)))
+          .collect[LibraryFile] { case Some(libraryFile) => libraryFile }
           .map(_.toJson)
           .runWith(Sink.seq)
 

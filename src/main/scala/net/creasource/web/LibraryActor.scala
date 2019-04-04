@@ -17,7 +17,7 @@ class LibraryActor extends Actor {
 
   import LibraryActor._
 
-  var libraries: Seq[Library] = Seq(Library(Paths.get("D:/Vidéos"), "Vidéos", 0))
+  var libraries: Seq[Library] = Seq(Library("Vidéos", Paths.get("D:/Vidéos")))
 
   override def receive: Receive = {
 
