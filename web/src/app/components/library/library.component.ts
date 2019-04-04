@@ -72,8 +72,6 @@ export class LibraryComponent implements OnInit, OnDestroy {
   libraries: ComponentRef<LibraryListComponent>;
   librariesSub: Subscription;
 
-  subscriptions: [Subscription[], Subscription[]] = [[], []];
-
   private readonly folderFactory: ComponentFactory<FileListComponent>;
   private readonly librariesFactory: ComponentFactory<LibraryListComponent>;
 
@@ -119,7 +117,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
    * Creates a new component and animates the transition to it
    * @param component the new component to show
    * @param ltr animate from left to right
-   * @param detach detach previous view instead of destroying it
+   * @param detach detaches previous view instead of destroying it
    */
   animateTo<T extends Focusable>(component: ComponentRef<T>, ltr: boolean = true, detach: boolean = false) {
     if (!this.isAnimating) {

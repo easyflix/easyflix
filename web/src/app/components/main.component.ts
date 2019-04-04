@@ -51,6 +51,9 @@ import {map} from 'rxjs/operators';
     h1 {
       margin: 0 1rem 0 0;
     }
+    nav a {
+      color: white; /* TODO theme it */
+    }
     mat-icon {
       margin-left: auto;
       cursor: pointer;
