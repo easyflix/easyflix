@@ -5,7 +5,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import net.creasource.core.Application
 import net.creasource.http.{SPAWebServer, SocketWebServer}
-import net.creasource.web.{APIRoutes, SocketActor}
+import net.creasource.web.{APIRoutes, LibraryRoutes, SocketActor}
 
 import scala.io.StdIn
 
@@ -25,7 +25,7 @@ object Main extends App with SPAWebServer with SocketWebServer {
   private val apiRoutes = new APIRoutes(app)
 
   override val socketActorProps: Props = SocketActor.props(apiRoutes.routes)
-  override val routes: Route = apiRoutes.routes ~ super.routes
+  override val routes: Route = apiRoutes.routes ~ LibraryRoutes.routes(app) ~ super.routes
 
   val startFuture = start(host, port)
 
