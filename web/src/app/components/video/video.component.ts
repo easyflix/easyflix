@@ -48,7 +48,10 @@ export class VideoComponent implements OnInit {
   }
 
   play() {
-    (this.videoRef.nativeElement as HTMLMediaElement).play();
+    (this.videoRef.nativeElement as HTMLMediaElement).play().then(
+      () => {},
+      error => console.error(error)
+    );
   }
 
   pause() {
