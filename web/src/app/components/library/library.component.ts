@@ -13,7 +13,7 @@ import {PanelDirective} from '@app/shared/directives/panel.directive';
 import {FileListComponent} from './file-list.component';
 import {Subscription} from 'rxjs';
 import {LibraryListComponent} from './library-list.component';
-import {Folder} from '@app/models/file';
+import {Folder, Library} from '@app/models/file';
 
 export interface Focusable {
   focus();
@@ -85,7 +85,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.libraries = this.librariesFactory.create(this.panels.viewContainerRef.injector);
-    this.librariesSub = this.libraries.instance.openLibrary.subscribe(library => this.create(library));
+    this.librariesSub = this.libraries.instance.openLibrary.subscribe((library: Library) => this.create(library));
     this.panels.viewContainerRef.insert(this.libraries.hostView, 0);
     this.libraries.instance.focus();
   }
@@ -95,7 +95,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
   }
 
   create(
-    folder: Folder,
+    folder: Folder | Library,
     parentRef: ComponentRef<LibraryListComponent | FileListComponent> = this.libraries
   ) {
     const folderRef = this.folderFactory.create(this.panels.viewContainerRef.injector);

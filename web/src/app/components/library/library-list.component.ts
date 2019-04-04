@@ -1,4 +1,4 @@
-import {Component, ElementRef, EventEmitter, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {Observable} from 'rxjs';
 
 import {FilesService} from '@app/services/files.service';
@@ -64,7 +64,8 @@ import {Focusable} from '@app/components/library/library.component';
     mat-list-item {
       cursor: pointer;
     }
-  `]
+  `],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LibraryListComponent implements OnInit, Focusable {
 

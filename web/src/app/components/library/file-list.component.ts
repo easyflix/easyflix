@@ -1,9 +1,9 @@
-import {Component, ElementRef, EventEmitter, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 
 import {FilesService} from '@app/services/files.service';
-import {Folder, Video} from '@app/models/file';
+import {Folder, Library, Video} from '@app/models/file';
 import {VideoService} from '@app/services/video.service';
 import {Router} from '@angular/router';
 import {Focusable} from '@app/components/library/library.component';
@@ -14,7 +14,7 @@ import {Focusable} from '@app/components/library/library.component';
     <mat-action-list dense>
       <button mat-list-item (click)='prev.emit()' #back>
         <mat-icon matListIcon class="back-icon">chevron_left</mat-icon>
-        <p matLine>Back</p>
+        <p matLine>Back ({{ getCurrentPath() }})</p>
         <p matLine></p>
         <mat-divider></mat-divider>
       </button>
@@ -70,7 +70,8 @@ import {Focusable} from '@app/components/library/library.component';
       font-size: 24px !important;
       padding: 2px !important;
     }
-  `]
+  `],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FileListComponent implements OnInit, Focusable {
 
@@ -79,7 +80,7 @@ export class FileListComponent implements OnInit, Focusable {
 
   folders$: Observable<Folder[]>;
   files$: Observable<Video[]>;
-  current: Folder;
+  current: Folder | Library;
 
   @ViewChild('back', { read: ElementRef })
   back: ElementRef;
@@ -108,6 +109,13 @@ export class FileListComponent implements OnInit, Focusable {
     const back = this.back.nativeElement as HTMLElement;
     const first = back.nextElementSibling as HTMLElement;
     if (first) { first.focus(); }
+  }
+
+  getCurrentPath() {
+    switch (this.current.type) {
+      case 'library': return this.current.name;
+      case 'folder': return this.current.parent + '/' + this.current.name;
+    }
   }
 
 }

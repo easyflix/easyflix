@@ -1,5 +1,5 @@
 
-interface IFile {
+export interface Video {
   type: 'video';
   id: string;
   name: string;
@@ -8,19 +8,16 @@ interface IFile {
   format: string;
 }
 
-interface IFolder {
+export interface Folder {
   type: 'folder';
   name: string;
   parent: string;
 }
 
-interface ILibrary {
+export interface Library {
   type: 'library';
   name: string;
   path: string;
 }
 
-export type Video = IFile;
-export type Folder = IFolder;
-export type Library = ILibrary;
-export type LibraryFile = IFolder | IFile;
+export type LibraryFile = Folder | Video;
