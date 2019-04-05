@@ -1,11 +1,18 @@
 package net.creasource.core
 
+import java.nio.file.Paths
+
 import akka.actor.{ActorRef, ActorSystem}
 import akka.stream.ActorMaterializer
 import com.typesafe.config.{Config, ConfigFactory}
+import net.creasource.model.Library
 import net.creasource.web.LibraryActor
+import net.creasource.web.LibraryActor.ScanLibrary
 
 import scala.concurrent.Await
+
+import akka.pattern.ask
+import scala.concurrent.duration._
 
 object Application {
 
@@ -25,7 +32,11 @@ class Application {
 
   system.log.info("Application starting.")
 
-  val libraryActor: ActorRef = system.actorOf(LibraryActor.props(), "library")
+  val libraryActor: ActorRef = system.actorOf(LibraryActor.props()(this), "library")
+
+  val videos = Library(name = "Vidéos", path = Paths.get("D:\\Vidéos\\Avatar - The Legend of Korra"))
+  (libraryActor ? ScanLibrary(videos))(10.seconds)
+
 
   //  val settingsActor: ActorRef = system.actorOf(SettingsActor.props()(this), "settings")
 //  val lyricsActor: ActorRef = system.actorOf(LyricsActor.props()(this), "lyrics")

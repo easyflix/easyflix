@@ -17,6 +17,8 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import spray.json._
 import spray.json.DefaultJsonProtocol._
+import akka.pattern.ask
+import net.creasource.web.LibraryActor.{GetLibraryFiles, ScanLibrary}
 
 class MainTest extends SimpleTest {
 
@@ -36,45 +38,58 @@ class MainTest extends SimpleTest {
 
     "a" in {
 
-      import akka.stream.alpakka.file.scaladsl.Directory
-
       val videos = Library(name = "Vidéos", path = Paths.get("D:\\Vidéos\\Avatar - The Legend of Korra"))
 
-      val source: Source[Path, NotUsed] = Directory.walk(videos.path)
+      val f = (application.libraryActor ? ScanLibrary(videos))(10.seconds)
 
-      def getPath(path: Path) = {
-        Paths.get(videos.name).resolve(videos.path.relativize(path)).getParent
-      }
+      Await.result(f, 10.seconds)
 
-      val f = source
-          .filter(path => path !== videos.path)
-          .map(path => {
-            val file = path.toFile
-            if (file.isFile) {
-              VideoFormat.getFormat(file) match {
-                case Some(format) => Some(Video(
-                  parent = getPath(path),
-                  name = file.getName,
-                  size = file.length,
-                  format = format
-                ))
-                case _ => None
-              }
-            } else {
-              Some(Folder(
-                parent = getPath(path),
-                name = file.getName,
-              ))
+      val f1 = (application.libraryActor ? GetLibraryFiles)(10.seconds).mapTo[Seq[LibraryFile]]
+
+      val r = Await.result(f1, 10.seconds)
+
+      r.foreach(println)
+      /*      import akka.stream.alpakka.file.scaladsl.Directory
+
+            val videos = Library(name = "Vidéos", path = Paths.get("D:\\Vidéos\\Avatar - The Legend of Korra"))
+
+            val source: Source[Path, NotUsed] = Directory.walk(videos.path)
+
+            def getParentPathRelativeToLibrary(path: Path) = {
+              Paths.get(videos.name).resolve(videos.path.relativize(path)).getParent
             }
-          })
-          .collect[LibraryFile] { case Some(libraryFile) => libraryFile }
-          .map(_.toJson)
-          .runWith(Sink.seq)
 
-      val r = Await.result(f, 20.seconds)
+            val f = source
+                .filter(path => path !== videos.path)
+                .map(path => {
+                  val file = path.toFile
+                  if (file.isFile) {
+                    VideoFormat.getFormat(file) match {
+                      case Some(format) => Some(Video(
+                        parent = getParentPathRelativeToLibrary(path),
+                        name = file.getName,
+                        size = file.length,
+                        format = format,
+                        filePath = path
+                      ))
+                      case _ => None
+                    }
+                  } else {
+                    Some(Folder(
+                      id = ShortId.generate(),
+                      parent = getParentPathRelativeToLibrary(path),
+                      name = file.getName,
+                    ))
+                  }
+                })
+                .collect[LibraryFile] { case Some(libraryFile) => libraryFile }
+                .map(_.toJson)
+                .runWith(Sink.seq)
 
-      println(r.length)
-      println(r.mkString("[\n", ",\n", "\n]"))
+            val r = Await.result(f, 20.seconds)
+
+            println(r.length)
+            println(r.mkString("[\n", ",\n", "\n]"))*/
 
 /*      val changes: Source[(Path, DirectoryChange), NotUsed] =
         DirectoryChangesSource(Paths.get("D:/Vidéos"), pollInterval = 1.second, maxBufferSize = 1000)
