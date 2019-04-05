@@ -41,9 +41,7 @@ import {Focusable} from '@app/components/library/library.component';
             movie
           </mat-icon>
           <h3 matLine>{{ file.name }}</h3>
-          <p matLine>
-            <!--<span>{{ file.size | sgFileSize }}</span>-->
-          </p>
+          <span matLine class="subtext">{{ file.size | sgFileSize }}</span>
           <mat-divider></mat-divider>
         </mat-list-item>
       </ng-template>
@@ -69,6 +67,11 @@ import {Focusable} from '@app/components/library/library.component';
       height: 24px !important;
       font-size: 24px !important;
       padding: 2px !important;
+    }
+    .subtext {
+      margin-top: 0.25rem !important;
+      font-size: 11px !important;
+      color: rgba(255,255,255,0.7);
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush

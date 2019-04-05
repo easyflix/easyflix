@@ -1,7 +1,7 @@
 package net.creasource.web
 
 import akka.http.scaladsl.model.MediaType.NotCompressible
-import akka.http.scaladsl.model.{ContentType, MediaType, MediaTypes, StatusCodes}
+import akka.http.scaladsl.model.{ContentType, MediaType, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.directives.ContentTypeResolver
