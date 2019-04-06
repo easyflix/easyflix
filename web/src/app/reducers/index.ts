@@ -85,9 +85,9 @@ export const getFilesOfFolder = createSelector(
     let folderPath;
     switch (folder.type) {
       case 'library':
-        folderPath = folder.name; break;
+        folderPath = `${folder.name}/`; break;
       case 'folder':
-        folderPath = `${folder.parent}/${folder.name}`;
+        folderPath = `${folder.parent}${folder.name}/`;
     }
     return files.filter(file => file.parent === folderPath);
   }

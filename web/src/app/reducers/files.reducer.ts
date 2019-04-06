@@ -31,11 +31,24 @@ export function reducer(
 ): State {
   switch (action.type) {
 
-    case FilesActionTypes.LoadFilesSuccess:
-      return adapter.upsertMany(action.payload, state);
+    case FilesActionTypes.LoadFilesSuccess: {
+      const libraryFiles =
+        action.payload.map(file => {
+          if (file.type === 'folder') {
+            return {
+              ...file,
+              numberOfVideos: action.payload
+                .filter(f => f.type === 'video' && f.parent.startsWith(`${file.parent}${file.name}/`))
+                .length
+            };
+          } else {
+            return file;
+          }
+        }).filter(file => file.type === 'video' || file.numberOfVideos > 0); // ? should filter elsewhere ?
+      return adapter.upsertMany(libraryFiles, state);
+    }
 
-    default:
-      return state;
+    default: return state;
   }
 }
 

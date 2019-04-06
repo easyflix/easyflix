@@ -35,13 +35,13 @@ object LibraryFile extends DefaultJsonProtocol {
     case Folder(id, name, parent) => JsObject(
       "type" -> "folder".toJson,
       "id" -> id.toJson,
-      "parent" -> parent.toString.replaceAll("""\\""", "/").toJson,
+      "parent" -> (parent.toString.replaceAll("""\\""", "/") + "/").toJson,
       "name" -> name.toJson
     )
     case Video(id, name, parent, size, format, _) => JsObject(
       "type" -> "video".toJson,
       "id" -> id.toJson,
-      "parent" -> parent.toString.replaceAll("""\\""", "/").toJson,
+      "parent" -> (parent.toString.replaceAll("""\\""", "/") + "/").toJson,
       "name" -> name.toJson,
       "size" -> size.toJson,
       "format" -> format.toString.toJson
