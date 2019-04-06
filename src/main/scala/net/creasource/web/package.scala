@@ -5,6 +5,7 @@ import akka.http.scaladsl.model._
 import akka.util.ByteString
 import spray.json._
 
+import scala.collection.immutable.Seq
 import scala.util.Try
 
 package object web {
@@ -61,6 +62,7 @@ package object web {
       }
       HttpRequest(method = method, uri = uri, headers = headers, entity = entity)
     }
+    implicit def immSeqWriter[T: JsonWriter]: RootJsonWriter[Seq[T]] = (obj: Seq[T]) => JsArray(obj.map(_.toJson).toVector)
   }
 
   object JsonSupport extends JsonSupport

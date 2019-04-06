@@ -34,7 +34,7 @@ class Application {
 
   val libraryActor: ActorRef = system.actorOf(LibraryActor.props()(this), "library")
 
-  val videos = Library(name = "Vidéos", path = Paths.get("D:\\Vidéos\\Avatar - The Legend of Korra"))
+  val videos = Library(name = "Vidéos", path = Paths.get("D:\\Vidéos"))
   (libraryActor ? ScanLibrary(videos))(10.seconds)
 
 

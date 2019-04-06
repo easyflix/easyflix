@@ -30,8 +30,8 @@ object Library {
   }
 }
 
-object LibraryFile {
-  implicit val formatter: RootJsonWriter[LibraryFile] = {
+object LibraryFile extends DefaultJsonProtocol {
+  implicit val writer: JsonWriter[LibraryFile] = {
     case Folder(id, name, parent) => JsObject(
       "type" -> "folder".toJson,
       "id" -> id.toJson,
