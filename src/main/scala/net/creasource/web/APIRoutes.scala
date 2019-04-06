@@ -29,11 +29,15 @@ object APIRoutes extends Directives with JsonSupport {
             }
           },
           get {
-            path("videos") {
-              onSuccess((application.libraryActor ? GetLibraryFiles).mapTo[Seq[LibraryFile]])(complete(_))
+            pathPrefix("videos") {
+              pathEndOrSingleSlash {
+                onSuccess((application.libraryActor ? GetLibraryFiles).mapTo[Seq[LibraryFile]])(complete(_))
+              }
             } ~
-            path("libraries") {
-              onSuccess((application.libraryActor ? GetLibraries).mapTo[Seq[Library]])(complete(_))
+            pathPrefix("libraries") {
+              pathEndOrSingleSlash {
+                onSuccess((application.libraryActor ? GetLibraries).mapTo[Seq[Library]])(complete(_))
+              }
             }
           }
         ))

@@ -10,6 +10,7 @@ export interface Video {
 
 export interface Folder {
   type: 'folder';
+  id: string;
   name: string;
   parent: string;
 }

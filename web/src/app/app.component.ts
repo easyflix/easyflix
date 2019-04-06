@@ -4,6 +4,7 @@ import {Observable} from 'rxjs';
 import {CoreService} from './services/core.service';
 import {playerAnimations} from '@app/animations';
 import {RouterOutlet} from '@angular/router';
+import {FilesService} from '@app/services/files.service';
 
 @Component({
   selector: 'app-root',
@@ -22,10 +23,12 @@ export class AppComponent implements OnInit {
 
   constructor(
     private core: CoreService,
+    private files: FilesService
   ) { }
 
   ngOnInit() {
     this.showSidenav$ = this.core.getShowSidenav();
+    this.files.loadFiles();
   }
 
   openSidenav() {

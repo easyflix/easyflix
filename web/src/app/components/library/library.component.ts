@@ -99,7 +99,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
     parentRef: ComponentRef<LibraryListComponent | FileListComponent> = this.libraries
   ) {
     const folderRef = this.folderFactory.create(this.panels.viewContainerRef.injector);
-    folderRef.instance.current = folder;
+    folderRef.instance.currentFolder = folder;
     folderRef.instance.prev.subscribe(() => this.closeTo(parentRef));
     folderRef.instance.next.subscribe(f => this.create(f, folderRef));
     this.openTo(folderRef);

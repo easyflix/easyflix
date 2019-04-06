@@ -1,10 +1,10 @@
 import {ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {Location} from '@angular/common';
 import {VideoService} from '@app/services/video.service';
 import {Observable, zip} from 'rxjs';
 import {take} from 'rxjs/operators';
 import {CoreService} from '@app/services/core.service';
 import {Router} from '@angular/router';
+import {tap} from 'rxjs/internal/operators/tap';
 
 @Component({
   selector: 'app-video',
@@ -33,7 +33,9 @@ export class VideoComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.src$ = this.video.getSource();
+    this.src$ = this.video.getSource().pipe(
+      tap(() => this.video.setLoading(true))
+    );
     this.volume$ = this.video.getVolume();
 
     this.playing$ = this.video.getPlaying();
@@ -107,6 +109,12 @@ export class VideoComponent implements OnInit {
   }
 
   onTimeUpdate(event) {
+    // Fix for Edge ?
+    /* this.video.getLoading().pipe(
+      take(1),
+      tap(loading => loading ? this.video.setLoading(false) : {})
+    ).subscribe(); */
+
     this.video.updateCurrentTime(event.target.currentTime);
   }
 
@@ -115,7 +123,8 @@ export class VideoComponent implements OnInit {
   }
 
   onError(event) {
-    console.error('VideoError', event);
+    // https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code
+    console.error('VideoError', event.target.error);
   }
 
   closeVideo() {

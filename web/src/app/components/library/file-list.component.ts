@@ -1,9 +1,8 @@
 import {ChangeDetectionStrategy, Component, ElementRef, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
 
 import {FilesService} from '@app/services/files.service';
-import {Folder, Library, Video} from '@app/models/file';
+import {Folder, Library, LibraryFile, Video} from '@app/models/file';
 import {VideoService} from '@app/services/video.service';
 import {Router} from '@angular/router';
 import {Focusable} from '@app/components/library/library.component';
@@ -18,24 +17,22 @@ import {Focusable} from '@app/components/library/library.component';
         <p matLine></p>
         <mat-divider></mat-divider>
       </button>
-      <ng-template ngFor let-folder [ngForOf]='folders$ | async'>
+      <ng-template ngFor let-file [ngForOf]='files$ | async'>
         <mat-list-item tabindex='0'
-                       (click)='next.emit(folder)'
-                       (keyup.space)='next.emit(folder)'
-                       (keyup.enter)='next.emit(folder)'>
+                       *ngIf="file.type === 'folder'"
+                       (click)='next.emit(file)'
+                       (keyup.space)='next.emit(file)'
+                       (keyup.enter)='next.emit(file)'>
           <mat-icon matListIcon>
             folder
           </mat-icon>
-          <h3 matLine>{{ folder.name }}</h3>
-          <p matLine>
-            <!--<span>{{ folder.numberOfVideos }} videos</span>-->
-          </p>
+          <h3 matLine>{{ file.name }}</h3>
+          <span matLine class="subtext">{{ file.numberOfVideos }} videos</span>
           <mat-icon>chevron_right</mat-icon>
           <mat-divider></mat-divider>
         </mat-list-item>
-      </ng-template>
-      <ng-template ngFor let-file [ngForOf]='files$ | async'>
         <mat-list-item tabindex='0'
+                       *ngIf="file.type === 'video'"
                        (click)='playFile(file)'>
           <mat-icon matListIcon class='material-icons-outlined'>
             movie
@@ -81,9 +78,8 @@ export class FileListComponent implements OnInit, Focusable {
   next: EventEmitter<Folder> = new EventEmitter();
   prev: EventEmitter<void> = new EventEmitter();
 
-  folders$: Observable<Folder[]>;
-  files$: Observable<Video[]>;
-  current: Folder | Library;
+  files$: Observable<LibraryFile[]>;
+  currentFolder: Folder | Library;
 
   @ViewChild('back', { read: ElementRef })
   back: ElementRef;
@@ -95,18 +91,10 @@ export class FileListComponent implements OnInit, Focusable {
   ) {}
 
   ngOnInit() {
-    this.files$ = this.filesService.getFiles(this.current).pipe(
-      map(files => files.filter(f => f.type === 'video') as Video[]),
-      map(files => files.sort((a, b) => a.name.localeCompare(b.name)))
-    );
-    this.folders$ = this.filesService.getFiles(this.current).pipe(
-      map(files => files.filter(f => f.type === 'folder') as Folder[]),
-      map(folders => folders.sort((a, b) => a.name.localeCompare(b.name)))
-    );
+    this.files$ = this.filesService.getFilesOfFolder(this.currentFolder);
   }
 
   playFile(file: Video) {
-    this.video.setLoading(true);
     this.video.setSource(`http://localhost:8081/videos/${file.id}`);
     this.router.navigate([{ outlets: { player: file.id } }]);
   }
@@ -118,9 +106,9 @@ export class FileListComponent implements OnInit, Focusable {
   }
 
   getCurrentPath() {
-    switch (this.current.type) {
-      case 'library': return this.current.name;
-      case 'folder': return this.current.parent + '/' + this.current.name;
+    switch (this.currentFolder.type) {
+      case 'library': return this.currentFolder.name;
+      case 'folder': return this.currentFolder.parent + '/' + this.currentFolder.name;
     }
   }
 

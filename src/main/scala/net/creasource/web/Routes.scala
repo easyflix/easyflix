@@ -33,7 +33,7 @@ object Routes {
           entity = HttpEntity.Default(
             contentType = contentTypeResolver(file.getName),
             contentLength = idxRange.length,
-            data = FileIO.fromPath(file.toPath, 8192, idxRange.start).take(idxRange.length / 8192 + 1)
+            data = FileIO.fromPath(file.toPath, 8192, idxRange.start).take(idxRange.length / 8192 + 1) // FIXME data length might be bigger thant contentLength
           )
         ).withHeaders(
           `Content-Range`(idxRange.contentRange(file.length)),

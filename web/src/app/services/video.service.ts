@@ -1,6 +1,6 @@
-import {ElementRef, Injectable, Renderer2} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {Observable, Subject} from 'rxjs';
-import {filter, map, publishReplay, refCount, throttleTime} from 'rxjs/operators';
+import {publishReplay, refCount, throttleTime} from 'rxjs/operators';
 import {Store} from '@ngrx/store';
 
 import * as fromStore from '../reducers';
@@ -48,9 +48,7 @@ export class VideoService {
   }
 
   getSource(): Observable<string> {
-    return this.store.select(fromStore.getVideoInput).pipe(
-      map(input => input.source)
-    );
+    return this.store.select(fromStore.getVideoSource);
   }
 
   getMuted() {
