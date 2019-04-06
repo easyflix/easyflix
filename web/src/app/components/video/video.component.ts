@@ -29,8 +29,7 @@ export class VideoComponent implements OnInit {
   constructor(
     private core: CoreService,
     private video: VideoService,
-    private router: Router,
-    private location: Location
+    private router: Router
   ) { }
 
   ngOnInit() {
@@ -79,11 +78,12 @@ export class VideoComponent implements OnInit {
   }
 
   onPlay() {
+    this.video.setLoading(false);
     this.video.setPlaying(true);
   }
 
   onPlaying() {
-    this.video.setPlaying(true);
+    this.onPlay();
   }
 
   onPause() {

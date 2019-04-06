@@ -96,16 +96,19 @@ export class FileListComponent implements OnInit, Focusable {
 
   ngOnInit() {
     this.files$ = this.filesService.getFiles(this.current).pipe(
-      map(files => files.filter(f => f.type === 'video') as Video[])
+      map(files => files.filter(f => f.type === 'video') as Video[]),
+      map(files => files.sort((a, b) => a.name.localeCompare(b.name)))
     );
     this.folders$ = this.filesService.getFiles(this.current).pipe(
-      map(files => files.filter(f => f.type === 'folder') as Folder[])
+      map(files => files.filter(f => f.type === 'folder') as Folder[]),
+      map(folders => folders.sort((a, b) => a.name.localeCompare(b.name)))
     );
   }
 
   playFile(file: Video) {
+    this.video.setLoading(true);
     this.video.setSource(`http://localhost:8081/videos/${file.id}`);
-    this.router.navigate([{ outlets: { player: encodeURIComponent(file.id) } }]);
+    this.router.navigate([{ outlets: { player: file.id } }]);
   }
 
   focus() {
