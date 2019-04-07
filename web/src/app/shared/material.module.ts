@@ -24,9 +24,10 @@ import {
   MatTableModule,
   MatTabsModule,
   MatToolbarModule,
-  MatTooltipModule
+  MatTooltipModule,
 } from '@angular/material';
 import {A11yModule} from '@angular/cdk/a11y';
+import {ScrollingModule} from '@angular/cdk/scrolling';
 
 const MATERIAL_MODULES = [
   MatButtonModule,
@@ -53,7 +54,8 @@ const MATERIAL_MODULES = [
   MatTabsModule,
   MatToolbarModule,
   MatTooltipModule,
-  A11yModule
+  A11yModule,
+  ScrollingModule
 ];
 
 @NgModule({

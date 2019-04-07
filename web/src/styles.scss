@@ -63,3 +63,8 @@ button.md-48 {
 .cdk-focused .mat-slider-track-background, .mat-slider:hover .mat-slider-track-background {
   background-color: rgba(255,255,255,.48);
 }
+
+// Fix for cdk virtual scroll wrapper
+.cdk-virtual-scroll-content-wrapper {
+  width: 100%;
+}

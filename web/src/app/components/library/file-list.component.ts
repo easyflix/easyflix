@@ -10,39 +10,41 @@ import {Focusable} from '@app/components/library/library.component';
 @Component({
   selector: 'app-folder',
   template: `
-    <mat-action-list dense>
-      <button mat-list-item (click)='prev.emit()' #back>
-        <mat-icon matListIcon class="back-icon">chevron_left</mat-icon>
-        <p matLine>Back ({{ getCurrentPath() }})</p>
-        <p matLine></p>
-        <mat-divider></mat-divider>
-      </button>
-      <ng-template ngFor let-file [ngForOf]='files$ | async'>
-        <mat-list-item tabindex='0'
-                       *ngIf="file.type === 'folder'"
-                       (click)='next.emit(file)'
-                       (keyup.space)='next.emit(file)'
-                       (keyup.enter)='next.emit(file)'>
-          <mat-icon matListIcon>
-            folder
-          </mat-icon>
-          <h3 matLine>{{ file.name }}</h3>
-          <span matLine class="subtext">{{ file.numberOfVideos }} videos</span>
-          <mat-icon>chevron_right</mat-icon>
+    <cdk-virtual-scroll-viewport itemSize="60">
+      <mat-action-list dense>
+        <button mat-list-item (click)='prev.emit()' #back>
+          <mat-icon matListIcon class="back-icon">chevron_left</mat-icon>
+          <p matLine>Back ({{ getCurrentPath() }})</p>
+          <p matLine></p>
           <mat-divider></mat-divider>
-        </mat-list-item>
-        <mat-list-item tabindex='0'
-                       *ngIf="file.type === 'video'"
-                       (click)='playFile(file)'>
-          <mat-icon matListIcon class='material-icons-outlined'>
-            movie
-          </mat-icon>
-          <h3 matLine>{{ file.name }}</h3>
-          <span matLine class="subtext">{{ file.size | sgFileSize }}</span>
-          <mat-divider></mat-divider>
-        </mat-list-item>
-      </ng-template>
-    </mat-action-list>
+        </button>
+        <ng-template cdkVirtualFor let-file [cdkVirtualForOf]='files$ | async'>
+          <mat-list-item tabindex='0'
+                         *ngIf="file.type === 'folder'"
+                         (click)='next.emit(file)'
+                         (keyup.space)='next.emit(file)'
+                         (keyup.enter)='next.emit(file)'>
+            <mat-icon matListIcon>
+              folder
+            </mat-icon>
+            <h3 matLine>{{ file.name }}</h3>
+            <span matLine class="subtext">{{ file.numberOfVideos }} videos</span>
+            <mat-icon>chevron_right</mat-icon>
+            <mat-divider></mat-divider>
+          </mat-list-item>
+          <mat-list-item tabindex='0'
+                         *ngIf="file.type === 'video'"
+                         (click)='playFile(file)'>
+            <mat-icon matListIcon class='material-icons-outlined'>
+              movie
+            </mat-icon>
+            <h3 matLine>{{ file.name }}</h3>
+            <span matLine class="subtext">{{ file.size | sgFileSize }}</span>
+            <mat-divider></mat-divider>
+          </mat-list-item>
+        </ng-template>
+      </mat-action-list>
+    </cdk-virtual-scroll-viewport>
   `,
   styles: [`
     :host {
@@ -50,6 +52,10 @@ import {Focusable} from '@app/components/library/library.component';
       min-width: 50%;
       display: flex;
       flex-direction: column;
+    }
+    cdk-virtual-scroll-viewport {
+      height: 100%;
+      width: 100%;
     }
     mat-action-list {
       padding: 0 !important;
