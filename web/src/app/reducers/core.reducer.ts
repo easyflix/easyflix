@@ -9,7 +9,7 @@ export interface State {
 }
 
 const initialState: State = {
-  showSidenav: false,
+  showSidenav: true,
   // currentTheme: CoreUtils.allThemes[0],
 };
 

@@ -112,7 +112,7 @@ export class FileListComponent implements OnInit, AnimatableComponent {
 
   beforeAnimation() {
     const container = this.scrollable.nativeElement as HTMLElement;
-    // wake up cdk-virtual-scroll
+    // wake up cdk-virtual-scroll (uses polyfill)
     container.scrollTo(0, 1);
     container.scrollTo(0, 0);
   }
@@ -132,7 +132,7 @@ export class FileListComponent implements OnInit, AnimatableComponent {
   getCurrentPath() {
     switch (this.currentFolder.type) {
       case 'library': return this.currentFolder.name;
-      case 'folder': return this.currentFolder.parent + '/' + this.currentFolder.name;
+      case 'folder': return this.currentFolder.parent + this.currentFolder.name;
     }
   }
 
