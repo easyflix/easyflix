@@ -3,7 +3,7 @@ import {Observable} from 'rxjs';
 
 import {FilesService} from '@app/services/files.service';
 import {Library} from '@app/models/file';
-import {Focusable} from '@app/components/library/library.component';
+import {AnimatableComponent} from '@app/components/library/library.component';
 
 @Component({
   selector: 'app-libraries-view',
@@ -21,7 +21,7 @@ import {Focusable} from '@app/components/library/library.component';
                        (keyup.arrowright)="openLibrary.emit(library)"
                        (keyup.arrowdown)="focusNext($event)"
                        (keyup.arrowup)="focusPrev($event)">
-          <mat-icon matListIcon class="material-icons-outlined">
+          <mat-icon matListIcon>
             video_library
           </mat-icon>
           <h3 matLine>{{ library.name }}</h3>
@@ -33,7 +33,7 @@ import {Focusable} from '@app/components/library/library.component';
       <mat-list-item tabindex="0"
                      (keyup.arrowdown)="focusNext($event)"
                      (keyup.arrowup)="focusPrev($event)">
-        <mat-icon matListIcon class="material-icons-outlined">
+        <mat-icon matListIcon>
           library_add
         </mat-icon>
         <h3 matLine>Add a library</h3>
@@ -67,7 +67,7 @@ import {Focusable} from '@app/components/library/library.component';
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LibraryListComponent implements OnInit, Focusable {
+export class LibraryListComponent implements OnInit, AnimatableComponent {
 
   libraries$: Observable<Library[]>;
 
@@ -83,8 +83,10 @@ export class LibraryListComponent implements OnInit, Focusable {
   ngOnInit() {
   }
 
-  focus() {
-    setTimeout(() => this.matList.nativeElement.children[0].focus(), 0);
+  beforeAnimation() {}
+
+  afterAnimation() {
+    // setTimeout(() => this.matList.nativeElement.children[0].focus(), 0);
   }
 
   focusNext(event: KeyboardEvent) {

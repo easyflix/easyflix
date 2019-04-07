@@ -15,8 +15,9 @@ import {Subscription} from 'rxjs';
 import {LibraryListComponent} from './library-list.component';
 import {Folder, Library} from '@app/models/file';
 
-export interface Focusable {
-  focus();
+export interface AnimatableComponent {
+  afterAnimation();
+  beforeAnimation();
 }
 
 @Component({
@@ -87,7 +88,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
     this.libraries = this.librariesFactory.create(this.panels.viewContainerRef.injector);
     this.librariesSub = this.libraries.instance.openLibrary.subscribe((library: Library) => this.create(library));
     this.panels.viewContainerRef.insert(this.libraries.hostView, 0);
-    this.libraries.instance.focus();
+    this.libraries.instance.afterAnimation();
   }
 
   ngOnDestroy(): void {
@@ -105,11 +106,11 @@ export class LibraryComponent implements OnInit, OnDestroy {
     this.openTo(folderRef);
   }
 
-  openTo<T extends Focusable>(component: ComponentRef<T>) {
+  openTo<T extends AnimatableComponent>(component: ComponentRef<T>) {
     this.animateTo(component, true, true);
   }
 
-  closeTo<T extends Focusable>(component: ComponentRef<T>) {
+  closeTo<T extends AnimatableComponent>(component: ComponentRef<T>) {
     this.animateTo(component, false, false);
   }
 
@@ -119,17 +120,18 @@ export class LibraryComponent implements OnInit, OnDestroy {
    * @param ltr animate from left to right
    * @param detach detaches previous view instead of destroying it
    */
-  animateTo<T extends Focusable>(component: ComponentRef<T>, ltr: boolean = true, detach: boolean = false) {
+  animateTo<T extends AnimatableComponent>(component: ComponentRef<T>, ltr: boolean = true, detach: boolean = false) {
     if (!this.isAnimating) {
       this.isAnimating = true;
       this.state = ltr ? 's-right' : 's-left';
       const firstIndex = ltr ? 1 : 0;
       const secondIndex = ltr ? 0 : 1;
       this.panels.viewContainerRef.insert(component.hostView, firstIndex);
+      component.instance.beforeAnimation();
       setTimeout(() => {
         this.isAnimating = false;
         this.state = 's0';
-        component.instance.focus();
+        component.instance.afterAnimation();
         detach ? this.panels.viewContainerRef.detach(secondIndex) : this.panels.viewContainerRef.remove(secondIndex);
         this.cdRef.detectChanges();
       }, this.DRAWER_ANIMATION_TIME);

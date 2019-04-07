@@ -5,12 +5,12 @@ import {FilesService} from '@app/services/files.service';
 import {Folder, Library, LibraryFile, Video} from '@app/models/file';
 import {VideoService} from '@app/services/video.service';
 import {Router} from '@angular/router';
-import {Focusable} from '@app/components/library/library.component';
+import {AnimatableComponent} from '@app/components/library/library.component';
 
 @Component({
   selector: 'app-folder',
   template: `
-    <cdk-virtual-scroll-viewport itemSize="60">
+    <cdk-virtual-scroll-viewport itemSize="60" #scrollable>
       <mat-action-list dense>
         <button mat-list-item (click)='prev.emit()' #back>
           <mat-icon matListIcon class="back-icon">chevron_left</mat-icon>
@@ -18,7 +18,7 @@ import {Focusable} from '@app/components/library/library.component';
           <p matLine></p>
           <mat-divider></mat-divider>
         </button>
-        <ng-template cdkVirtualFor let-file [cdkVirtualForOf]='files$ | async'>
+        <ng-template cdkVirtualFor let-file [cdkVirtualForOf]='files$ | async' cdkVirtualForTemplateCacheSize="100">
           <mat-list-item tabindex='0'
                          *ngIf="file.type === 'folder'"
                          (click)='next.emit(file)'
@@ -28,7 +28,9 @@ import {Focusable} from '@app/components/library/library.component';
               folder
             </mat-icon>
             <h3 matLine>{{ file.name }}</h3>
-            <span matLine class="subtext">{{ file.numberOfVideos }} videos</span>
+            <span matLine class="subtext" i18n>
+              {file.numberOfVideos, plural, =0 {No video} =1 {1 video} other {{{file.numberOfVideos}} videos}}
+            </span>
             <mat-icon>chevron_right</mat-icon>
             <mat-divider></mat-divider>
           </mat-list-item>
@@ -79,7 +81,7 @@ import {Focusable} from '@app/components/library/library.component';
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class FileListComponent implements OnInit, Focusable {
+export class FileListComponent implements OnInit, AnimatableComponent {
 
   next: EventEmitter<Folder> = new EventEmitter();
   prev: EventEmitter<void> = new EventEmitter();
@@ -89,6 +91,9 @@ export class FileListComponent implements OnInit, Focusable {
 
   @ViewChild('back', { read: ElementRef })
   back: ElementRef;
+
+  @ViewChild('scrollable', { read: ElementRef })
+  scrollable: ElementRef;
 
   constructor(
     private filesService: FilesService,
@@ -105,10 +110,23 @@ export class FileListComponent implements OnInit, Focusable {
     this.router.navigate([{ outlets: { player: file.id } }]);
   }
 
-  focus() {
-    const back = this.back.nativeElement as HTMLElement;
-    const first = back.nextElementSibling as HTMLElement;
-    if (first) { first.focus(); }
+  beforeAnimation() {
+    const container = this.scrollable.nativeElement as HTMLElement;
+    // wake up cdk-virtual-scroll
+    container.scrollTo(0, 1);
+    container.scrollTo(0, 0);
+  }
+
+  afterAnimation() {
+  /*    const back = this.back.nativeElement as HTMLElement;
+      const container = this.scrollable.nativeElement as HTMLElement;
+      /!*const first = back.nextElementSibling as HTMLElement;
+      if (first) { first.focus(); }*!/
+      // back.focus();
+      console.log(container.children[0]);
+      (container.children[0] as HTMLElement).translate = false;
+      container.scrollBy(0, 1);*/
+    // setTimeout(() => back.focus(), 0);
   }
 
   getCurrentPath() {
