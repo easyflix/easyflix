@@ -1,4 +1,27 @@
 <header>
-  <h2>Search</h2>
+  <mat-form-field [floatLabel]="'never'">
+    <mat-label>Search by file name</mat-label>
+    <input matInput
+           name="webflix-search"
+           [(ngModel)]="search"
+           spellcheck="false"/>
+    <mat-icon class="close" matSuffix (click)="search = ''" *ngIf="search != ''">close</mat-icon>
+  </mat-form-field>
+  <span class="results">{{ (files$ | async)?.length || 0 }} results</span>
 </header>
 <mat-divider></mat-divider>
+
+<cdk-virtual-scroll-viewport itemSize="60">
+  <mat-action-list dense>
+    <ng-template cdkVirtualFor let-file [cdkVirtualForOf]='files$ | async'>
+      <mat-list-item tabindex='0'>
+        <mat-icon matListIcon class='material-icons-outlined'>
+          movie
+        </mat-icon>
+        <h3 matLine>{{ file.name }}</h3>
+        <span matLine class="subtext">{{ file.parent }}</span>
+        <mat-divider></mat-divider>
+      </mat-list-item>
+    </ng-template>
+  </mat-action-list>
+</cdk-virtual-scroll-viewport>

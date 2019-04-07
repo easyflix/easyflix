@@ -1,0 +1,46 @@
+:host {
+ flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  height: 60px;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+}
+
+h2 {
+  margin: 0;
+}
+
+cdk-virtual-scroll-viewport {
+  flex-grow: 1;
+}
+
+mat-form-field {
+  flex-grow: 1;
+  margin: 0 1rem 0 0;
+}
+
+.close {
+  font-size: 16px;
+  height: 16px;
+  width: 16px;
+  line-height: 16px;
+  vertical-align: bottom;
+  cursor: pointer;
+}
+
+.results {
+  min-width: 80px;
+  text-align: right;
+  font-size: 14px;
+}
+
+.subtext {
+  margin-top: 0.25rem !important;
+  font-size: 11px !important;
+  color: rgba(255,255,255,0.7);
+}

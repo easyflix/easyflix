@@ -12,12 +12,12 @@ import akka.stream.scaladsl.FileIO
 
 object Routes {
 
-  class IndexRange(val start: Long, val end: Long) {
+  private class IndexRange(val start: Long, val end: Long) {
     def length: Long = end - start
     def contentRange(entityLength: Long): ContentRange.Default = ContentRange(start, end - 1, entityLength)
   }
 
-  def indexRange(entityLength: Long, range: ByteRange): IndexRange =
+  private def indexRange(entityLength: Long, range: ByteRange): IndexRange =
     range match {
       case ByteRange.Slice(start, end)    ⇒ new IndexRange(start, math.min(end + 1, entityLength))
       case ByteRange.FromOffset(first)    ⇒ new IndexRange(first, entityLength)

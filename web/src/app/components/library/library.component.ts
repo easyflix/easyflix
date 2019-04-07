@@ -77,7 +77,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
   private readonly librariesFactory: ComponentFactory<LibraryListComponent>;
 
   constructor(
-    private cdRef: ChangeDetectorRef,
+    private cdr: ChangeDetectorRef,
     private componentFactoryResolver: ComponentFactoryResolver
   ) {
     this.folderFactory = this.componentFactoryResolver.resolveComponentFactory(FileListComponent);
@@ -133,7 +133,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
         this.state = 's0';
         component.instance.afterAnimation();
         detach ? this.panels.viewContainerRef.detach(secondIndex) : this.panels.viewContainerRef.remove(secondIndex);
-        this.cdRef.detectChanges();
+        this.cdr.detectChanges();
       }, this.DRAWER_ANIMATION_TIME);
     }
   }
