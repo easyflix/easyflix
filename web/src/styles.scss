@@ -33,6 +33,11 @@ $dark-theme: mat-dark-theme(
 
 body {
   font-family: Roboto, sans-serif;
+  margin: 0;
+}
+
+h2 {
+  font-weight: 500;
 }
 
 button.md-36 {

@@ -15,19 +15,19 @@ import {CoreService} from '@app/services/core.service';
   selector: 'app-sidenav',
   template: `
     <nav>
-      <button mat-icon-button [routerLink]="[{ outlets: { nav: ['library'] } }]" #firstButton>
+      <button mat-icon-button [routerLink]="[{ outlets: { nav: ['library'] } }]" queryParamsHandling="preserve" #firstButton>
         <mat-icon>video_library</mat-icon>
       </button>
-      <button mat-icon-button [routerLink]="[{ outlets: { nav: ['search'] } }]">
+      <button mat-icon-button [routerLink]="[{ outlets: { nav: ['search'] } }]" queryParamsHandling="preserve">
         <mat-icon>search</mat-icon>
       </button>
-      <button mat-icon-button [routerLink]="[{ outlets: { nav: ['history'] } }]">
+      <button mat-icon-button [routerLink]="[{ outlets: { nav: ['history'] } }]" queryParamsHandling="preserve">
         <mat-icon>history</mat-icon>
       </button>
-      <button mat-icon-button [routerLink]="[{ outlets: { nav: ['settings'] } }]">
+      <button mat-icon-button [routerLink]="[{ outlets: { nav: ['settings'] } }]" queryParamsHandling="preserve">
         <mat-icon>settings</mat-icon>
       </button>
-      <button mat-icon-button [routerLink]="[{ outlets: { nav: ['about'] } }]" class="about">
+      <button mat-icon-button [routerLink]="[{ outlets: { nav: ['about'] } }]" queryParamsHandling="preserve" class="about">
         <mat-icon>info</mat-icon>
       </button>
       <button mat-icon-button (click)="closeSidenav.emit()">
@@ -49,6 +49,7 @@ import {CoreService} from '@app/services/core.service';
       flex-direction: row;
       align-items: center;
       min-height: 60px;
+      background-color: #303030;
     }
     button:not(:last-of-type) {
       margin-right: 0.6rem;

@@ -21,13 +21,16 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.searchVar;
   }
   set search(val: string) {
-    this.searchSubject.next(val);
     this.searchVar = val;
+    this.searchTerms = val.trim().replace(/[ ]+/g, ' ').split(' ').filter(s => s !== '');
+    this.searchSubject.next(this.searchTerms);
   }
 
-  searchSubject: Subject<string> = new Subject();
+  searchTerms: string[] = [];
 
-  subscription: Subscription;
+  searchSubject: Subject<string[]> = new Subject();
+
+  navSubscription: Subscription;
 
   constructor(
     private files: FilesService,
@@ -43,19 +46,15 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit() {
     this.files$ = this.searchSubject.asObservable().pipe(
-      switchMap(search => {
-        let searchTerms = search.trim().replace(/[ ]+/g, ' ').split(' ');
-        if (searchTerms.length === 1 && searchTerms[0] === '') {
-          searchTerms = [];
-        }
+      switchMap(searchTerms => {
         return searchTerms.length === 0 ? of([]) : this.files.getAllFiles().pipe(
           map(f => f.filter(file => file.type === 'video')),
-          map(f => f.filter((video: Video) =>  SearchComponent.matchesSearch(video, searchTerms)))
+          map(f => f.filter((video: Video) => SearchComponent.matchesSearch(video, searchTerms)))
         );
       })
     );
-    this.subscription = this.searchSubject.asObservable().subscribe(search =>
-      this.router.navigate([], { queryParams: { s: search.trim() }, queryParamsHandling: 'merge', replaceUrl: true })
+    this.navSubscription = this.searchSubject.asObservable().subscribe(() =>
+      this.router.navigate([], { queryParams: { s: this.search.trim() }, queryParamsHandling: 'merge', replaceUrl: true })
     );
   }
 
@@ -71,7 +70,7 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.subscription.unsubscribe();
+    this.navSubscription.unsubscribe();
   }
 
 }

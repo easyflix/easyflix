@@ -9,7 +9,7 @@ import {AnimatableComponent} from '@app/components/library/library.component';
   selector: 'app-libraries-view',
   template: `
     <header>
-      <h2>Video Libraries</h2>
+      <h2>Video libraries</h2>
     </header>
     <mat-divider></mat-divider>
     <mat-action-list dense #matList>
@@ -55,6 +55,7 @@ import {AnimatableComponent} from '@app/components/library/library.component';
       margin: 0 0 0 1.25rem;
       display: flex;
       align-items: center;
+      font-weight: 500;
     }
     mat-action-list {
       padding: 0 !important;
