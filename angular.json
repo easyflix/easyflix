@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "movicalypse": {
+    "webflix": {
       "root": "web",
       "sourceRoot": "web/src",
       "projectType": "application",
@@ -62,18 +62,18 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "movicalypse:build"
+            "browserTarget": "webflix:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "movicalypse:build:production"
+              "browserTarget": "webflix:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "movicalypse:build"
+            "browserTarget": "webflix:build"
           }
         },
         "test": {
@@ -107,7 +107,7 @@
         }
       }
     },
-    "movicalypse-e2e": {
+    "webflix-e2e": {
       "root": "web/e2e/",
       "projectType": "application",
       "prefix": "",
@@ -116,11 +116,11 @@
           "builder": "@angular-devkit/build-angular:protractor",
           "options": {
             "protractorConfig": "web/e2e/protractor.conf.js",
-            "devServerTarget": "movicalypse:serve"
+            "devServerTarget": "webflix:serve"
           },
           "configurations": {
             "production": {
-              "devServerTarget": "movicalypse:serve:production"
+              "devServerTarget": "webflix:serve:production"
             }
           }
         },
@@ -136,5 +136,5 @@
       }
     }
   },
-  "defaultProject": "movicalypse"
+  "defaultProject": "webflix"
 }

@@ -8,7 +8,7 @@ ThisBuild / scalacOptions    := Seq("-unchecked", "-deprecation", "-feature")
 
 lazy val root = (project in file("."))
   .settings(
-    name := "movicalypse",
+    name := "webflix",
     resolvers += Resolver.bintrayRepo("snimavat", "maven"),
 
     libraryDependencies += akkaHttp,
