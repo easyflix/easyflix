@@ -28,6 +28,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.showSidenav$ = this.core.getShowSidenav();
+    this.files.loadLibrairies();
     this.files.loadFiles();
   }
 

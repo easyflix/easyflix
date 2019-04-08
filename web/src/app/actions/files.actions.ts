@@ -2,7 +2,7 @@ import {Action} from '@ngrx/store';
 import {LibraryFile} from '@app/models/file';
 
 export enum FilesActionTypes {
-  LoadFiles   = 'files/load',
+  LoadFiles = 'files/load',
   LoadFilesSuccess = 'files/load/success',
   LoadFilesError = 'files/load/error',
 }

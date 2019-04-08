@@ -66,7 +66,7 @@ export class LibraryListComponent implements OnInit, AnimatableComponent {
   matList: ElementRef;
 
   constructor(private filesService: FilesService) {
-    this.libraries$ = this.filesService.getLibraries();
+    this.libraries$ = this.filesService.getAllLibraries();
   }
 
   ngOnInit() {

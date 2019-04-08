@@ -1,9 +1,11 @@
 import {ActionReducerMap, createSelector, MetaReducer} from '@ngrx/store';
 import {environment} from '@env/environment';
+import {Dictionary} from '@ngrx/entity';
 
 import * as fromCore from './core.reducer';
 import * as fromVideo from './video.reducer';
 import * as fromFiles from './files.reducer';
+import * as fromLibraries from './libraries.reducer';
 
 import {Folder, Library, LibraryFile} from '@app/models/file';
 
@@ -11,21 +13,22 @@ export interface State {
   core: fromCore.State;
   video: fromVideo.State;
   files: fromFiles.State;
+  libraries: fromLibraries.State;
 }
 
 export const reducers: ActionReducerMap<State> = {
   core: fromCore.reducer,
   video: fromVideo.reducer,
-  files: fromFiles.reducer
+  files: fromFiles.reducer,
+  libraries: fromLibraries.reducer
 };
 
 export const metaReducers: MetaReducer<State>[] = !environment.production ? [] : [];
 
 export const getCoreState = (state: State) => state.core;
-
 export const getVideoState = (state: State) => state.video;
-
 export const getFilesState = (state: State) => state.files;
+export const getLibrariesState = (state: State) => state.libraries;
 
 export const getShowSidenav = createSelector(
   getCoreState,
@@ -73,10 +76,7 @@ export const getVideoVolume = createSelector(
 );
 
 export const {
-  selectIds: getFilesIds,
-  selectEntities: getFilesEntities,
   selectAll: getAllFiles,
-  selectTotal: getTotalFiles,
 } = fromFiles.adapter.getSelectors(getFilesState);
 
 export const getFilesOfFolder = createSelector(
@@ -98,4 +98,14 @@ export const getFilesByIds = createSelector(
   (files: LibraryFile[], ids: string[]) => {
     return files.filter(file => ids.includes(file.id));
   }
+);
+
+export const {
+  selectEntities: getAllLibrariesEntities,
+  selectAll: getAllLibraries,
+} = fromLibraries.adapter.getSelectors(getLibrariesState);
+
+export const getLibraryByName = createSelector(
+  getAllLibrariesEntities,
+  (libraries: Dictionary<Library>, name: string) => libraries[name]
 );

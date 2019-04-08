@@ -1,12 +1,12 @@
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
 
 import {Folder, Library, LibraryFile} from '@app/models/file';
 import {HttpClient} from '@angular/common/http';
 import {Store} from '@ngrx/store';
-import {getAllFiles, getFilesByIds, getFilesOfFolder, State} from '@app/reducers';
+import {getAllFiles, getAllLibraries, getFilesByIds, getFilesOfFolder, getLibraryByName, State} from '@app/reducers';
 import {LoadFiles} from '@app/actions/files.actions';
+import {LoadLibraries} from '@app/actions/libraries.actions';
 
 @Injectable()
 export class FilesService {
@@ -25,21 +25,20 @@ export class FilesService {
     return this.store.select(getFilesByIds, ids);
   }
 
-  getLibraries(): Observable<Library[]> {
-    return this.httpClient.get('http://localhost:8081/api/libraries').pipe(
-      map(object => object as Array<Library>),
-    );
+  getAllLibraries(): Observable<Library[]> {
+    return this.store.select(getAllLibraries);
   }
 
   getLibraryByName(name: string): Observable<Library> {
-    return this.httpClient.get('http://localhost:8081/api/libraries').pipe(
-      map(object => object as Array<Library>),
-      map(libs => libs.find(lib => lib.name === name))
-    );
+    return this.store.select(getLibraryByName, name);
   }
 
   loadFiles() {
     this.store.dispatch(new LoadFiles());
+  }
+
+  loadLibrairies() {
+    this.store.dispatch(new LoadLibraries());
   }
 
 }
