@@ -4,7 +4,6 @@ import {Observable} from 'rxjs';
 import {FilesService} from '@app/services/files.service';
 import {Folder, Library, LibraryFile, Video} from '@app/models/file';
 import {VideoService} from '@app/services/video.service';
-import {Router} from '@angular/router';
 import {AnimatableComponent} from '@app/components/library/library.component';
 
 @Component({
@@ -102,8 +101,7 @@ export class FileListComponent implements OnInit, AnimatableComponent {
 
   constructor(
     private filesService: FilesService,
-    private video: VideoService,
-    private router: Router
+    private video: VideoService
   ) {}
 
   ngOnInit() {

@@ -5,7 +5,7 @@ import {map} from 'rxjs/operators';
 import {Folder, Library, LibraryFile} from '@app/models/file';
 import {HttpClient} from '@angular/common/http';
 import {Store} from '@ngrx/store';
-import {getAllFiles, getFilesOfFolder, State} from '@app/reducers';
+import {getAllFiles, getFilesByIds, getFilesOfFolder, State} from '@app/reducers';
 import {LoadFiles} from '@app/actions/files.actions';
 
 @Injectable()
@@ -21,9 +21,20 @@ export class FilesService {
     return this.store.select(getFilesOfFolder, folder);
   }
 
+  getFilesByIds(ids: string[]): Observable<LibraryFile[]> {
+    return this.store.select(getFilesByIds, ids);
+  }
+
   getLibraries(): Observable<Library[]> {
     return this.httpClient.get('http://localhost:8081/api/libraries').pipe(
       map(object => object as Array<Library>),
+    );
+  }
+
+  getLibraryByName(name: string): Observable<Library> {
+    return this.httpClient.get('http://localhost:8081/api/libraries').pipe(
+      map(object => object as Array<Library>),
+      map(libs => libs.find(lib => lib.name === name))
     );
   }
 

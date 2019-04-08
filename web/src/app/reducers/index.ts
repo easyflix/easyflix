@@ -92,3 +92,10 @@ export const getFilesOfFolder = createSelector(
     return files.filter(file => file.parent === folderPath);
   }
 );
+
+export const getFilesByIds = createSelector(
+  getAllFiles,
+  (files: LibraryFile[], ids: string[]) => {
+    return files.filter(file => ids.includes(file.id));
+  }
+);

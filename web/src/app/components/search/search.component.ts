@@ -55,7 +55,7 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
       })
     );
     this.navSubscription = this.searchSubject.asObservable().subscribe(() =>
-      this.router.navigate([], { queryParams: { s: this.search.trim() }, queryParamsHandling: 'merge', replaceUrl: true })
+      this.router.navigate([], { queryParams: { s: this.search.trim() || null }, queryParamsHandling: 'merge', replaceUrl: true })
     );
   }
 
