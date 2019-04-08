@@ -8,10 +8,6 @@ import {AnimatableComponent} from '@app/components/library/library.component';
 @Component({
   selector: 'app-libraries-view',
   template: `
-    <header>
-      <h2>Video libraries</h2>
-    </header>
-    <mat-divider></mat-divider>
     <mat-action-list dense #matList>
       <ng-template ngFor let-library [ngForOf]="libraries$ | async">
         <mat-list-item tabindex="0"
@@ -48,14 +44,6 @@ import {AnimatableComponent} from '@app/components/library/library.component';
       min-width: 50%;
       display: flex;
       flex-direction: column;
-    }
-    h2 {
-      height: 59px;
-      font-size: 18px;
-      margin: 0 0 0 1.25rem;
-      display: flex;
-      align-items: center;
-      font-weight: 500;
     }
     mat-action-list {
       padding: 0 !important;

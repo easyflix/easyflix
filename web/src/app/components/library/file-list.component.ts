@@ -10,14 +10,16 @@ import {AnimatableComponent} from '@app/components/library/library.component';
 @Component({
   selector: 'app-folder',
   template: `
+    <mat-action-list dense class="back">
+      <button mat-list-item (click)='prev.emit()' #back>
+        <mat-icon matListIcon class="back-icon">chevron_left</mat-icon>
+        <p matLine>Back</p>
+        <p matLine></p>
+        <mat-divider></mat-divider>
+      </button>
+    </mat-action-list>
     <cdk-virtual-scroll-viewport itemSize="60" #scrollable>
-      <mat-action-list dense>
-        <button mat-list-item (click)='prev.emit()' #back>
-          <mat-icon matListIcon class="back-icon">chevron_left</mat-icon>
-          <p matLine>Back ({{ getCurrentPath() }})</p>
-          <p matLine></p>
-          <mat-divider></mat-divider>
-        </button>
+      <mat-action-list dense class="files">
         <ng-template cdkVirtualFor let-file [cdkVirtualForOf]='files$ | async' cdkVirtualForTemplateCacheSize="100">
           <mat-list-item tabindex='0'
                          *ngIf="file.type === 'folder'"
@@ -59,7 +61,10 @@ import {AnimatableComponent} from '@app/components/library/library.component';
       height: 100%;
       width: 100%;
     }
-    mat-action-list {
+    .back {
+      padding: 0 !important;
+    }
+    .files {
       padding: 0 !important;
       flex-grow: 1;
       overflow-y: auto
@@ -129,11 +134,11 @@ export class FileListComponent implements OnInit, AnimatableComponent {
     // setTimeout(() => back.focus(), 0);
   }
 
-  getCurrentPath() {
+/*  getCurrentPath() {
     switch (this.currentFolder.type) {
       case 'library': return this.currentFolder.name;
       case 'folder': return this.currentFolder.parent + this.currentFolder.name;
     }
-  }
+  }*/
 
 }

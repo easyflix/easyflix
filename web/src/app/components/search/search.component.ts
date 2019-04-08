@@ -39,9 +39,9 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
   ) {}
 
   static matchesSearch(video: Video, searchTerms: string[]): boolean {
-    return searchTerms.map(term =>
+    return searchTerms.every(term =>
       video.name.toLowerCase().includes(term.toLowerCase()) || video.parent.toLowerCase().includes(term.toLowerCase())
-    ).reduce((a, b) => a && b);
+    );
   }
 
   ngOnInit() {
