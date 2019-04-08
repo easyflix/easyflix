@@ -38,7 +38,7 @@ import {AnimatableComponent} from '@app/components/library/library.component';
           </mat-list-item>
           <mat-list-item tabindex='0'
                          *ngIf="file.type === 'video'"
-                         (click)='playFile(file)'>
+                         (click)='playVideo(file)'>
             <mat-icon matListIcon class='material-icons-outlined'>
               movie
             </mat-icon>
@@ -110,9 +110,8 @@ export class FileListComponent implements OnInit, AnimatableComponent {
     this.files$ = this.filesService.getFilesOfFolder(this.currentFolder);
   }
 
-  playFile(file: Video) {
-    this.video.setSource(`http://localhost:8081/videos/${file.id}`);
-    this.router.navigate([{ outlets: { player: file.id } }]);
+  playVideo(video: Video) {
+    this.video.playVideo(video);
   }
 
   beforeAnimation() {

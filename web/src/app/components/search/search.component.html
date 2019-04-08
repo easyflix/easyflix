@@ -21,7 +21,7 @@
 <cdk-virtual-scroll-viewport itemSize="60">
   <mat-action-list dense>
     <ng-template cdkVirtualFor let-file [cdkVirtualForOf]='files$ | async'>
-      <mat-list-item tabindex='0'>
+      <mat-list-item tabindex='0' (click)="playVideo(file)">
         <mat-icon matListIcon class='material-icons-outlined'>
           movie
         </mat-icon>

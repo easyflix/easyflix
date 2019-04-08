@@ -1,10 +1,11 @@
 import {AfterViewInit, ChangeDetectionStrategy, Component, OnDestroy, OnInit} from '@angular/core';
 import {FilesService} from '@app/services/files.service';
 import {Observable, of, Subject, Subscription} from 'rxjs';
-import {LibraryFile, Video} from '@app/models/file';
+import {Video} from '@app/models/file';
 import {map, switchMap, take} from 'rxjs/operators';
 import {ActivatedRoute, Router} from '@angular/router';
 import {tap} from 'rxjs/internal/operators/tap';
+import {VideoService} from '@app/services/video.service';
 
 @Component({
   selector: 'app-search',
@@ -14,7 +15,7 @@ import {tap} from 'rxjs/internal/operators/tap';
 })
 export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  files$: Observable<LibraryFile[]>;
+  files$: Observable<Video[]>;
 
   private searchVar = '';
   get search() {
@@ -35,7 +36,8 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private files: FilesService,
     private router: Router,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private video: VideoService
   ) {}
 
   static matchesSearch(video: Video, searchTerms: string[]): boolean {
@@ -48,8 +50,7 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
     this.files$ = this.searchSubject.asObservable().pipe(
       switchMap(searchTerms => {
         return searchTerms.length === 0 ? of([]) : this.files.getAllFiles().pipe(
-          map(f => f.filter(file => file.type === 'video')),
-          map(f => f.filter((video: Video) => SearchComponent.matchesSearch(video, searchTerms)))
+          map(f => f.filter(file => file.type === 'video' && SearchComponent.matchesSearch(file, searchTerms))),
         );
       })
     );
@@ -71,6 +72,10 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.navSubscription.unsubscribe();
+  }
+
+  playVideo(video: Video) {
+    this.video.playVideo(video);
   }
 
 }
