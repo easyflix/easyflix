@@ -98,6 +98,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
   DRAWER_ANIMATION_TIME = 400;
 
   state = 's0';
+  animating = false;
 
   @ViewChild('myPanels', {read: PanelDirective})
   panels: PanelDirective;
@@ -173,6 +174,8 @@ export class LibraryComponent implements OnInit, OnDestroy {
   }
 
   goTo(folder: Folder | Library, animationTime: number = this.DRAWER_ANIMATION_TIME) {
+    if (this.animating) { return; }
+    this.animating = true;
     const fromRef = this.components[this.components.length - 1];
     const toRef = this.folderFactory.create(this.panels.viewContainerRef.injector);
     toRef.instance.currentFolder = folder;
@@ -189,6 +192,8 @@ export class LibraryComponent implements OnInit, OnDestroy {
   }
 
   goBack() {
+    if (this.animating) { return; }
+    this.animating = true;
     const fromRef = this.components.pop();
     this.breadcrumbs.pop();
     this.breadcrumbsIds.pop();
@@ -203,6 +208,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
     to.instance.beforeAnimation();
     const f = () => {
       this.state = 's0';
+      this.animating = false;
       this.cdr.detectChanges();
       ltr ?
         viewContainer.detach(viewContainer.indexOf(from.hostView)) :
