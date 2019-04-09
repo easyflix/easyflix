@@ -5,6 +5,8 @@ import {CoreService} from './services/core.service';
 import {playerAnimations} from '@app/animations';
 import {RouterOutlet} from '@angular/router';
 import {FilesService} from '@app/services/files.service';
+import {SidenavModeType} from '@app/reducers/core.reducer';
+import {map} from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -17,7 +19,8 @@ export class AppComponent implements OnInit {
 
   sideNavOpening = false;
   showSidenav$: Observable<boolean>;
-  sidenavMode$: Observable<string>;
+  sidenavMode$: Observable<SidenavModeType>;
+  sidenavWide$: Observable<boolean>;
 
   @ViewChild('sidenav')
   sidenav: MatSidenav;
@@ -30,6 +33,9 @@ export class AppComponent implements OnInit {
   ngOnInit() {
     this.showSidenav$ = this.core.getShowSidenav();
     this.sidenavMode$ = this.core.getSidenavMode();
+    this.sidenavWide$ = this.core.getSidenavSize().pipe(
+      map(size => size === 'wide')
+    );
     this.files.loadLibrairies();
     this.files.loadFiles();
   }

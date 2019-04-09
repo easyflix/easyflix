@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, Component, OnInit, ViewChild} from '@angular/co
 import {MatButton} from '@angular/material';
 import {CoreService} from '@app/services/core.service';
 import {Observable} from 'rxjs';
-import {SidenavModeType} from '@app/reducers/core.reducer';
+import {SidenavModeType, SidenavSizeType} from '@app/reducers/core.reducer';
 
 @Component({
   selector: 'app-settings',
@@ -15,10 +15,12 @@ export class SettingsComponent  implements OnInit {
   @ViewChild('closeButton')
   closeButton: MatButton;
 
-  sidenavMode$: Observable<string>;
+  sidenavMode$: Observable<SidenavModeType>;
+  sidenavSize$: Observable<SidenavSizeType>;
 
   constructor(private core: CoreService) {
     this.sidenavMode$ = core.getSidenavMode();
+    this.sidenavSize$ = core.getSidenavSize();
   }
 
   ngOnInit() { }
@@ -29,6 +31,12 @@ export class SettingsComponent  implements OnInit {
 
   setSidenavMode(mode: SidenavModeType) {
     this.core.setSidenavMode(mode);
+  }
+
+  setSidenavSize(size: SidenavSizeType) {
+    this.core.setSidenavSize(size);
+    setTimeout(() => this.core.closeSidenav());
+    setTimeout(() => this.core.openSidenav());
   }
 
 }

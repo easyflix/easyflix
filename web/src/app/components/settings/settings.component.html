@@ -24,7 +24,7 @@
     </mat-form-field>
     <mat-form-field>
       <mat-label>Size</mat-label>
-      <mat-select value="wide">
+      <mat-select [value]="sidenavSize$ | async" (selectionChange)="setSidenavSize($event.value)">
         <mat-option value="narrow">Narrow</mat-option>
         <mat-option value="wide">Wide</mat-option>
       </mat-select>
