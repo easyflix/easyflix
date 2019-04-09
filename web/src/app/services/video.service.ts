@@ -45,7 +45,6 @@ export class VideoService {
   }
 
   setPlaying(playing: boolean) {
-    this.router.navigate([], { queryParams: { pp: playing ? 1 : 0 }, queryParamsHandling: 'merge' });
     this.store.dispatch(new SetVideoPlaying(playing));
   }
 

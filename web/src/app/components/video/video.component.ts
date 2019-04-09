@@ -1,6 +1,6 @@
-import {ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {VideoService} from '@app/services/video.service';
-import {Observable, zip} from 'rxjs';
+import {Observable, Subscription, zip} from 'rxjs';
 import {filter, map, take, tap, throttleTime} from 'rxjs/operators';
 import {CoreService} from '@app/services/core.service';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -12,7 +12,7 @@ import {Video} from '@app/models/file';
   styleUrls: ['./video.component.sass'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VideoComponent implements OnInit {
+export class VideoComponent implements OnInit, OnDestroy {
 
   @ViewChild('video')
   videoRef: ElementRef;
@@ -25,6 +25,8 @@ export class VideoComponent implements OnInit {
   currentTime$: Observable<number>;
   duration$: Observable<number>;
   loading$: Observable<boolean>;
+
+  subscriptions: Subscription[] = [];
 
   constructor(
     private core: CoreService,
@@ -63,11 +65,23 @@ export class VideoComponent implements OnInit {
       tap(pt => this.seekTo(+pt))
     ).subscribe();
 
-    this.video.getCurrentTime().pipe(
-      throttleTime(1000),
-      map(ct => Math.floor(ct)),
-      tap(ct => this.router.navigate([], { queryParams: { pt: ct }, queryParamsHandling: 'merge' }))
-    ).subscribe();
+    this.subscriptions.push(
+
+      this.video.getCurrentTime().pipe(
+        throttleTime(1000),
+        map(ct => Math.floor(ct)),
+        tap(ct => this.router.navigate([], { queryParams: { pt: ct }, queryParamsHandling: 'merge' }))
+      ).subscribe(),
+
+      this.video.getPlaying().pipe(
+        tap(playing => this.router.navigate([], { queryParams: { pp: playing ? 1 : 0 }, queryParamsHandling: 'merge' }))
+      ).subscribe()
+
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   openSidenav() {
