@@ -16,9 +16,10 @@
   <section class="sidenav">
     <mat-form-field>
       <mat-label>Mode</mat-label>
-      <mat-select value="push">
+      <mat-select [value]="sidenavMode$ | async" (selectionChange)="setSidenavMode($event.value)">
         <mat-option value="side">Side</mat-option>
         <mat-option value="push">Push</mat-option>
+        <mat-option value="over">Over</mat-option>
       </mat-select>
     </mat-form-field>
     <mat-form-field>

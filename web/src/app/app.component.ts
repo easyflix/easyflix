@@ -17,6 +17,7 @@ export class AppComponent implements OnInit {
 
   sideNavOpening = false;
   showSidenav$: Observable<boolean>;
+  sidenavMode$: Observable<string>;
 
   @ViewChild('sidenav')
   sidenav: MatSidenav;
@@ -28,6 +29,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.showSidenav$ = this.core.getShowSidenav();
+    this.sidenavMode$ = this.core.getSidenavMode();
     this.files.loadLibrairies();
     this.files.loadFiles();
   }

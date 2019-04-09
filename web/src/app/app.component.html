@@ -1,5 +1,5 @@
 <mat-sidenav-container>
-  <mat-sidenav #sidenav mode="side"
+  <mat-sidenav #sidenav [mode]="sidenavMode$ | async"
       (openedStart)="sideNavOpening = true"
       (closed)="sideNavOpening = false"
       [opened]="showSidenav$ | async"

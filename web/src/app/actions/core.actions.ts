@@ -1,9 +1,11 @@
 import {Action} from '@ngrx/store';
+import {SidenavModeType} from '@app/reducers/core.reducer';
 
 export enum CoreActionTypes {
   OpenSidenav   = 'core/sidenav/open',
   CloseSidenav  = 'core/sidenav/close',
   ToggleSidenav = 'core/sidenav/toggle',
+  SetSidenavMode = 'core/sidenav/mode',
   // ChangeTheme   = 'core/theme',
 }
 
@@ -19,6 +21,11 @@ export class ToggleSidenav implements Action {
   readonly type = CoreActionTypes.ToggleSidenav;
 }
 
+export class SetSidenavMode implements Action {
+  readonly type = CoreActionTypes.SetSidenavMode;
+  constructor(public payload: SidenavModeType) {}
+}
+
 /*export class ChangeTheme implements Action {
   readonly type = CoreActionTypes.ChangeTheme;
   constructor(public payload: Theme) {}
@@ -27,5 +34,6 @@ export class ToggleSidenav implements Action {
 export type CoreActionsUnion =
   OpenSidenav |
   CloseSidenav |
-  ToggleSidenav;
+  ToggleSidenav |
+  SetSidenavMode;
   // ChangeTheme;

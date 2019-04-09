@@ -35,6 +35,11 @@ export const getShowSidenav = createSelector(
   fromCore.getShowSidenav
 );
 
+export const getSidenavMode = createSelector(
+  getCoreState,
+  fromCore.getSidenavMode
+);
+
 // export const getCurrentTheme = createSelector(
 //   getCoreState,
 //   fromCore.getCurrentTheme
