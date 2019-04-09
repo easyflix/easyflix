@@ -18,9 +18,9 @@ import {ComponentsModule} from './components/components.module';
 import {routes} from './routes';
 import {CoreService} from './services/core.service';
 import {FilesService} from './services/files.service';
-import {VideoGuard} from './components/video/video.guard';
-import {FilesLoadedGuard} from '@app/components/library/files-loaded.guard';
-import {VideoResolverService} from '@app/components/video/video-resolver.service';
+import {VideoGuard} from './guards/video.guard';
+import {FilesLoadedGuard} from '@app/guards/files-loaded.guard';
+import {VideoResolverService} from '@app/guards/video-resolver.service';
 
 @NgModule({
   declarations: [

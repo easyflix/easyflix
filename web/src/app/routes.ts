@@ -10,8 +10,8 @@ import {MoviesComponent} from './components/movies/movies.component';
 import {ShowsComponent} from './components/shows/shows.component';
 import {VideoGridComponent} from './components/common/video-grid/video-grid.component';
 import {VideoDetailedListComponent} from './components/common/video-detailed-list/video-detailed-list.component';
-import {FilesLoadedGuard} from '@app/components/library/files-loaded.guard';
-import {VideoResolverService} from '@app/components/video/video-resolver.service';
+import {FilesLoadedGuard} from '@app/guards/files-loaded.guard';
+import {VideoResolverService} from '@app/guards/video-resolver.service';
 
 const navOutletName = 'nav';
 
