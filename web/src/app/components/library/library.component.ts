@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import {PanelDirective} from '@app/shared/directives/panel.directive';
 import {FileListComponent} from './file-list.component';
-import {EMPTY, Subscription} from 'rxjs';
+import {EMPTY, Subscription, of} from 'rxjs';
 import {LibraryListComponent} from './library-list.component';
 import {Folder, Library} from '@app/models/file';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -139,6 +139,9 @@ export class LibraryComponent implements OnInit, OnDestroy {
         const [libraryName, ...foldersIds] = param.split(':');
         return this.files.getLibraryByName(libraryName).pipe(
           mergeMap(library => {
+            if (foldersIds.length === 0) {
+              return of({library, folders: []});
+            }
             return this.files.getFilesByIds(foldersIds).pipe(
               map((folds: Folder[]) => {
                 const folders = folds.filter(f => !!f).sort((a, b) => a.parent.localeCompare(b.parent));

@@ -40,14 +40,9 @@ export const getShowSidenav = createSelector(
 //   fromCore.getCurrentTheme
 // );
 
-export const getVideoInput = createSelector(
-  getVideoState,
-  fromVideo.getVideoInput
-);
-
 export const getVideoSource = createSelector(
-  getVideoInput,
-  input => input.source
+  getVideoState,
+  fromVideo.getVideoSource
 );
 
 export const getVideoPlaying = createSelector(
