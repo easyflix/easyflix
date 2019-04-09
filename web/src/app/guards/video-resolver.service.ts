@@ -12,13 +12,17 @@ import {mergeMap, take, tap} from 'rxjs/operators';
 export class VideoResolverService implements Resolve<Video> {
   constructor(private files: FilesService, private router: Router) {}
 
-  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<Video> {
+  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<Video> | Observable<never> {
     const id = route.paramMap.get('id');
     return this.files.getFileById(id).pipe(
       take(1),
       mergeMap((video: Video) => {
-        return !!video ? of(video) : EMPTY;
-      }),
+        if (video === undefined) {
+          this.router.navigateByUrl('/home(nav:library)');
+          return EMPTY;
+        }
+        return of(video);
+      })
     );
   }
 }

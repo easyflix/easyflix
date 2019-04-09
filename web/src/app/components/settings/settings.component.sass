@@ -2,9 +2,12 @@
   width: 100%
   display: flex
   flex-direction: column
+  flex-grow: 1
+  overflow-y: hidden
 
 header
   height: 59px
+  min-height: 59px
   display: flex
   align-items: center
   padding: 0 1.25rem
@@ -13,3 +16,50 @@ h2
   margin: 0
   font-weight: 500
   font-size: 18px
+
+h3
+  margin: 1.5rem 0
+  font-size: 18px
+
+p
+  margin: 0 0 1rem 0
+
+.settings
+  flex-grow: 1
+  display: flex
+  flex-direction: column
+  padding: 0 1.25rem 0.25rem 1.25rem
+  overflow-y: auto
+
+.settings section
+  margin-bottom: 1rem
+
+.sidenav
+  display: flex
+
+.sidenav mat-form-field
+  flex-grow: 1
+
+.sidenav mat-form-field:not(:last-of-type)
+  margin-right: 1rem
+
+.library, .library-add, .media-type
+  display: flex
+  align-items: center
+
+.name, .content-type
+  width: 33%
+
+.path, .extensions
+  flex-grow: 1
+  margin: 0 1rem
+
+.themes
+  display: flex
+
+.theme
+  width: 50px
+  height: 50px
+  border-radius: 50%
+  background-color: beige
+  margin-right: 1rem
