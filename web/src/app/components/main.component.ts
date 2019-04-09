@@ -14,9 +14,9 @@ import {map} from 'rxjs/operators';
     <header>
       <h1>Webflix</h1>
       <nav>
-        <a [routerLink]="['/home']" routerLinkActive="active">Home</a> |
-        <a routerLink="/movies" routerLinkActive="active">Movies</a> |
-        <a routerLink="/shows" routerLinkActive="active">TV Shows</a>
+        <a [routerLink]="['/home']" routerLinkActive="active" queryParamsHandling="preserve">Home</a> |
+        <a routerLink="/movies" routerLinkActive="active" queryParamsHandling="preserve">Movies</a> |
+        <a routerLink="/shows" routerLinkActive="active" queryParamsHandling="preserve">TV Shows</a>
       </nav>
       <mat-icon (click)="searchInput.focus()">search</mat-icon>
       <input #searchInput

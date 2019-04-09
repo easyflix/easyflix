@@ -62,3 +62,4 @@ export function reducer(
 /**
  * Selectors
  */
+export const getLoaded = (state: State) => state.loaded;

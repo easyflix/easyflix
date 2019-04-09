@@ -77,6 +77,7 @@ export const getVideoVolume = createSelector(
 
 export const {
   selectAll: getAllFiles,
+  selectEntities: getAllFilesEntities
 } = fromFiles.adapter.getSelectors(getFilesState);
 
 export const getFilesOfFolder = createSelector(
@@ -93,11 +94,14 @@ export const getFilesOfFolder = createSelector(
   }
 );
 
-export const getFilesByIds = createSelector(
-  getAllFiles,
-  (files: LibraryFile[], ids: string[]) => {
-    return files.filter(file => ids.includes(file.id));
-  }
+export const getFileById = createSelector(
+  getAllFilesEntities,
+  (entities: Dictionary<LibraryFile>, id: string) => entities[id] || null
+);
+
+export const getFilesLoaded = createSelector(
+  getFilesState,
+  fromFiles.getLoaded
 );
 
 export const {

@@ -19,6 +19,7 @@ import {routes} from './routes';
 import {CoreService} from './services/core.service';
 import {FilesService} from './services/files.service';
 import {VideoGuard} from './components/video/video.guard';
+import {FilesLoadedGuard} from '@app/components/library/files-loaded.guard';
 
 @NgModule({
   declarations: [
@@ -45,7 +46,8 @@ import {VideoGuard} from './components/video/video.guard';
     CoreService,
     VideoService,
     FilesService,
-    VideoGuard
+    VideoGuard,
+    FilesLoadedGuard
   ],
   bootstrap: [AppComponent]
 })

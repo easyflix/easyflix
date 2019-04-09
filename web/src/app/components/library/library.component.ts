@@ -11,13 +11,12 @@ import {
 } from '@angular/core';
 import {PanelDirective} from '@app/shared/directives/panel.directive';
 import {FileListComponent} from './file-list.component';
-import {EMPTY, Observable, Subscription} from 'rxjs';
+import {EMPTY, Subscription} from 'rxjs';
 import {LibraryListComponent} from './library-list.component';
 import {Folder, Library} from '@app/models/file';
 import {ActivatedRoute, Router} from '@angular/router';
-import {map, mergeMap, switchMap, take} from 'rxjs/operators';
+import {map, mergeMap, take, tap} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
-import {filter} from 'rxjs/internal/operators/filter';
 
 export interface AnimatableComponent {
   afterAnimation();
@@ -132,39 +131,28 @@ export class LibraryComponent implements OnInit, OnDestroy {
     this.libraries.instance.afterAnimation();
     this.components.push(this.libraries);
 
-    const obs: Observable<{ library: Library, folders: Folder[] }> = this.activatedRoute.queryParamMap.pipe(
+    this.activatedRoute.queryParamMap.pipe(
       take(1),
       mergeMap(route => {
         const param = route.get('l');
         if (param === null) { return EMPTY; }
         const [libraryName, ...foldersIds] = param.split(':');
         return this.files.getLibraryByName(libraryName).pipe(
-          mergeMap(lib => {
+          mergeMap(library => {
             return this.files.getFilesByIds(foldersIds).pipe(
-              map((folders: Folder[]) => {
-                return ({ library: lib, folders: folders.sort((a, b) => a.parent.localeCompare(b.parent)) });
+              map((folds: Folder[]) => {
+                const folders = folds.filter(f => !!f).sort((a, b) => a.parent.localeCompare(b.parent));
+                return ({ library, folders });
               })
             );
           })
         );
+      }),
+      tap(result => {
+        this.goTo(result.library, false, 0);
+        result.folders.forEach(f => this.goTo(f, false, 0));
       })
-    );
-
-    // TODO temporary
-    this.files.getAllFiles().pipe(
-      filter(f => f.length > 0),
-      take(1),
-      switchMap(() => obs),
-    ).subscribe(
-      l => {
-        if (this.components.length === 1) {
-          this.goTo(l.library, 0);
-          l.folders.forEach(f => this.goTo(f, 0));
-        }
-
-      }
-    );
-
+    ).subscribe();
   }
 
   ngOnDestroy() {
@@ -176,7 +164,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
     this.router.navigate([], { queryParams: { l: id }, queryParamsHandling: 'merge', replaceUrl: true });
   }
 
-  goTo(folder: Folder | Library, animationTime: number = this.DRAWER_ANIMATION_TIME) {
+  goTo(folder: Folder | Library, navigate: boolean = true, animationTime: number = this.DRAWER_ANIMATION_TIME) {
     if (this.animating) { return; }
     this.animating = true;
     const fromRef = this.components[this.components.length - 1];
@@ -190,7 +178,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
       case 'folder': this.breadcrumbsIds.push(folder.id); break;
       case 'library': this.breadcrumbsIds.push(folder.name);
     }
-    this.navigate();
+    if (navigate) { this.navigate(); }
     this.animate(fromRef, toRef, true, animationTime);
   }
 
