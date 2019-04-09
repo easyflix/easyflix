@@ -1,10 +1,9 @@
 import {ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import {VideoService} from '@app/services/video.service';
 import {Observable, zip} from 'rxjs';
-import {take} from 'rxjs/operators';
+import {filter, map, take, tap, throttleTime} from 'rxjs/operators';
 import {CoreService} from '@app/services/core.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {tap} from 'rxjs/internal/operators/tap';
 import {Video} from '@app/models/file';
 
 @Component({
@@ -36,6 +35,7 @@ export class VideoComponent implements OnInit {
 
   ngOnInit() {
     this.src$ = this.video.getSource().pipe(
+      filter(s => !!s),
       tap(() => this.video.setLoading(true))
     );
     this.volume$ = this.video.getVolume();
@@ -45,10 +45,29 @@ export class VideoComponent implements OnInit {
     this.duration$ = this.video.getDuration();
     this.loading$ = this.video.getLoading();
 
-    this.route.data
-      .subscribe((data: { video: Video }) => {
-        this.video.setSource(`http://localhost:8081/videos/${data.video.id}`);
-      });
+    this.route.data.subscribe(
+      (data: { video: Video }) => this.video.setSource(`http://localhost:8081/videos/${data.video.id}`)
+    );
+
+    this.route.queryParamMap.pipe(
+      take(1),
+      map(params => params.get('pp')),
+      filter(pp => pp !== null),
+      tap(pp => pp === '0' ? setTimeout(() => this.pause(), 0) : {})
+    ).subscribe();
+
+    this.route.queryParamMap.pipe(
+      take(1),
+      map(params => params.get('pt')),
+      filter(pt => pt !== null),
+      tap(pt => this.seekTo(+pt))
+    ).subscribe();
+
+    this.video.getCurrentTime().pipe(
+      throttleTime(1000),
+      map(ct => Math.floor(ct)),
+      tap(ct => this.router.navigate([], { queryParams: { pt: ct }, queryParamsHandling: 'merge' }))
+    ).subscribe();
   }
 
   openSidenav() {
