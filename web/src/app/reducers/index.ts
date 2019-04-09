@@ -91,7 +91,7 @@ export const getFilesOfFolder = createSelector(
 
 export const getFileById = createSelector(
   getAllFilesEntities,
-  (entities: Dictionary<LibraryFile>, id: string) => entities[id] || null
+  (entities: Dictionary<LibraryFile>, id: string) => entities[id]
 );
 
 export const getFilesLoaded = createSelector(

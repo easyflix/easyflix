@@ -29,6 +29,10 @@ export class FilesService {
     return this.store.select(getFilesOfFolder, folder);
   }
 
+  getFileById(id: string): Observable<LibraryFile> {
+    return this.store.select(getFileById, id);
+  }
+
   getFilesByIds(ids: string[]): Observable<LibraryFile[]> {
     return zip(...ids.map(id => this.store.select(getFileById, id)));
   }

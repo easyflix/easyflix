@@ -3,8 +3,9 @@ import {VideoService} from '@app/services/video.service';
 import {Observable, zip} from 'rxjs';
 import {take} from 'rxjs/operators';
 import {CoreService} from '@app/services/core.service';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {tap} from 'rxjs/internal/operators/tap';
+import {Video} from '@app/models/file';
 
 @Component({
   selector: 'app-video',
@@ -29,7 +30,8 @@ export class VideoComponent implements OnInit {
   constructor(
     private core: CoreService,
     private video: VideoService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) { }
 
   ngOnInit() {
@@ -42,6 +44,11 @@ export class VideoComponent implements OnInit {
     this.currentTime$ = this.video.getCurrentTime();
     this.duration$ = this.video.getDuration();
     this.loading$ = this.video.getLoading();
+
+    this.route.data
+      .subscribe((data: { video: Video }) => {
+        this.video.setSource(`http://localhost:8081/videos/${data.video.id}`);
+      });
   }
 
   openSidenav() {

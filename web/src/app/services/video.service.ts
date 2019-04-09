@@ -27,9 +27,8 @@ export class VideoService {
   ) {
     this.currentTime$ = this.currentTimeSubject.asObservable().pipe(publishReplay(1), refCount(), throttleTime(100));
   }
-  
+
   playVideo(video: Video) {
-    this.setSource(`http://localhost:8081/videos/${video.id}`);
     this.router.navigate([{ outlets: { player: video.id } }], { queryParamsHandling: 'preserve' });
   }
 
