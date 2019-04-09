@@ -157,8 +157,11 @@ export class LibraryComponent implements OnInit, OnDestroy {
       switchMap(() => obs),
     ).subscribe(
       l => {
-        this.goTo(l.library, 0);
-        l.folders.forEach(f => this.goTo(f, 0));
+        if (this.components.length === 1) {
+          this.goTo(l.library, 0);
+          l.folders.forEach(f => this.goTo(f, 0));
+        }
+
       }
     );
 

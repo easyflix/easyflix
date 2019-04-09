@@ -18,7 +18,7 @@
 
 <mat-divider></mat-divider>
 
-<cdk-virtual-scroll-viewport itemSize="60">
+<cdk-virtual-scroll-viewport itemSize="60" [minBufferPx]="800" [maxBufferPx]="1000">
   <mat-action-list dense>
     <ng-template cdkVirtualFor let-file [cdkVirtualForOf]='files$ | async'>
       <mat-list-item tabindex='0' (click)="playVideo(file)">

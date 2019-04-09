@@ -17,9 +17,9 @@ import {AnimatableComponent} from '@app/components/library/library.component';
         <mat-divider></mat-divider>
       </button>
     </mat-action-list>
-    <cdk-virtual-scroll-viewport itemSize="60" #scrollable>
+    <cdk-virtual-scroll-viewport itemSize="60" #scrollable [minBufferPx]="800" [maxBufferPx]="1000">
       <mat-action-list dense class="files">
-        <ng-template cdkVirtualFor let-file [cdkVirtualForOf]='files$ | async' cdkVirtualForTemplateCacheSize="100">
+        <ng-template cdkVirtualFor let-file [cdkVirtualForOf]='files$ | async'>
           <mat-list-item tabindex='0'
                          *ngIf="file.type === 'folder'"
                          (click)='next.emit(file)'
@@ -57,7 +57,7 @@ import {AnimatableComponent} from '@app/components/library/library.component';
       flex-direction: column;
     }
     cdk-virtual-scroll-viewport {
-      height: 100%;
+      flex-grow: 1;
       width: 100%;
     }
     .back {
@@ -65,8 +65,7 @@ import {AnimatableComponent} from '@app/components/library/library.component';
     }
     .files {
       padding: 0 !important;
-      flex-grow: 1;
-      overflow-y: auto
+      /* overflow-y: auto */
     }
     mat-list-item {
       cursor: pointer;
@@ -113,13 +112,17 @@ export class FileListComponent implements OnInit, AnimatableComponent {
   }
 
   beforeAnimation() {
-    const container = this.scrollable.nativeElement as HTMLElement;
+    /*const container = this.scrollable.nativeElement as HTMLElement;
     // wake up cdk-virtual-scroll (uses polyfill)
     container.scrollTo(0, 1);
-    container.scrollTo(0, 0);
+    container.scrollTo(0, 0);*/
   }
 
   afterAnimation() {
+/*    const container = this.scrollable.nativeElement as HTMLElement;
+    // wake up cdk-virtual-scroll (uses polyfill)
+    container.scrollTo(0, 1);
+    container.scrollTo(0, 0);*/
   /*    const back = this.back.nativeElement as HTMLElement;
       const container = this.scrollable.nativeElement as HTMLElement;
       /!*const first = back.nextElementSibling as HTMLElement;

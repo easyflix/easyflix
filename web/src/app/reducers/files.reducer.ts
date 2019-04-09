@@ -18,9 +18,13 @@ export const adapter: EntityAdapter<LibraryFile> = createEntityAdapter<LibraryFi
   },
 });
 
-export interface State extends EntityState<LibraryFile> {}
+export interface State extends EntityState<LibraryFile> {
+  loaded: boolean;
+}
 
-export const initialState: State = adapter.getInitialState();
+export const initialState: State = adapter.getInitialState({
+  loaded: false
+});
 
 /**
  * Reducer
@@ -45,7 +49,10 @@ export function reducer(
             return file;
           }
         }).filter(file => file.type === 'video' || file.numberOfVideos > 0); // ? should filter elsewhere ?
-      return adapter.upsertMany(libraryFiles, state);
+      return adapter.upsertMany(libraryFiles, {
+        ...state,
+        loaded: true
+      });
     }
 
     default: return state;

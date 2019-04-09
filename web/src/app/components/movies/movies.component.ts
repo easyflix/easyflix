@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {RouterOutlet} from '@angular/router';
 import {moviesAnimations} from '@app/animations';
 
@@ -6,7 +6,8 @@ import {moviesAnimations} from '@app/animations';
   selector: 'app-movies',
   templateUrl: './movies.component.html',
   styleUrls: ['./movies.component.css'],
-  animations: [moviesAnimations]
+  animations: [moviesAnimations],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MoviesComponent implements OnInit {
 

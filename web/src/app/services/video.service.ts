@@ -30,7 +30,7 @@ export class VideoService {
   
   playVideo(video: Video) {
     this.setSource(`http://localhost:8081/videos/${video.id}`);
-    this.router.navigate([{ outlets: { player: video.id } }]);
+    this.router.navigate([{ outlets: { player: video.id } }], { queryParamsHandling: 'preserve' });
   }
 
   setSource(videoUrl: string) {
