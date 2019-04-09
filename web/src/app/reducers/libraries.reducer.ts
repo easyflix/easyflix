@@ -10,9 +10,13 @@ export const adapter: EntityAdapter<Library> = createEntityAdapter<Library>({
   sortComparer: (a, b) => a.name.localeCompare(b.name)
 });
 
-export interface State extends EntityState<Library> {}
+export interface State extends EntityState<Library> {
+  error: string;
+}
 
-export const initialState: State = adapter.getInitialState();
+export const initialState: State = adapter.getInitialState({
+  error: null,
+});
 
 /**
  * Reducer
@@ -27,6 +31,27 @@ export function reducer(
       return adapter.upsertMany(action.payload, state);
     }
 
+    case LibrariesActionTypes.AddLibrarySuccess: {
+      return adapter.upsertOne(action.payload, {
+        ...state,
+        error: null
+      });
+    }
+
+    case LibrariesActionTypes.RemoveLibrarySuccess: {
+      return adapter.removeOne(action.payload, {
+        ...state,
+        error: null
+      });
+    }
+
+    case LibrariesActionTypes.AddLibraryError || LibrariesActionTypes.RemoveLibraryError: {
+      return {
+        ...state,
+        error: action.payload
+      };
+    }
+
     default: return state;
   }
 }
@@ -34,3 +59,4 @@ export function reducer(
 /**
  * Selectors
  */
+export const getError = (state: State) => state.error;

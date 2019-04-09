@@ -1,13 +1,18 @@
 import {Injectable} from '@angular/core';
-import {Actions, Effect, ofType} from '@ngrx/effects';
-import {Observable} from 'rxjs';
-import {Action} from '@ngrx/store';
-import {FilesActionTypes, LoadFilesError, LoadFilesSuccess} from '@app/actions/files.actions';
-import {catchError, map, switchMap} from 'rxjs/operators';
 import {HttpClient, HttpErrorResponse} from '@angular/common/http';
+import {Action} from '@ngrx/store';
+import {Actions, Effect, ofType} from '@ngrx/effects';
+import {Observable, of} from 'rxjs';
+import {catchError, map, switchMap} from 'rxjs/operators';
+
+import {FilesActionTypes, LoadFilesError, LoadFilesSuccess} from '@app/actions/files.actions';
 import {Library, LibraryFile} from '@app/models/file';
-import {of} from 'rxjs/internal/observable/of';
-import {LibrariesActionTypes, LoadLibrariesError, LoadLibrariesSuccess} from '@app/actions/libraries.actions';
+import {
+  AddLibrary, AddLibraryError, AddLibrarySuccess,
+  LibrariesActionTypes,
+  LoadLibrariesError,
+  LoadLibrariesSuccess, RemoveLibrary, RemoveLibraryError, RemoveLibrarySuccess
+} from '@app/actions/libraries.actions';
 
 @Injectable()
 export class AppEffects {
@@ -33,11 +38,35 @@ export class AppEffects {
   loadLibraries$: Observable<Action> =
     this.actions$.pipe(
       ofType(LibrariesActionTypes.LoadLibraries),
-      switchMap(() => this.httpClient.get('http://localhost:8081/api/libraries').pipe(
-        map(libs => libs as Library[])
-      )),
-      map(libs => new LoadLibrariesSuccess(libs)),
+      switchMap(() => this.httpClient.get('http://localhost:8081/api/libraries')),
+      map((libs: Library[]) => new LoadLibrariesSuccess(libs)),
       catchError((error: HttpErrorResponse) => of(new LoadLibrariesError(error.message)))
+    );
+
+  /**
+   * Add Library
+   */
+  @Effect()
+  addLibrary$: Observable<any> =
+    this.actions$.pipe(
+      ofType(LibrariesActionTypes.AddLibrary),
+      switchMap((action: AddLibrary) => this.httpClient.post('http://localhost:8081/api/libraries', action.payload)),
+      map((library: Library) => new AddLibrarySuccess(library)),
+      catchError((error: HttpErrorResponse) => of(new AddLibraryError(error.error)))
+    );
+
+  /**
+   * Remove Library
+   */
+  @Effect()
+  removeLibrary$: Observable<any> =
+    this.actions$.pipe(
+      ofType(LibrariesActionTypes.RemoveLibrary),
+      switchMap((action: RemoveLibrary) =>
+        this.httpClient.delete('http://localhost:8081/api/libraries/' + encodeURIComponent(action.payload))
+      ),
+      map((libraryName: string) => new RemoveLibrarySuccess(libraryName)),
+      catchError((error: HttpErrorResponse) => of(new RemoveLibraryError(error.error)))
     );
 
   constructor(private actions$: Actions, private httpClient: HttpClient) {}

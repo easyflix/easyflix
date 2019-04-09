@@ -63,16 +63,20 @@
   <section class="library-add">
     <mat-form-field class="name" floatLabel="always">
       <mat-label>Name</mat-label>
-      <input matInput value="" spellcheck="false" placeholder="Display name"/>
+      <input matInput spellcheck="false" placeholder="Display name" #name/>
     </mat-form-field>
     <mat-form-field class="path" floatLabel="always">
       <mat-label>Path</mat-label>
-      <input matInput value="" spellcheck="false" placeholder="Absolute path"/>
+      <input matInput spellcheck="false" placeholder="Absolute path" #path/>
     </mat-form-field>
-    <button mat-icon-button>
+    <button mat-icon-button (click)="addLibrary(name.value, path.value)">
       <mat-icon>add</mat-icon>
     </button>
   </section>
+
+  <p class="library-error" *ngIf="librariesError$ | async">
+    {{ librariesError$ | async }}
+  </p>
   <mat-divider></mat-divider>
 
   <h3>Media types</h3>

@@ -3,6 +3,7 @@ import {MatButton} from '@angular/material';
 import {CoreService} from '@app/services/core.service';
 import {Observable} from 'rxjs';
 import {SidenavModeType, SidenavSizeType} from '@app/reducers/core.reducer';
+import {FilesService} from '@app/services/files.service';
 
 @Component({
   selector: 'app-settings',
@@ -18,9 +19,12 @@ export class SettingsComponent  implements OnInit {
   sidenavMode$: Observable<SidenavModeType>;
   sidenavSize$: Observable<SidenavSizeType>;
 
-  constructor(private core: CoreService) {
+  librariesError$: Observable<string>;
+
+  constructor(private core: CoreService, private files: FilesService) {
     this.sidenavMode$ = core.getSidenavMode();
     this.sidenavSize$ = core.getSidenavSize();
+    this.librariesError$ = files.getLibrariesError();
   }
 
   ngOnInit() { }
@@ -37,6 +41,15 @@ export class SettingsComponent  implements OnInit {
     this.core.setSidenavSize(size);
     setTimeout(() => this.core.closeSidenav());
     setTimeout(() => this.core.openSidenav());
+  }
+
+  addLibrary(name: string, path: string) {
+    const normalizedName = name.replace(/:/g, '');
+    this.files.addLibrary({ type: 'library', name: normalizedName, path });
+  }
+
+  removeLibrary(name: string) {
+    this.files.removeLibrary(name);
   }
 
 }

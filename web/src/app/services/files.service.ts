@@ -9,12 +9,12 @@ import {
   getAllLibraries,
   getFileById,
   getFilesLoaded,
-  getFilesOfFolder,
+  getFilesOfFolder, getLibrariesError,
   getLibraryByName,
   State
 } from '@app/reducers';
 import {LoadFiles} from '@app/actions/files.actions';
-import {LoadLibraries} from '@app/actions/libraries.actions';
+import {AddLibrary, LoadLibraries, RemoveLibrary} from '@app/actions/libraries.actions';
 
 @Injectable()
 export class FilesService {
@@ -55,6 +55,18 @@ export class FilesService {
 
   loadLibrairies() {
     this.store.dispatch(new LoadLibraries());
+  }
+
+  addLibrary(library: Library) {
+    this.store.dispatch(new AddLibrary(library));
+  }
+
+  removeLibrary(name: string) {
+    this.store.dispatch(new RemoveLibrary(name));
+  }
+
+  getLibrariesError(): Observable<string> {
+    return this.store.select(getLibrariesError);
   }
 
 }

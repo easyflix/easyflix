@@ -118,3 +118,8 @@ export const getLibraryByName = createSelector(
   getAllLibrariesEntities,
   (libraries: Dictionary<Library>, name: string) => libraries[name]
 );
+
+export const getLibrariesError = createSelector(
+  getLibrariesState,
+  fromLibraries.getError
+);
