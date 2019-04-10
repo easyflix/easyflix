@@ -49,10 +49,10 @@ export const getSidenavSize = createSelector(
   fromCore.getSidenavSize
 );
 
-// export const getCurrentTheme = createSelector(
-//   getCoreState,
-//   fromCore.getCurrentTheme
-// );
+export const getTheme = createSelector(
+  getCoreState,
+  fromCore.getTheme
+);
 
 export const getVideoSource = createSelector(
   getVideoState,

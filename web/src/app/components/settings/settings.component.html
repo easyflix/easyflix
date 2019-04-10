@@ -5,10 +5,11 @@
 <section class="settings">
   <h3>Themes</h3>
   <section class="themes">
-    <div class="theme"></div>
-    <div class="theme"></div>
-    <div class="theme"></div>
-    <div class="theme"></div>
+    <ng-container *ngFor="let theme of allThemes">
+      <button mat-icon-button class="theme" [style]="getThemeStyle(theme)" (click)="changeTheme(theme)">
+        <mat-icon *ngIf="(theme$ | async) === theme">done</mat-icon>
+      </button>
+    </ng-container>
   </section>
   <mat-divider></mat-divider>
 

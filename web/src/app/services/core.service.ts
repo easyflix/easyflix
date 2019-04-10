@@ -2,8 +2,16 @@ import {Injectable} from '@angular/core';
 import {Store} from '@ngrx/store';
 import * as fromStore from '../reducers';
 import {Observable} from 'rxjs';
-import {CloseSidenav, OpenSidenav, SetSidenavMode, SetSidenavSize, ToggleSidenav} from '../actions/core.actions';
+import {
+  ChangeTheme,
+  CloseSidenav,
+  OpenSidenav,
+  SetSidenavMode,
+  SetSidenavSize,
+  ToggleSidenav
+} from '../actions/core.actions';
 import {SidenavModeType, SidenavSizeType} from '@app/reducers/core.reducer';
+import {Theme} from '@app/utils/themes.utils';
 
 @Injectable()
 export class CoreService {
@@ -40,6 +48,14 @@ export class CoreService {
 
   getSidenavSize(): Observable<SidenavSizeType> {
     return this.store.select(fromStore.getSidenavSize);
+  }
+
+  getTheme(): Observable<Theme> {
+    return this.store.select(fromStore.getTheme);
+  }
+
+  changeTheme(theme: Theme) {
+    this.store.dispatch(new ChangeTheme(theme));
   }
 
 }

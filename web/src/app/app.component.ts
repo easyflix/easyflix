@@ -19,7 +19,7 @@ import {LibrariesService} from '@app/services/libraries.service';
 })
 export class AppComponent implements OnInit {
 
-  sideNavOpening = false;
+  themeCssClass$: Observable<string>;
   showSidenav$: Observable<boolean>;
   sidenavMode$: Observable<SidenavModeType>;
   sidenavWide$: Observable<boolean>;
@@ -35,6 +35,7 @@ export class AppComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    this.themeCssClass$ = this.core.getTheme().pipe(map(t => t.cssClass));
     this.showSidenav$ = this.core.getShowSidenav();
     this.sidenavMode$ = this.core.getSidenavMode();
     this.sidenavWide$ = this.core.getSidenavSize().pipe(

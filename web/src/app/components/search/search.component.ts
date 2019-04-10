@@ -2,9 +2,8 @@ import {AfterViewInit, ChangeDetectionStrategy, Component, OnDestroy, OnInit} fr
 import {FilesService} from '@app/services/files.service';
 import {Observable, of, Subject, Subscription} from 'rxjs';
 import {Video} from '@app/models/file';
-import {map, switchMap, take} from 'rxjs/operators';
+import {map, switchMap, take, tap} from 'rxjs/operators';
 import {ActivatedRoute, Router} from '@angular/router';
-import {tap} from 'rxjs/internal/operators/tap';
 import {VideoService} from '@app/services/video.service';
 
 @Component({

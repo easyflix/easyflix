@@ -9,6 +9,8 @@ import {Library, MediaType} from '@app/models/file';
 import {NgForm} from '@angular/forms';
 import {MediaTypesService} from '@app/services/media-types.service';
 import {LibrariesService} from '@app/services/libraries.service';
+import {Theme, ThemesUtils} from '@app/utils/themes.utils';
+import {DomSanitizer} from '@angular/platform-browser';
 
 @Component({
   selector: 'app-settings',
@@ -40,6 +42,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   subscriptions: Subscription[] = [];
 
+  allThemes: Theme[] = ThemesUtils.allThemes;
+  theme$: Observable<Theme>;
+
   @ViewChild('libraryForm')
   libForm: NgForm;
 
@@ -50,7 +55,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private core: CoreService,
     private files: FilesService,
     private libraries: LibrariesService,
-    private mediaTypes: MediaTypesService
+    private mediaTypes: MediaTypesService,
+    private sanitizer: DomSanitizer
   ) {
     this.sidenavMode$ = core.getSidenavMode();
     this.sidenavSize$ = core.getSidenavSize();
@@ -63,6 +69,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.mediaTypes$ = mediaTypes.getAll();
     this.mediaTypesError$ = mediaTypes.getError();
     this.mediaTypesAdding$ = mediaTypes.getAdding();
+
+    this.theme$ = core.getTheme();
   }
 
   ngOnInit() {
@@ -122,6 +130,19 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   removeMediaType(subType: string) {
     this.mediaTypes.removeMediaType(subType);
+  }
+
+  changeTheme(theme: Theme) {
+    this.core.changeTheme(theme);
+  }
+
+  getThemeStyle(theme: Theme) {
+    const style = `
+      background-color: ${theme.background};
+      color: ${theme.accent};
+      border: 3px solid ${theme.primary}
+    `;
+    return this.sanitizer.bypassSecurityTrustStyle(style);
   }
 
 }

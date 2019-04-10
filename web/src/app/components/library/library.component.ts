@@ -15,9 +15,8 @@ import {EMPTY, Subscription, of} from 'rxjs';
 import {LibraryListComponent} from './library-list.component';
 import {Folder, Library} from '@app/models/file';
 import {ActivatedRoute, Router} from '@angular/router';
-import {map, mergeMap, take, tap} from 'rxjs/operators';
+import {map, mergeMap, take, tap, filter} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
-import {filter} from 'rxjs/internal/operators/filter';
 import {LibrariesService} from '@app/services/libraries.service';
 
 export interface AnimatableComponent {

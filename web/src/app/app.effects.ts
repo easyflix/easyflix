@@ -3,7 +3,7 @@ import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import {Action} from '@ngrx/store';
 import {Actions, Effect, ofType} from '@ngrx/effects';
 import {Observable, of} from 'rxjs';
-import {catchError, map, switchMap} from 'rxjs/operators';
+import {catchError, map, switchMap, tap} from 'rxjs/operators';
 
 import {FilesActionTypes, LoadFilesError, LoadFilesSuccess} from '@app/actions/files.actions';
 import {Library, LibraryFile, MediaType} from '@app/models/file';
@@ -29,9 +29,24 @@ import {
   RemoveMediaTypeError,
   RemoveMediaTypeSuccess
 } from '@app/actions/media-types.actions';
+import {ChangeTheme, CoreActionTypes} from '@app/actions/core.actions';
+import {OverlayContainer} from '@angular/cdk/overlay';
 
 @Injectable()
 export class AppEffects {
+
+  /**
+   * Change Theme
+   */
+  @Effect({ dispatch: false })
+  themes$: Observable<void> =
+    this.actions$.pipe(
+      ofType<ChangeTheme>(CoreActionTypes.ChangeTheme),
+      tap((action: ChangeTheme) => {
+        this.overlayContainer.getContainerElement().className = 'cdk-overlay-container ' + action.payload.cssClass;
+      }),
+      map(() => {})
+    );
 
   /**
    * Load files
@@ -138,6 +153,10 @@ export class AppEffects {
       )
     );
 
-  constructor(private actions$: Actions, private httpClient: HttpClient) {}
+  constructor(
+    private actions$: Actions,
+    private httpClient: HttpClient,
+    private overlayContainer: OverlayContainer,
+  ) {}
 
 }
