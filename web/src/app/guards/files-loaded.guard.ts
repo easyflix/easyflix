@@ -10,7 +10,7 @@ export class FilesLoadedGuard implements CanActivate {
   constructor(private files: FilesService) {}
 
   canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> {
-    return this.files.getFilesLoaded().pipe(
+    return this.files.getLoaded().pipe(
       filter(f => f),
       take(1)
     );

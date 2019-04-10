@@ -14,7 +14,7 @@ export class VideoResolverService implements Resolve<Video> {
 
   resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<Video> | Observable<never> {
     const id = route.paramMap.get('id');
-    return this.files.getFileById(id).pipe(
+    return this.files.getById(id).pipe(
       take(1),
       mergeMap((video: Video) => {
         if (video === undefined) {

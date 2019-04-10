@@ -8,6 +8,7 @@ import {FilesService} from '@app/services/files.service';
 import {SidenavModeType} from '@app/reducers/core.reducer';
 import {map} from 'rxjs/operators';
 import {MediaTypesService} from '@app/services/media-types.service';
+import {LibrariesService} from '@app/services/libraries.service';
 
 @Component({
   selector: 'app-root',
@@ -29,6 +30,7 @@ export class AppComponent implements OnInit {
   constructor(
     private core: CoreService,
     private files: FilesService,
+    private libraries: LibrariesService,
     private mediaTypes: MediaTypesService
   ) { }
 
@@ -38,8 +40,8 @@ export class AppComponent implements OnInit {
     this.sidenavWide$ = this.core.getSidenavSize().pipe(
       map(size => size === 'wide')
     );
-    this.files.loadLibrairies();
-    this.files.loadFiles();
+    this.libraries.load();
+    this.files.load();
     this.mediaTypes.load();
   }
 

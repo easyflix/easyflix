@@ -2,15 +2,15 @@ import {Injectable} from '@angular/core';
 import {ActivatedRouteSnapshot, CanActivate, RouterStateSnapshot, UrlTree} from '@angular/router';
 import {filter, take} from 'rxjs/operators';
 import {Observable} from 'rxjs';
-import {FilesService} from '@app/services/files.service';
+import {LibrariesService} from '@app/services/libraries.service';
 
 @Injectable()
 export class LibrariesLoadedGuard implements CanActivate {
 
-  constructor(private files: FilesService) {}
+  constructor(private libraries: LibrariesService) {}
 
   canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> {
-    return this.files.getLibrariesLoaded().pipe(
+    return this.libraries.getLoaded().pipe(
       filter(f => f),
       take(1)
     );

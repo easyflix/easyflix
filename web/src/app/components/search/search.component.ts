@@ -49,7 +49,7 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit() {
     this.files$ = this.searchSubject.asObservable().pipe(
       switchMap(searchTerms => {
-        return searchTerms.length === 0 ? of([]) : this.files.getAllFiles().pipe(
+        return searchTerms.length === 0 ? of([]) : this.files.getAll().pipe(
           map(f => f.filter(file => file.type === 'video' && SearchComponent.matchesSearch(file, searchTerms))),
         );
       })

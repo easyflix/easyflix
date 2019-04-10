@@ -37,6 +37,7 @@ object LibraryRoutes extends FileAndResourceDirectives {
             case Some(Video(_, _, _, _, _, path)) =>
               onSuccess((application.mediaTypesActor ? GetMediaTypes).mapTo[Seq[MediaType.Binary]]) { customMediaTypes =>
                 implicit val contentTypeResolver: ContentTypeResolver = getContentResolver(customMediaTypes)
+                // https://bugzilla.mozilla.org/show_bug.cgi?id=1422891
                 optionalHeaderValueByType[Range](()) {
                   case Some(Range(RangeUnits.Bytes, Seq(range))) => Routes.getFromFileWithRange(path.toFile, range)
                   case _ => getFromFile(path.toFile)

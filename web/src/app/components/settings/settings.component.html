@@ -87,11 +87,11 @@
   <form class="media-type-form" (ngSubmit)="addMediaType()" #mediaTypeForm="ngForm">
     <mat-form-field class="content-type" floatLabel="always" appearance="standard">
       <mat-label>Content-Type</mat-label>
-      <input matInput value="" spellcheck="false" placeholder="Content-Type header" [(ngModel)]="contentType" name="wf-content-type" required/>
+      <input matInput spellcheck="false" placeholder="Content-Type header" [(ngModel)]="contentType" name="wf-content-type" required/>
     </mat-form-field>
     <mat-form-field class="extensions" floatLabel="always" appearance="standard">
       <mat-label>Extensions</mat-label>
-      <input matInput value="" spellcheck="false" placeholder="Extensions, comma-separated" [(ngModel)]="extensions" name="wf-extensions" required/>
+      <input matInput spellcheck="false" placeholder="Extensions, comma-separated" [(ngModel)]="extensions" name="wf-extensions" required/>
     </mat-form-field>
     <button mat-icon-button [disabled]="!mediaTypeForm.form.valid" *ngIf="!(mediaTypesAdding$ | async)">
       <mat-icon>add</mat-icon>

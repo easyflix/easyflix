@@ -18,6 +18,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {map, mergeMap, take, tap} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
 import {filter} from 'rxjs/internal/operators/filter';
+import {LibrariesService} from "@app/services/libraries.service";
 
 export interface AnimatableComponent {
   afterAnimation();
@@ -103,7 +104,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
   @ViewChild('myPanels', {read: PanelDirective})
   panels: PanelDirective;
 
-  libraries: ComponentRef<LibraryListComponent>;
+  librariesComponent: ComponentRef<LibraryListComponent>;
   librariesSub: Subscription;
   routeSub: Subscription;
 
@@ -120,18 +121,19 @@ export class LibraryComponent implements OnInit, OnDestroy {
     private componentFactoryResolver: ComponentFactoryResolver,
     private router: Router,
     private activatedRoute: ActivatedRoute,
-    private files: FilesService
+    private files: FilesService,
+    private libraries: LibrariesService
   ) {
     this.folderFactory = this.componentFactoryResolver.resolveComponentFactory(FileListComponent);
     this.librariesFactory = this.componentFactoryResolver.resolveComponentFactory(LibraryListComponent);
   }
 
   ngOnInit() {
-    this.libraries = this.librariesFactory.create(this.panels.viewContainerRef.injector);
-    this.librariesSub = this.libraries.instance.openLibrary.subscribe((library: Library) => this.goTo(library));
-    this.panels.viewContainerRef.insert(this.libraries.hostView, 0);
-    this.libraries.instance.afterAnimation();
-    this.components.push(this.libraries);
+    this.librariesComponent = this.librariesFactory.create(this.panels.viewContainerRef.injector);
+    this.librariesSub = this.librariesComponent.instance.openLibrary.subscribe((library: Library) => this.goTo(library));
+    this.panels.viewContainerRef.insert(this.librariesComponent.hostView, 0);
+    this.librariesComponent.instance.afterAnimation();
+    this.components.push(this.librariesComponent);
 
     this.routeSub = this.activatedRoute.queryParamMap.pipe(
       take(1),
@@ -139,13 +141,13 @@ export class LibraryComponent implements OnInit, OnDestroy {
         const param = route.get('l');
         if (param === null) { return EMPTY; }
         const [libraryName, ...foldersIds] = param.split(':');
-        return this.files.getLibraryByName(libraryName).pipe(
+        return this.libraries.getByName(libraryName).pipe(
           filter(l => l !== undefined),
           mergeMap(library => {
             if (foldersIds.length === 0) {
               return of({library, folders: []});
             }
-            return this.files.getFilesByIds(foldersIds).pipe(
+            return this.files.getByIds(foldersIds).pipe(
               map((folds: Folder[]) => {
                 const folders = folds.filter(f => !!f).sort((a, b) => a.parent.localeCompare(b.parent));
                 return ({ library, folders });

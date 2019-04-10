@@ -4,6 +4,7 @@ import {Observable} from 'rxjs';
 import {FilesService} from '@app/services/files.service';
 import {Library} from '@app/models/file';
 import {AnimatableComponent} from '@app/components/library/library.component';
+import {LibrariesService} from "@app/services/libraries.service";
 
 @Component({
   selector: 'app-libraries-view',
@@ -65,8 +66,8 @@ export class LibraryListComponent implements OnInit, AnimatableComponent {
   @ViewChild('matList', { read: ElementRef })
   matList: ElementRef;
 
-  constructor(private filesService: FilesService) {
-    this.libraries$ = this.filesService.getAllLibraries();
+  constructor(private libraries: LibrariesService) {
+    this.libraries$ = this.libraries.getAll();
   }
 
   ngOnInit() {

@@ -8,6 +8,7 @@ import {FilesService} from '@app/services/files.service';
 import {Library, MediaType} from '@app/models/file';
 import {NgForm} from '@angular/forms';
 import {MediaTypesService} from '@app/services/media-types.service';
+import {LibrariesService} from "@app/services/libraries.service";
 
 @Component({
   selector: 'app-settings',
@@ -48,15 +49,16 @@ export class SettingsComponent implements OnInit, OnDestroy {
   constructor(
     private core: CoreService,
     private files: FilesService,
+    private libraries: LibrariesService,
     private mediaTypes: MediaTypesService
   ) {
     this.sidenavMode$ = core.getSidenavMode();
     this.sidenavSize$ = core.getSidenavSize();
-    this.libraries$ = files.getAllLibraries().pipe(
+    this.libraries$ = libraries.getAll().pipe(
       map(libs => libs.sort((a, b) => a.path.localeCompare(b.path)))
     );
-    this.librariesError$ = files.getLibrariesError();
-    this.librariesAdding$ = files.getLibrariesAdding();
+    this.librariesError$ = libraries.getError();
+    this.librariesAdding$ = libraries.getAdding();
 
     this.mediaTypes$ = mediaTypes.getAll();
     this.mediaTypesError$ = mediaTypes.getError();
@@ -65,7 +67,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.subscriptions.push(
-      this.files.getAllLibraries().pipe(
+      this.libraries.getAll().pipe(
         tap(() => this.libForm.resetForm())
       ).subscribe(),
       this.mediaTypes.getAll().pipe(
@@ -95,11 +97,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   addLibrary() {
     const normalizedName = this.libraryName.replace(/:/g, '');
-    this.files.addLibrary({ type: 'library', name: normalizedName, path: this.libraryPath });
+    this.libraries.add({ type: 'library', name: normalizedName, path: this.libraryPath });
   }
 
   removeLibrary(name: string) {
-    this.files.removeLibrary(name);
+    this.libraries.remove(name);
   }
 
   getExtensionsString(mediaType: MediaType): string {
