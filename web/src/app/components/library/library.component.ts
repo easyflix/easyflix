@@ -105,6 +105,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
 
   libraries: ComponentRef<LibraryListComponent>;
   librariesSub: Subscription;
+  routeSub: Subscription;
 
   breadcrumbs: string[] = [];
   breadcrumbsIds: string[] = [];
@@ -132,7 +133,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
     this.libraries.instance.afterAnimation();
     this.components.push(this.libraries);
 
-    this.activatedRoute.queryParamMap.pipe(
+    this.routeSub = this.activatedRoute.queryParamMap.pipe(
       take(1),
       mergeMap(route => {
         const param = route.get('l');
@@ -150,18 +151,19 @@ export class LibraryComponent implements OnInit, OnDestroy {
                 return ({ library, folders });
               })
             );
+          }),
+          tap(result => {
+            this.goTo(result.library, false, 0);
+            result.folders.forEach(f => this.goTo(f, false, 0));
           })
         );
       }),
-      tap(result => {
-        this.goTo(result.library, false, 0);
-        result.folders.forEach(f => this.goTo(f, false, 0));
-      })
     ).subscribe();
   }
 
   ngOnDestroy() {
     this.librariesSub.unsubscribe();
+    this.routeSub.unsubscribe();
   }
 
   navigate() {
