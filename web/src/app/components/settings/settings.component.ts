@@ -27,6 +27,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   libraries$: Observable<Library[]>;
   librariesError$: Observable<string>;
+  librariesAdding$: Observable<boolean>;
 
   subscriptions: Subscription[] = [];
 
@@ -40,6 +41,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
       map(libs => libs.sort((a, b) => a.path.localeCompare(b.path)))
     );
     this.librariesError$ = files.getLibrariesError();
+    this.librariesAdding$ = files.getLibrariesAdding();
   }
 
   ngOnInit() {

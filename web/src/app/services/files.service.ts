@@ -9,7 +9,10 @@ import {
   getAllLibraries,
   getFileById,
   getFilesLoaded,
-  getFilesOfFolder, getLibrariesError,
+  getFilesOfFolder,
+  getLibrariesAdding,
+  getLibrariesError,
+  getLibrariesLoaded,
   getLibraryByName,
   State
 } from '@app/reducers';
@@ -67,6 +70,14 @@ export class FilesService {
 
   getLibrariesError(): Observable<string> {
     return this.store.select(getLibrariesError);
+  }
+
+  getLibrariesAdding(): Observable<boolean> {
+    return this.store.select(getLibrariesAdding);
+  }
+
+  getLibrariesLoaded(): Observable<boolean> {
+    return this.store.select(getLibrariesLoaded);
   }
 
 }

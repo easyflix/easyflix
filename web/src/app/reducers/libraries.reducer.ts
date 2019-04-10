@@ -12,10 +12,14 @@ export const adapter: EntityAdapter<Library> = createEntityAdapter<Library>({
 
 export interface State extends EntityState<Library> {
   error: string;
+  adding: boolean;
+  loaded: boolean;
 }
 
 export const initialState: State = adapter.getInitialState({
   error: null,
+  adding: false,
+  loaded: false,
 });
 
 /**
@@ -28,27 +32,40 @@ export function reducer(
   switch (action.type) {
 
     case LibrariesActionTypes.LoadLibrariesSuccess: {
-      return adapter.upsertMany(action.payload, state);
+      return adapter.upsertMany(action.payload, {
+        ...state,
+        loaded: true
+      });
+    }
+
+    case LibrariesActionTypes.AddLibrary: {
+      return {
+        ...state,
+        adding: true,
+      };
     }
 
     case LibrariesActionTypes.AddLibrarySuccess: {
       return adapter.upsertOne(action.payload, {
         ...state,
-        error: null
+        error: null,
+        adding: false,
       });
     }
 
     case LibrariesActionTypes.RemoveLibrarySuccess: {
       return adapter.removeOne(action.payload, {
         ...state,
-        error: null
+        error: null,
+        adding: false
       });
     }
 
     case LibrariesActionTypes.AddLibraryError || LibrariesActionTypes.RemoveLibraryError: {
       return {
         ...state,
-        error: action.payload
+        error: action.payload,
+        adding: false,
       };
     }
 
@@ -59,4 +76,6 @@ export function reducer(
 /**
  * Selectors
  */
+export const getLoaded = (state: State) => state.loaded;
+export const getAdding = (state: State) => state.adding;
 export const getError = (state: State) => state.error;

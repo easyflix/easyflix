@@ -21,6 +21,7 @@ import {FilesService} from './services/files.service';
 import {VideoGuard} from './guards/video.guard';
 import {FilesLoadedGuard} from '@app/guards/files-loaded.guard';
 import {VideoResolverService} from '@app/guards/video-resolver.service';
+import {LibrariesLoadedGuard} from '@app/guards/libraries-loaded.guard';
 
 @NgModule({
   declarations: [
@@ -49,6 +50,7 @@ import {VideoResolverService} from '@app/guards/video-resolver.service';
     FilesService,
     VideoGuard,
     FilesLoadedGuard,
+    LibrariesLoadedGuard,
     VideoResolverService
   ],
   bootstrap: [AppComponent]

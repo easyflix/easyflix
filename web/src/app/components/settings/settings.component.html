@@ -56,9 +56,12 @@
       <mat-label>Path</mat-label>
       <input matInput spellcheck="false" placeholder="Absolute path" [(ngModel)]="libraryPath" name="wf-path" required/>
     </mat-form-field>
-    <button type="submit" mat-icon-button [disabled]="!libForm.form.valid">
+    <button type="submit" mat-icon-button [disabled]="!libForm.form.valid" *ngIf="!(librariesAdding$ | async)">
       <mat-icon>add</mat-icon>
     </button>
+    <div class="spinner" *ngIf="librariesAdding$ | async">
+      <mat-progress-spinner mode="indeterminate" diameter="25"></mat-progress-spinner>
+    </div>
   </form>
 
   <p class="library-error" *ngIf="librariesError$ | async">

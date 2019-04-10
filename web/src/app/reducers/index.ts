@@ -123,3 +123,13 @@ export const getLibrariesError = createSelector(
   getLibrariesState,
   fromLibraries.getError
 );
+
+export const getLibrariesAdding = createSelector(
+  getLibrariesState,
+  fromLibraries.getAdding
+);
+
+export const getLibrariesLoaded = createSelector(
+  getLibrariesState,
+  fromLibraries.getLoaded
+);

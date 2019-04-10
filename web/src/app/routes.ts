@@ -12,6 +12,7 @@ import {VideoGridComponent} from './components/common/video-grid/video-grid.comp
 import {VideoDetailedListComponent} from './components/common/video-detailed-list/video-detailed-list.component';
 import {FilesLoadedGuard} from '@app/guards/files-loaded.guard';
 import {VideoResolverService} from '@app/guards/video-resolver.service';
+import {LibrariesLoadedGuard} from '@app/guards/libraries-loaded.guard';
 
 const navOutletName = 'nav';
 
@@ -48,6 +49,12 @@ export const routes: Routes = [
   },
   { path: 'search', component: SearchComponent, outlet: navOutletName, data: { animation: 'search' } },
   { path: 'history', component: HistoryComponent, outlet: navOutletName, data: { animation: 'history' } },
-  { path: 'settings', component: SettingsComponent, outlet: navOutletName, data: { animation: 'settings' } },
+  {
+    path: 'settings',
+    component: SettingsComponent,
+    outlet: navOutletName,
+    canActivate: [LibrariesLoadedGuard],
+    data: { animation: 'settings' }
+  },
   { path: 'about', component: AboutComponent, outlet: navOutletName, data: { animation: 'about' } },
 ];
