@@ -18,7 +18,7 @@ object APIRoutes extends Directives with JsonSupport {
 
   implicit val askTimeout: akka.util.Timeout = 10.seconds
 
-  def routes(application: Application): Route = {
+  def routes(application: Application): Route =
     pathPrefix("api") {
       respondWithHeaders(RawHeader("Access-Control-Allow-Origin", "*")) {
         Route.seal(concat(
@@ -83,6 +83,5 @@ object APIRoutes extends Directives with JsonSupport {
         ))
       }
     }
-  }
 
 }

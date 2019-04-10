@@ -30,24 +30,26 @@ object LibraryRoutes extends FileAndResourceDirectives {
   }
 
   def routes(application: Application): Route =
-    Route.seal(pathPrefix("videos") {
-      path(Segment) { id =>
-        onSuccess((application.libraryActor ? GetLibraryFile(id)).mapTo[Option[LibraryFile]]) {
-          case Some(Video(_, _, _, _, _, path)) =>
-            onSuccess((application.mediaTypesActor ? GetMediaTypes).mapTo[Seq[MediaType.Binary]]) { customMediaTypes =>
-              implicit val contentTypeResolver: ContentTypeResolver = getContentResolver(customMediaTypes)
-              optionalHeaderValueByType[Range](()) {
-                case Some(Range(RangeUnits.Bytes, Seq(range))) => Routes.getFromFileWithRange(path.toFile, range)
-                case _ => getFromFile(path.toFile)
+    pathPrefix("videos") {
+      Route.seal(
+        path(Segment) { id =>
+          onSuccess((application.libraryActor ? GetLibraryFile(id)).mapTo[Option[LibraryFile]]) {
+            case Some(Video(_, _, _, _, _, path)) =>
+              onSuccess((application.mediaTypesActor ? GetMediaTypes).mapTo[Seq[MediaType.Binary]]) { customMediaTypes =>
+                implicit val contentTypeResolver: ContentTypeResolver = getContentResolver(customMediaTypes)
+                optionalHeaderValueByType[Range](()) {
+                  case Some(Range(RangeUnits.Bytes, Seq(range))) => Routes.getFromFileWithRange(path.toFile, range)
+                  case _ => getFromFile(path.toFile)
+                }
               }
-            }
-          case Some (Folder(_, _, _)) =>
-            // getFromBrowseableDirectory()
-            complete(StatusCodes.NotAcceptable, "Requested id does not match any video file")
-          case _ =>
-            complete(StatusCodes.NotFound, "The requested resource could not be found")
+            case Some (Folder(_, _, _)) =>
+              // getFromBrowseableDirectory()
+              complete(StatusCodes.NotAcceptable, "Requested id does not match any video file")
+            case _ =>
+              complete(StatusCodes.NotFound, "The requested resource could not be found")
+          }
         }
-      }
-    })
+      )
+    }
 
 }
