@@ -29,7 +29,7 @@ object APIRoutes extends Directives with JsonSupport {
               complete(StatusCodes.OK)
             }
           },
-          pathPrefix("videos") {
+          pathPrefix("files") {
             pathEndOrSingleSlash {
               get {
                 onSuccess((application.libraryActor ? GetLibraryFiles).mapTo[Seq[LibraryFile]])(complete(_))
@@ -43,7 +43,7 @@ object APIRoutes extends Directives with JsonSupport {
               } ~
               post {
                 entity(as[Library]) { library =>
-                  onSuccess((application.libraryActor ? AddLibrary(library)).mapTo[AddLibraryResult]){
+                  onSuccess((application.libraryActor ? AddLibrary(library))(2.minute).mapTo[AddLibraryResult]){
                     case AddLibrarySuccess(lib) => complete(lib)
                     case AddLibraryError(error) => complete(StatusCodes.BadRequest, error.toJson)
                   }

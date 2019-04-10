@@ -25,7 +25,7 @@ export class AppEffects {
     this.actions$.pipe(
       ofType(FilesActionTypes.LoadFiles),
       switchMap(() =>
-        this.httpClient.get('http://localhost:8081/api/videos').pipe(
+        this.httpClient.get('http://localhost:8081/api/files').pipe(
           map((files: LibraryFile[]) => new LoadFilesSuccess(files)),
           catchError((error: HttpErrorResponse) => of(new LoadFilesError(error.message)))
         )

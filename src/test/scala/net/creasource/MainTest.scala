@@ -18,7 +18,7 @@ import scala.concurrent.duration._
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 import akka.pattern.ask
-import net.creasource.web.LibraryActor.{GetLibraryFiles, ScanLibrary}
+//import net.creasource.web.LibraryActor.{GetLibraryFiles, ScanLibrary}
 
 class MainTest extends SimpleTest {
 
@@ -38,7 +38,7 @@ class MainTest extends SimpleTest {
 
     "a" in {
 
-      val videos = Library(name = "Vidéos", path = Paths.get("D:\\Vidéos\\Avatar - The Legend of Korra"))
+/*      val videos = Library(name = "Vidéos", path = Paths.get("D:\\Vidéos\\Avatar - The Legend of Korra"))
 
       val f = (application.libraryActor ? ScanLibrary(videos))(10.seconds)
 
@@ -48,7 +48,7 @@ class MainTest extends SimpleTest {
 
       val r = Await.result(f1, 10.seconds)
 
-      r.foreach(println)
+      r.foreach(println)*/
       /*      import akka.stream.alpakka.file.scaladsl.Directory
 
             val videos = Library(name = "Vidéos", path = Paths.get("D:\\Vidéos\\Avatar - The Legend of Korra"))
