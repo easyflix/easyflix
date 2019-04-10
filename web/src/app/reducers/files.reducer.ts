@@ -1,6 +1,7 @@
 import {FilesActionsUnion, FilesActionTypes} from '../actions/files.actions';
 import {createEntityAdapter, EntityAdapter, EntityState} from '@ngrx/entity';
 import {LibraryFile} from '@app/models/file';
+import {LibrariesActionsUnion, LibrariesActionTypes} from '@app/actions/libraries.actions';
 
 /**
  * State
@@ -31,7 +32,7 @@ export const initialState: State = adapter.getInitialState({
  */
 export function reducer(
   state: State = initialState,
-  action: FilesActionsUnion
+  action: FilesActionsUnion | LibrariesActionsUnion
 ): State {
   switch (action.type) {
 
@@ -53,6 +54,14 @@ export function reducer(
         ...state,
         loaded: true
       });
+    }
+
+    case LibrariesActionTypes.RemoveLibrarySuccess: {
+      const idsToRemove = (state.ids as string[]).filter(id => {
+        const entity = state.entities[id];
+        return entity.parent.startsWith(action.payload + '/');
+      });
+      return adapter.removeMany(idsToRemove, state);
     }
 
     default: return state;

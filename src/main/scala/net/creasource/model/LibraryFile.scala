@@ -11,6 +11,8 @@ case class Library(name: String, path: Path)
 
 sealed trait LibraryFile {
   val id: String
+  val name: String
+  val parent: Path
 }
 case class Folder(id: String, name: String, parent: Path) extends LibraryFile
 case class Video(id: String, name: String, parent: Path, size: Long, format: VideoFormat, filePath: Path) extends LibraryFile

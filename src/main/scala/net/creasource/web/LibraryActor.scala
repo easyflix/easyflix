@@ -113,6 +113,9 @@ class LibraryActor()(implicit val application: Application) extends Actor {
 
     case RemoveLibrary(name) =>
       libraries.find(_.name == name).foreach(lib => libraries = libraries.diff(Seq(lib)))
+      libraryFiles = libraryFiles.filter {
+        case (_, file) => !file.parent.startsWith(name)
+      }
       sender() ! RemoveLibrarySuccess
   }
 
