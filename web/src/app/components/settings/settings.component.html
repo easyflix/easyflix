@@ -14,7 +14,7 @@
 
   <h3>Sidenav</h3>
   <section class="sidenav">
-    <mat-form-field>
+    <mat-form-field appearance="standard">
       <mat-label>Mode</mat-label>
       <mat-select [value]="sidenavMode$ | async" (selectionChange)="setSidenavMode($event.value)">
         <mat-option value="side">Side</mat-option>
@@ -22,7 +22,7 @@
         <mat-option value="over">Over</mat-option>
       </mat-select>
     </mat-form-field>
-    <mat-form-field>
+    <mat-form-field appearance="standard">
       <mat-label>Size</mat-label>
       <mat-select [value]="sidenavSize$ | async" (selectionChange)="setSidenavSize($event.value)">
         <mat-option value="narrow">Narrow</mat-option>
@@ -34,11 +34,11 @@
 
   <h3>Libraries</h3>
   <section class="library" *ngFor="let library of libraries$ | async">
-    <mat-form-field class="name">
+    <mat-form-field class="name" appearance="standard">
       <mat-label>Name</mat-label>
       <input matInput [value]="library.name" disabled spellcheck="false"/>
     </mat-form-field>
-    <mat-form-field class="path">
+    <mat-form-field class="path" appearance="standard">
       <mat-label>Path</mat-label>
       <input matInput [value]="library.path" disabled spellcheck="false"/>
     </mat-form-field>
@@ -48,11 +48,11 @@
   </section>
 
   <form (ngSubmit)="addLibrary()" class="library-form" #libForm="ngForm">
-    <mat-form-field class="name" floatLabel="always">
+    <mat-form-field class="name" floatLabel="always" appearance="standard">
       <mat-label>Name</mat-label>
       <input matInput spellcheck="false" placeholder="Display name" [(ngModel)]="libraryName" name="wf-name" required/>
     </mat-form-field>
-    <mat-form-field class="path" floatLabel="always">
+    <mat-form-field class="path" floatLabel="always" appearance="standard">
       <mat-label>Path</mat-label>
       <input matInput spellcheck="false" placeholder="Absolute path" [(ngModel)]="libraryPath" name="wf-path" required/>
     </mat-form-field>
@@ -71,11 +71,11 @@
 
   <h3>Media types</h3>
   <section class="media-type">
-    <mat-form-field class="content-type">
+    <mat-form-field class="content-type" appearance="standard">
       <mat-label>Content-Type</mat-label>
       <input matInput value="video/x-mastroka" spellcheck="false" disabled/>
     </mat-form-field>
-    <mat-form-field class="extensions">
+    <mat-form-field class="extensions" appearance="standard">
       <mat-label>Extensions</mat-label>
       <input matInput value="mkv" spellcheck="false" disabled/>
     </mat-form-field>
@@ -84,17 +84,17 @@
     </button>
   </section>
 
-  <section class="media-type">
-    <mat-form-field class="content-type" floatLabel="always">
+  <form class="media-type-form">
+    <mat-form-field class="content-type" floatLabel="always" appearance="standard">
       <mat-label>Content-Type</mat-label>
-      <input matInput value="" spellcheck="false" placeholder="Content-Type header"/>
+      <input matInput value="" spellcheck="false" placeholder="Content-Type header" required/>
     </mat-form-field>
-    <mat-form-field class="extensions" floatLabel="always">
+    <mat-form-field class="extensions" floatLabel="always" appearance="standard">
       <mat-label>Extensions</mat-label>
-      <input matInput value="" spellcheck="false" placeholder="Extensions, comma-separated"/>
+      <input matInput value="" spellcheck="false" placeholder="Extensions, comma-separated" required/>
     </mat-form-field>
     <button mat-icon-button>
       <mat-icon>add</mat-icon>
     </button>
-  </section>
+  </form>
 </section>
