@@ -17,6 +17,7 @@ import {Folder, Library} from '@app/models/file';
 import {ActivatedRoute, Router} from '@angular/router';
 import {map, mergeMap, take, tap} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
+import {filter} from 'rxjs/internal/operators/filter';
 
 export interface AnimatableComponent {
   afterAnimation();
@@ -138,6 +139,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
         if (param === null) { return EMPTY; }
         const [libraryName, ...foldersIds] = param.split(':');
         return this.files.getLibraryByName(libraryName).pipe(
+          filter(l => l !== undefined),
           mergeMap(library => {
             if (foldersIds.length === 0) {
               return of({library, folders: []});
