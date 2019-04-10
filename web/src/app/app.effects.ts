@@ -24,11 +24,12 @@ export class AppEffects {
   loadFiles$: Observable<Action> =
     this.actions$.pipe(
       ofType(FilesActionTypes.LoadFiles),
-      switchMap(() => this.httpClient.get('http://localhost:8081/api/videos').pipe(
-        map(files => files as LibraryFile[])
-      )),
-      map(files => new LoadFilesSuccess(files)),
-      catchError((error: HttpErrorResponse) => of(new LoadFilesError(error.message)))
+      switchMap(() =>
+        this.httpClient.get('http://localhost:8081/api/videos').pipe(
+          map((files: LibraryFile[]) => new LoadFilesSuccess(files)),
+          catchError((error: HttpErrorResponse) => of(new LoadFilesError(error.message)))
+        )
+      )
     );
 
   /**
@@ -38,9 +39,12 @@ export class AppEffects {
   loadLibraries$: Observable<Action> =
     this.actions$.pipe(
       ofType(LibrariesActionTypes.LoadLibraries),
-      switchMap(() => this.httpClient.get('http://localhost:8081/api/libraries')),
-      map((libs: Library[]) => new LoadLibrariesSuccess(libs)),
-      catchError((error: HttpErrorResponse) => of(new LoadLibrariesError(error.message)))
+      switchMap(() =>
+        this.httpClient.get('http://localhost:8081/api/libraries').pipe(
+          map((libs: Library[]) => new LoadLibrariesSuccess(libs)),
+          catchError((error: HttpErrorResponse) => of(new LoadLibrariesError(error.message)))
+        )
+      )
     );
 
   /**
@@ -50,9 +54,12 @@ export class AppEffects {
   addLibrary$: Observable<any> =
     this.actions$.pipe(
       ofType(LibrariesActionTypes.AddLibrary),
-      switchMap((action: AddLibrary) => this.httpClient.post('http://localhost:8081/api/libraries', action.payload)),
-      map((library: Library) => new AddLibrarySuccess(library)),
-      catchError((error: HttpErrorResponse) => of(new AddLibraryError(error.error)))
+      switchMap((action: AddLibrary) =>
+        this.httpClient.post('http://localhost:8081/api/libraries', action.payload).pipe(
+          map((library: Library) => new AddLibrarySuccess(library)),
+          catchError((error: HttpErrorResponse) => of(new AddLibraryError(error.error)))
+        )
+      )
     );
 
   /**
@@ -63,10 +70,11 @@ export class AppEffects {
     this.actions$.pipe(
       ofType(LibrariesActionTypes.RemoveLibrary),
       switchMap((action: RemoveLibrary) =>
-        this.httpClient.delete('http://localhost:8081/api/libraries/' + encodeURIComponent(action.payload))
-      ),
-      map((libraryName: string) => new RemoveLibrarySuccess(libraryName)),
-      catchError((error: HttpErrorResponse) => of(new RemoveLibraryError(error.error)))
+        this.httpClient.delete('http://localhost:8081/api/libraries/' + encodeURIComponent(action.payload)).pipe(
+          map((libraryName: string) => new RemoveLibrarySuccess(libraryName)),
+          catchError((error: HttpErrorResponse) => of(new RemoveLibraryError(error.error)))
+        )
+      )
     );
 
   constructor(private actions$: Actions, private httpClient: HttpClient) {}

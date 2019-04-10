@@ -33,46 +33,33 @@
   <mat-divider></mat-divider>
 
   <h3>Libraries</h3>
-  <section class="library">
+  <section class="library" *ngFor="let library of libraries$ | async">
     <mat-form-field class="name">
       <mat-label>Name</mat-label>
-      <input matInput value="Movies" disabled spellcheck="false"/>
+      <input matInput [value]="library.name" disabled spellcheck="false"/>
     </mat-form-field>
     <mat-form-field class="path">
       <mat-label>Path</mat-label>
-      <input matInput value="D:\Vidéos" disabled spellcheck="false"/>
+      <input matInput [value]="library.path" disabled spellcheck="false"/>
     </mat-form-field>
-    <button mat-icon-button>
-      <mat-icon>close</mat-icon>
-    </button>
-  </section>
-  <section class="library">
-    <mat-form-field class="name">
-      <mat-label>Name</mat-label>
-      <input matInput value="TV Shows" disabled spellcheck="false"/>
-    </mat-form-field>
-    <mat-form-field class="path">
-      <mat-label>Path</mat-label>
-      <input matInput value="D:\Vidéos2" disabled spellcheck="false"/>
-    </mat-form-field>
-    <button mat-icon-button>
+    <button mat-icon-button (click)="removeLibrary(library.name)">
       <mat-icon>close</mat-icon>
     </button>
   </section>
 
-  <section class="library-add">
+  <form (ngSubmit)="addLibrary()" class="library-form" #libForm="ngForm">
     <mat-form-field class="name" floatLabel="always">
       <mat-label>Name</mat-label>
-      <input matInput spellcheck="false" placeholder="Display name" #name/>
+      <input matInput spellcheck="false" placeholder="Display name" [(ngModel)]="libraryName" name="wf-name" required/>
     </mat-form-field>
     <mat-form-field class="path" floatLabel="always">
       <mat-label>Path</mat-label>
-      <input matInput spellcheck="false" placeholder="Absolute path" #path/>
+      <input matInput spellcheck="false" placeholder="Absolute path" [(ngModel)]="libraryPath" name="wf-path" required/>
     </mat-form-field>
-    <button mat-icon-button (click)="addLibrary(name.value, path.value)">
+    <button type="submit" mat-icon-button [disabled]="!libForm.form.valid">
       <mat-icon>add</mat-icon>
     </button>
-  </section>
+  </form>
 
   <p class="library-error" *ngIf="librariesError$ | async">
     {{ librariesError$ | async }}
@@ -101,7 +88,7 @@
     </mat-form-field>
     <mat-form-field class="extensions" floatLabel="always">
       <mat-label>Extensions</mat-label>
-      <input matInput value="" spellcheck="false" placeholder="Comma-separated list of extensions"/>
+      <input matInput value="" spellcheck="false" placeholder="Extensions, comma-separated"/>
     </mat-form-field>
     <button mat-icon-button>
       <mat-icon>add</mat-icon>
