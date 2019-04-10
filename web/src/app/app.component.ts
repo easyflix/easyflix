@@ -7,6 +7,7 @@ import {RouterOutlet} from '@angular/router';
 import {FilesService} from '@app/services/files.service';
 import {SidenavModeType} from '@app/reducers/core.reducer';
 import {map} from 'rxjs/operators';
+import {MediaTypesService} from '@app/services/media-types.service';
 
 @Component({
   selector: 'app-root',
@@ -27,7 +28,8 @@ export class AppComponent implements OnInit {
 
   constructor(
     private core: CoreService,
-    private files: FilesService
+    private files: FilesService,
+    private mediaTypes: MediaTypesService
   ) { }
 
   ngOnInit() {
@@ -38,6 +40,7 @@ export class AppComponent implements OnInit {
     );
     this.files.loadLibrairies();
     this.files.loadFiles();
+    this.mediaTypes.load();
   }
 
   openSidenav() {

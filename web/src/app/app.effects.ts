@@ -6,13 +6,29 @@ import {Observable, of} from 'rxjs';
 import {catchError, map, switchMap} from 'rxjs/operators';
 
 import {FilesActionTypes, LoadFilesError, LoadFilesSuccess} from '@app/actions/files.actions';
-import {Library, LibraryFile} from '@app/models/file';
+import {Library, LibraryFile, MediaType} from '@app/models/file';
 import {
-  AddLibrary, AddLibraryError, AddLibrarySuccess,
+  AddLibrary,
+  AddLibraryError,
+  AddLibrarySuccess,
   LibrariesActionTypes,
   LoadLibrariesError,
-  LoadLibrariesSuccess, RemoveLibrary, RemoveLibraryError, RemoveLibrarySuccess
+  LoadLibrariesSuccess,
+  RemoveLibrary,
+  RemoveLibraryError,
+  RemoveLibrarySuccess
 } from '@app/actions/libraries.actions';
+import {
+  AddMediaType,
+  AddMediaTypeError,
+  AddMediaTypeSuccess,
+  LoadMediaTypesError,
+  LoadMediaTypesSuccess,
+  MediaTypesActionTypes,
+  RemoveMediaType,
+  RemoveMediaTypeError,
+  RemoveMediaTypeSuccess
+} from '@app/actions/media-types.actions';
 
 @Injectable()
 export class AppEffects {
@@ -73,6 +89,51 @@ export class AppEffects {
         this.httpClient.delete('http://localhost:8081/api/libraries/' + encodeURIComponent(action.payload)).pipe(
           map((libraryName: string) => new RemoveLibrarySuccess(libraryName)),
           catchError((error: HttpErrorResponse) => of(new RemoveLibraryError(error.error)))
+        )
+      )
+    );
+
+  /**
+   * Load media types
+   */
+  @Effect()
+  loadMediaTypes$: Observable<Action> =
+    this.actions$.pipe(
+      ofType(MediaTypesActionTypes.LoadMediaTypes),
+      switchMap(() =>
+        this.httpClient.get('http://localhost:8081/api/media-types').pipe(
+          map((mts: MediaType[]) => new LoadMediaTypesSuccess(mts)),
+          catchError((error: HttpErrorResponse) => of(new LoadMediaTypesError(error.message)))
+        )
+      )
+    );
+
+  /**
+   * Add MediaType
+   */
+  @Effect()
+  addMediaType$: Observable<any> =
+    this.actions$.pipe(
+      ofType(MediaTypesActionTypes.AddMediaType),
+      switchMap((action: AddMediaType) =>
+        this.httpClient.post('http://localhost:8081/api/media-types', action.payload).pipe(
+          map((mediaType: MediaType) => new AddMediaTypeSuccess(mediaType)),
+          catchError((error: HttpErrorResponse) => of(new AddMediaTypeError(error.error)))
+        )
+      )
+    );
+
+  /**
+   * Remove MediaType
+   */
+  @Effect()
+  removeMediaType$: Observable<any> =
+    this.actions$.pipe(
+      ofType(MediaTypesActionTypes.RemoveMediaType),
+      switchMap((action: RemoveMediaType) =>
+        this.httpClient.delete('http://localhost:8081/api/media-types/' + encodeURIComponent(action.payload)).pipe(
+          map((mediaTypeName: string) => new RemoveMediaTypeSuccess(mediaTypeName)),
+          catchError((error: HttpErrorResponse) => of(new RemoveMediaTypeError(error.error)))
         )
       )
     );

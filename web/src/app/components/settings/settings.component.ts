@@ -5,8 +5,9 @@ import {Observable, Subscription} from 'rxjs';
 import {map, tap} from 'rxjs/operators';
 import {SidenavModeType, SidenavSizeType} from '@app/reducers/core.reducer';
 import {FilesService} from '@app/services/files.service';
-import {Library} from '@app/models/file';
+import {Library, MediaType} from '@app/models/file';
 import {NgForm} from '@angular/forms';
+import {MediaTypesService} from '@app/services/media-types.service';
 
 @Component({
   selector: 'app-settings',
@@ -19,6 +20,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
   libraryName = '';
   libraryPath = '';
 
+  contentType = '';
+  extensions = '';
+
   @ViewChild('closeButton')
   closeButton: MatButton;
 
@@ -29,12 +33,23 @@ export class SettingsComponent implements OnInit, OnDestroy {
   librariesError$: Observable<string>;
   librariesAdding$: Observable<boolean>;
 
+  mediaTypes$: Observable<MediaType[]>;
+  mediaTypesError$: Observable<string>;
+  mediaTypesAdding$: Observable<boolean>;
+
   subscriptions: Subscription[] = [];
 
-  @ViewChild('libForm')
-  form: NgForm;
+  @ViewChild('libraryForm')
+  libForm: NgForm;
 
-  constructor(private core: CoreService, private files: FilesService) {
+  @ViewChild('mediaTypeForm')
+  mediaTypeForm: NgForm;
+
+  constructor(
+    private core: CoreService,
+    private files: FilesService,
+    private mediaTypes: MediaTypesService
+  ) {
     this.sidenavMode$ = core.getSidenavMode();
     this.sidenavSize$ = core.getSidenavSize();
     this.libraries$ = files.getAllLibraries().pipe(
@@ -42,14 +57,19 @@ export class SettingsComponent implements OnInit, OnDestroy {
     );
     this.librariesError$ = files.getLibrariesError();
     this.librariesAdding$ = files.getLibrariesAdding();
+
+    this.mediaTypes$ = mediaTypes.getAll();
+    this.mediaTypesError$ = mediaTypes.getError();
+    this.mediaTypesAdding$ = mediaTypes.getAdding();
   }
 
   ngOnInit() {
     this.subscriptions.push(
       this.files.getAllLibraries().pipe(
-        tap(() => {
-          this.form.resetForm();
-        })
+        tap(() => this.libForm.resetForm())
+      ).subscribe(),
+      this.mediaTypes.getAll().pipe(
+        tap(() => this.mediaTypeForm.resetForm())
       ).subscribe()
     );
 
@@ -80,6 +100,26 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   removeLibrary(name: string) {
     this.files.removeLibrary(name);
+  }
+
+  getExtensionsString(mediaType: MediaType): string {
+    return mediaType.extensions.reduce((a, b) => `${a},${b}`);
+  }
+
+  addMediaType() {
+    const extensions = this.extensions
+      .split(',')
+      .map(e => e.trim())
+      .filter(e => e !== '');
+
+    const subType = this.contentType
+      .split('/')[1]; // TODO check is valid
+
+    this.mediaTypes.addMediaType({ subType, extensions });
+  }
+
+  removeMediaType(subType: string) {
+    this.mediaTypes.removeMediaType(subType);
   }
 
 }

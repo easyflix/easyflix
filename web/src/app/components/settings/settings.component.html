@@ -47,7 +47,7 @@
     </button>
   </section>
 
-  <form (ngSubmit)="addLibrary()" class="library-form" #libForm="ngForm">
+  <form (ngSubmit)="addLibrary()" class="library-form" #libraryForm="ngForm">
     <mat-form-field class="name" floatLabel="always" appearance="standard">
       <mat-label>Name</mat-label>
       <input matInput spellcheck="false" placeholder="Display name" [(ngModel)]="libraryName" name="wf-name" required/>
@@ -70,31 +70,38 @@
   <mat-divider></mat-divider>
 
   <h3>Media types</h3>
-  <section class="media-type">
+  <section class="media-type" *ngFor="let mediaType of mediaTypes$ | async">
     <mat-form-field class="content-type" appearance="standard">
       <mat-label>Content-Type</mat-label>
-      <input matInput value="video/x-mastroka" spellcheck="false" disabled/>
+      <input matInput value="video/{{ mediaType.subType }}" spellcheck="false" disabled/>
     </mat-form-field>
     <mat-form-field class="extensions" appearance="standard">
       <mat-label>Extensions</mat-label>
-      <input matInput value="mkv" spellcheck="false" disabled/>
+      <input matInput [value]="getExtensionsString(mediaType)" spellcheck="false" disabled/>
     </mat-form-field>
-    <button mat-icon-button>
+    <button mat-icon-button (click)="removeMediaType(mediaType.subType)">
       <mat-icon>close</mat-icon>
     </button>
   </section>
 
-  <form class="media-type-form">
+  <form class="media-type-form" (ngSubmit)="addMediaType()" #mediaTypeForm="ngForm">
     <mat-form-field class="content-type" floatLabel="always" appearance="standard">
       <mat-label>Content-Type</mat-label>
-      <input matInput value="" spellcheck="false" placeholder="Content-Type header" required/>
+      <input matInput value="" spellcheck="false" placeholder="Content-Type header" [(ngModel)]="contentType" name="wf-content-type" required/>
     </mat-form-field>
     <mat-form-field class="extensions" floatLabel="always" appearance="standard">
       <mat-label>Extensions</mat-label>
-      <input matInput value="" spellcheck="false" placeholder="Extensions, comma-separated" required/>
+      <input matInput value="" spellcheck="false" placeholder="Extensions, comma-separated" [(ngModel)]="extensions" name="wf-extensions" required/>
     </mat-form-field>
-    <button mat-icon-button>
+    <button mat-icon-button [disabled]="!mediaTypeForm.form.valid" *ngIf="!(mediaTypesAdding$ | async)">
       <mat-icon>add</mat-icon>
     </button>
+    <div class="spinner" *ngIf="mediaTypesAdding$ | async">
+      <mat-progress-spinner mode="indeterminate" diameter="25"></mat-progress-spinner>
+    </div>
   </form>
+
+  <p class="media-type-error" *ngIf="mediaTypesError$ | async">
+    {{ mediaTypesError$ | async }}
+  </p>
 </section>

@@ -1,6 +1,7 @@
 package net.creasource
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.model.MediaType.NotCompressible
 import akka.http.scaladsl.model._
 import akka.util.ByteString
 import spray.json._
@@ -63,6 +64,30 @@ package object web {
       HttpRequest(method = method, uri = uri, headers = headers, entity = entity)
     }
     implicit def immSeqWriter[T: JsonWriter]: RootJsonWriter[Seq[T]] = (obj: Seq[T]) => JsArray(obj.map(_.toJson).toVector)
+    val mediaFormat: RootJsonFormat[MediaType.Binary] = new RootJsonFormat[MediaType.Binary] {
+      override def read(json: JsValue): MediaType.Binary = json match {
+        case obj: JsObject =>
+          val subType = obj.fields.get("subType") match {
+            case Some(JsString(s)) => s
+            case _ => throw new UnsupportedOperationException("No valid subType field found")
+          }
+          val extensions = obj.fields.get("extensions") match {
+            case Some(JsArray(es)) => es.map {
+              case JsString(e) => e
+              case _ => throw new UnsupportedOperationException("The extensions field must be an array of strings")
+            }
+            case _ => throw new UnsupportedOperationException("No valid extensions field found")
+          }
+          MediaType.video(subType, NotCompressible, extensions: _*)
+        case _ => throw new UnsupportedOperationException("MediaType must be an object")
+      }
+      override def write(obj: MediaType.Binary): JsValue = JsObject(
+        "subType" -> obj.subType.toJson,
+        "extensions" -> obj.fileExtensions.toJson
+      )
+    }
+    implicit val mediaWriter: RootJsonWriter[MediaType.Binary] = mediaFormat.write
+    implicit val mediaReader: RootJsonReader[MediaType.Binary] = mediaFormat.read
   }
 
   object JsonSupport extends JsonSupport

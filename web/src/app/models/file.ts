@@ -22,3 +22,8 @@ export interface Library {
 }
 
 export type LibraryFile = Folder | Video;
+
+export interface MediaType {
+  subType: string;
+  extensions: string[];
+}

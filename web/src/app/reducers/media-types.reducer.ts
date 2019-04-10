@@ -1,16 +1,15 @@
 import {createEntityAdapter, EntityAdapter, EntityState} from '@ngrx/entity';
-import {Library} from '@app/models/file';
-import {LibrariesActionsUnion, LibrariesActionTypes} from '@app/actions/libraries.actions';
+import {MediaType} from '@app/models/file';
+import {MediaTypesActionsUnion, MediaTypesActionTypes} from '@app/actions/media-types.actions';
 
 /**
  * State
  */
-export const adapter: EntityAdapter<Library> = createEntityAdapter<Library>({
-  selectId: lib => lib.name,
-  sortComparer: (a, b) => a.name.localeCompare(b.name)
+export const adapter: EntityAdapter<MediaType> = createEntityAdapter<MediaType>({
+  selectId: mt => mt.subType
 });
 
-export interface State extends EntityState<Library> {
+export interface State extends EntityState<MediaType> {
   error: string;
   adding: boolean;
   loaded: boolean;
@@ -27,18 +26,18 @@ export const initialState: State = adapter.getInitialState({
  */
 export function reducer(
   state: State = initialState,
-  action: LibrariesActionsUnion
+  action: MediaTypesActionsUnion
 ): State {
   switch (action.type) {
 
-    case LibrariesActionTypes.LoadLibrariesSuccess: {
+    case MediaTypesActionTypes.LoadMediaTypesSuccess: {
       return adapter.upsertMany(action.payload, {
         ...state,
         loaded: true
       });
     }
 
-    case LibrariesActionTypes.AddLibrary: {
+    case MediaTypesActionTypes.AddMediaType: {
       return {
         ...state,
         adding: true,
@@ -46,14 +45,14 @@ export function reducer(
       };
     }
 
-    case LibrariesActionTypes.RemoveLibrary: {
+    case MediaTypesActionTypes.RemoveMediaType: {
       return {
         ...state,
         error: null
       };
     }
 
-    case LibrariesActionTypes.AddLibrarySuccess: {
+    case MediaTypesActionTypes.AddMediaTypeSuccess: {
       return adapter.upsertOne(action.payload, {
         ...state,
         error: null,
@@ -61,7 +60,7 @@ export function reducer(
       });
     }
 
-    case LibrariesActionTypes.RemoveLibrarySuccess: {
+    case MediaTypesActionTypes.RemoveMediaTypeSuccess: {
       return adapter.removeOne(action.payload, {
         ...state,
         error: null,
@@ -69,7 +68,7 @@ export function reducer(
       });
     }
 
-    case LibrariesActionTypes.AddLibraryError || LibrariesActionTypes.RemoveLibraryError: {
+    case MediaTypesActionTypes.AddMediaTypeError || MediaTypesActionTypes.RemoveMediaTypeError: {
       return {
         ...state,
         error: action.payload,
