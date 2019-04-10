@@ -66,17 +66,19 @@ class LibraryActor()(implicit val application: Application) extends Actor {
       if (library.name == "") {
         sender() ! AddLibraryError("Library name is empty")
       } else if (libraries.map(_.name).contains(library.name)) {
-        sender() ! AddLibraryError("A library with that name already exists")
+        sender() ! AddLibraryError("A library with that name already exists: " + library.name)
       } else if (library.path.toString == "") {
         sender() ! AddLibraryError("Library path is empty")
       } else if (!library.path.toFile.exists) {
-        sender() ! AddLibraryError("Library path does not exist")
+        sender() ! AddLibraryError("Library path does not exist: " + library.path)
       } else if (!library.path.toFile.isDirectory) {
-        sender() ! AddLibraryError("Library path is not a directory")
+        sender() ! AddLibraryError("Library path is not a directory: " + library.path)
       } else if (!library.path.toFile.canRead) {
-        sender() ! AddLibraryError("Library path is not readable")
+        sender() ! AddLibraryError("Library path is not readable: " + library.path)
       }  else if (libraries.map(_.path).contains(library.path)) {
-        sender() ! AddLibraryError("A library with that path already exists")
+        sender() ! AddLibraryError("A library with that path already exists: " + library.path)
+      } else if (libraries.map(_.path).exists(path => path.startsWith(library.path) || library.path.startsWith(path))) {
+        sender() ! AddLibraryError("A library cannot contain another")
       } else {
         libraries +:= library
         val s = sender()
