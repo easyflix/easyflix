@@ -1,10 +1,8 @@
 import {ChangeDetectionStrategy, Component, ElementRef, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {Observable} from 'rxjs';
-
-import {FilesService} from '@app/services/files.service';
 import {Library} from '@app/models/file';
 import {AnimatableComponent} from '@app/components/library/library.component';
-import {LibrariesService} from "@app/services/libraries.service";
+import {LibrariesService} from '@app/services/libraries.service';
 
 @Component({
   selector: 'app-libraries-view',

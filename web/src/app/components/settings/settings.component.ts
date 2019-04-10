@@ -8,7 +8,7 @@ import {FilesService} from '@app/services/files.service';
 import {Library, MediaType} from '@app/models/file';
 import {NgForm} from '@angular/forms';
 import {MediaTypesService} from '@app/services/media-types.service';
-import {LibrariesService} from "@app/services/libraries.service";
+import {LibrariesService} from '@app/services/libraries.service';
 
 @Component({
   selector: 'app-settings',

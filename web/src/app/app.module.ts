@@ -24,7 +24,7 @@ import {VideoResolverService} from '@app/guards/video-resolver.service';
 import {LibrariesLoadedGuard} from '@app/guards/libraries-loaded.guard';
 import {MediaTypesLoadedGuard} from '@app/guards/media-types-loaded.guard';
 import {MediaTypesService} from '@app/services/media-types.service';
-import {LibrariesService} from "@app/services/libraries.service";
+import {LibrariesService} from '@app/services/libraries.service';
 
 @NgModule({
   declarations: [

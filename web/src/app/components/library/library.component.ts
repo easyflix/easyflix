@@ -18,7 +18,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {map, mergeMap, take, tap} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
 import {filter} from 'rxjs/internal/operators/filter';
-import {LibrariesService} from "@app/services/libraries.service";
+import {LibrariesService} from '@app/services/libraries.service';
 
 export interface AnimatableComponent {
   afterAnimation();
