@@ -6,7 +6,8 @@ import akka.http.scaladsl.server.{Directives, Route}
 import akka.pattern.ask
 import net.creasource.core.Application
 import net.creasource.model.{Library, LibraryFile}
-import net.creasource.web.LibraryActor.{GetLibraries, GetLibraryFiles}
+import net.creasource.web.LibraryActor._
+import spray.json._
 
 import scala.collection.immutable.Seq
 import scala.concurrent.duration._
@@ -28,15 +29,31 @@ object APIRoutes extends Directives with JsonSupport {
               complete(StatusCodes.OK)
             }
           },
-          get {
-            pathPrefix("videos") {
-              pathEndOrSingleSlash {
+          pathPrefix("videos") {
+            pathEndOrSingleSlash {
+              get {
                 onSuccess((application.libraryActor ? GetLibraryFiles).mapTo[Seq[LibraryFile]])(complete(_))
               }
-            } ~
-            pathPrefix("libraries") {
-              pathEndOrSingleSlash {
+            }
+          },
+          pathPrefix("libraries") {
+            pathEndOrSingleSlash {
+              get {
                 onSuccess((application.libraryActor ? GetLibraries).mapTo[Seq[Library]])(complete(_))
+              } ~
+              post {
+                entity(as[Library]) { library =>
+                  onSuccess((application.libraryActor ? AddLibrary(library)).mapTo[AddLibraryResult]){
+                    case AddLibrarySuccess(lib) => complete(lib)
+                    case AddLibraryError(error) => complete(StatusCodes.BadRequest, error.toJson)
+                  }
+                }
+              }
+            } ~
+            path(Segment) { name =>
+              onSuccess((application.libraryActor ? RemoveLibrary(name)).mapTo[RemoveLibraryResult]){
+                case RemoveLibrarySuccess => complete(StatusCodes.OK, name.toJson)
+                case RemoveLibraryError(error) => complete(StatusCodes.BadRequest, error.toJson)
               }
             }
           }

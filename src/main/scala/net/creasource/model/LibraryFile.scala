@@ -1,6 +1,6 @@
 package net.creasource.model
 
-import java.nio.file.Path
+import java.nio.file.{Path, Paths}
 
 import me.nimavat.shortid.ShortId
 import net.creasource.model.VideoFormat.VideoFormat
@@ -21,12 +21,34 @@ object Video {
 }
 
 object Library {
-  implicit val formatter: RootJsonWriter[Library] = {
+  implicit val writer: RootJsonWriter[Library] = {
     case Library(name, path) => JsObject(
       "type" -> "library".toJson,
       "name" -> name.toJson,
       "path" -> path.toString.toJson
     )
+  }
+  implicit val reader: RootJsonReader[Library] = {
+    case obj: JsObject =>
+      obj.fields.get("type") match {
+        case Some(JsString("library")) =>
+        case _ => throw new UnsupportedOperationException("Invalid or missing type attribute")
+      }
+      val name = obj.fields.get("name") match {
+        case Some(JsString(n)) => n
+        case _ => throw new UnsupportedOperationException("Invalid or missing name attribute")
+      }
+      val path = obj.fields.get("path") match {
+        case Some(JsString(p)) =>
+          try {
+            Paths.get(p).toAbsolutePath
+          } catch {
+            case e: Exception => throw new UnsupportedOperationException("Invalid path (" + e.getMessage + ")")
+          }
+        case _ => throw new UnsupportedOperationException("Invalid or missing path attribute")
+      }
+      Library(name, path)
+    case _ => throw new UnsupportedOperationException("Invalid Library format")
   }
 }
 

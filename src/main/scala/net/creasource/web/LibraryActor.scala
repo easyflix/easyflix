@@ -17,6 +17,16 @@ object LibraryActor {
   case class GetLibraryFile(id: String)
   case object GetLibraryFiles
 
+  case class AddLibrary(library: Library)
+  sealed trait AddLibraryResult
+  case class AddLibrarySuccess(library: Library) extends AddLibraryResult
+  case class AddLibraryError(error: String) extends AddLibraryResult
+
+  case class RemoveLibrary(name: String)
+  sealed trait RemoveLibraryResult
+  case object RemoveLibrarySuccess extends RemoveLibraryResult
+  case class RemoveLibraryError(error: String) extends RemoveLibraryResult
+
   case class ScanLibrary(library: Library)
 
   def props()(implicit application: Application): Props = Props(new LibraryActor)
@@ -80,6 +90,30 @@ class LibraryActor()(implicit val application: Application) extends Actor {
         })
       val s = sender()
       f foreach (s ! _)
+
+    case AddLibrary(library) =>
+      if (library.name == "") {
+        sender() ! AddLibraryError("Library name is empty")
+      } else if (libraries.map(_.name).contains(library.name)) {
+        sender() ! AddLibraryError("A library with that name already exists")
+      } else if (library.path.toString == "") {
+        sender() ! AddLibraryError("Library path is empty")
+      } else if (!library.path.toFile.exists) {
+        sender() ! AddLibraryError("Library path does not exist")
+      } else if (!library.path.toFile.isDirectory) {
+        sender() ! AddLibraryError("Library path is not a directory")
+      } else if (!library.path.toFile.canRead) {
+        sender() ! AddLibraryError("Library path is not readable")
+      }  else if (libraries.map(_.path).contains(library.path)) {
+        sender() ! AddLibraryError("A library with that path already exists")
+      } else {
+        libraries +:= library
+        sender() ! AddLibrarySuccess(library)
+      }
+
+    case RemoveLibrary(name) =>
+      libraries.find(_.name == name).foreach(lib => libraries = libraries.diff(Seq(lib)))
+      sender() ! RemoveLibrarySuccess
   }
 
 }
