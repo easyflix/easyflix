@@ -2,11 +2,11 @@ import {ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild} from '
 import {MatButton} from '@angular/material';
 import {CoreService} from '@app/services/core.service';
 import {Observable, Subscription} from 'rxjs';
-import {map, tap} from 'rxjs/operators';
+import {filter, map, tap} from 'rxjs/operators';
 import {SidenavModeType, SidenavSizeType} from '@app/reducers/core.reducer';
 import {FilesService} from '@app/services/files.service';
 import {Library, MediaType} from '@app/models/file';
-import {NgForm} from '@angular/forms';
+import {FormBuilder, Validators} from '@angular/forms';
 import {MediaTypesService} from '@app/services/media-types.service';
 import {LibrariesService} from '@app/services/libraries.service';
 import {Theme, ThemesUtils} from '@app/utils/themes.utils';
@@ -20,11 +20,15 @@ import {DomSanitizer} from '@angular/platform-browser';
 })
 export class SettingsComponent implements OnInit, OnDestroy {
 
-  libraryName = '';
-  libraryPath = '';
+  libraryForm = this.fb.group({
+    name: ['', [Validators.required, Validators.pattern(/^[^:]+$/)]],
+    path: ['', Validators.required]
+  });
 
-  contentType = '';
-  extensions = '';
+  mediaTypeForm = this.fb.group({
+    contentType: ['', [Validators.required, Validators.pattern(/^video\/.+$/)]],
+    extensions: ['', Validators.required]
+  });
 
   @ViewChild('closeButton')
   closeButton: MatButton;
@@ -45,18 +49,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
   allThemes: Theme[] = ThemesUtils.allThemes;
   theme$: Observable<Theme>;
 
-  @ViewChild('libraryForm')
-  libForm: NgForm;
-
-  @ViewChild('mediaTypeForm')
-  mediaTypeForm: NgForm;
-
   constructor(
     private core: CoreService,
     private files: FilesService,
     private libraries: LibrariesService,
     private mediaTypes: MediaTypesService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private fb: FormBuilder
   ) {
     this.sidenavMode$ = core.getSidenavMode();
     this.sidenavSize$ = core.getSidenavSize();
@@ -75,11 +74,21 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.subscriptions.push(
-      this.libraries.getAll().pipe(
-        tap(() => this.libForm.resetForm())
+      this.librariesAdding$.pipe(
+        filter(b => !b),
+        tap(() => {
+          this.libraryForm.reset();
+          this.libraryForm.controls.name.setErrors(null);
+          this.libraryForm.controls.path.setErrors(null);
+        })
       ).subscribe(),
-      this.mediaTypes.getAll().pipe(
-        tap(() => this.mediaTypeForm.resetForm())
+      this.mediaTypesAdding$.pipe(
+        filter(b => !b),
+        tap(() => {
+          this.mediaTypeForm.reset();
+          this.mediaTypeForm.controls.contentType.setErrors(null);
+          this.mediaTypeForm.controls.extensions.setErrors(null);
+        })
       ).subscribe()
     );
 
@@ -104,8 +113,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   addLibrary() {
-    const normalizedName = this.libraryName.replace(/:/g, '');
-    this.libraries.add({ type: 'library', name: normalizedName, path: this.libraryPath });
+    const normalizedName = this.libraryForm.value.name.replace(/:/g, '');
+    this.libraries.add({ type: 'library', name: normalizedName, path: this.libraryForm.value.path });
   }
 
   removeLibrary(name: string) {
@@ -117,13 +126,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   addMediaType() {
-    const extensions = this.extensions
+    const extensions = this.mediaTypeForm.value.extensions
       .split(',')
       .map(e => e.trim())
       .filter(e => e !== '');
 
-    const subType = this.contentType
-      .split('/')[1]; // TODO check is valid
+    const subType = this.mediaTypeForm.value.contentType
+      .split('/')[1];
 
     this.mediaTypes.addMediaType({ subType, extensions });
   }
@@ -143,6 +152,28 @@ export class SettingsComponent implements OnInit, OnDestroy {
       border: 3px solid ${theme.primary}
     `;
     return this.sanitizer.bypassSecurityTrustStyle(style);
+  }
+
+  getLibraryNameErrorMessage(): string {
+    const formControl = this.libraryForm.controls.name;
+    if (formControl.hasError('required')) {
+      return 'A value is required';
+    } else if (formControl.hasError('pattern')) {
+      return 'Invalid name (" : " is not allowed)';
+    } else {
+      return '';
+    }
+  }
+
+  getContentTypeErrorMessage(): string {
+    const formControl = this.mediaTypeForm.controls.contentType;
+    if (formControl.hasError('required')) {
+      return 'A value is required';
+    } else if (formControl.hasError('pattern')) {
+      return 'Content-Type must start with video/';
+    } else {
+      return '';
+    }
   }
 
 }
