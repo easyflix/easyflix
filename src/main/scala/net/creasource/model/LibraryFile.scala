@@ -43,7 +43,7 @@ object Library {
       val path = obj.fields.get("path") match {
         case Some(JsString(p)) =>
           try {
-            Paths.get(p).toAbsolutePath
+            Paths.get(p)
           } catch {
             case e: Exception => throw new UnsupportedOperationException("Invalid path (" + e.getMessage + ")")
           }

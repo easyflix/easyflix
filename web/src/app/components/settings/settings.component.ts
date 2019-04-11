@@ -200,6 +200,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
     if (control.hasError('noChildren')) {
       return 'A library cannot contain another';
     }
+    if (control.hasError('notAbsolute')) {
+      return 'This path is not an absolute path';
+    }
     console.warn('Unhandled error', control.errors);
     return '';
   }

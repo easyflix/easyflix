@@ -58,7 +58,7 @@
       <mat-label>Path</mat-label>
       <input matInput spellcheck="false" placeholder="Path to folder" formControlName="path" required/>
       <mat-error *ngIf="libraryForm.controls.path.invalid">{{ getErrorMessage(libraryForm.controls.path) }}</mat-error>
-      <mat-hint>Path must be absolute, existing, and readable</mat-hint>
+      <mat-hint>Path must exist, be absolute and readable</mat-hint>
     </mat-form-field>
     <button type="submit" mat-icon-button [disabled]="libraryForm.invalid" *ngIf="!(librariesAdding$ | async)">
       <mat-icon>add</mat-icon>

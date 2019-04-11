@@ -79,6 +79,8 @@ class LibraryActor()(implicit val application: Application) extends Actor {
         sender() ! AddLibraryError("name", "alreadyExists")
       } else if (library.path.toString == "") {
         sender() ! AddLibraryError("path", "required")
+      } else if (!library.path.isAbsolute) {
+        sender() ! AddLibraryError("path", "notAbsolute")
       } else if (!library.path.toFile.exists) {
         sender() ! AddLibraryError("path", "doesNotExist")
       } else if (!library.path.toFile.isDirectory) {
