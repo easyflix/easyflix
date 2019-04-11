@@ -112,10 +112,10 @@ export class FileListComponent implements OnInit, AnimatableComponent {
   }
 
   beforeAnimation() {
-    /*const container = this.scrollable.nativeElement as HTMLElement;
+    const container = this.scrollable.nativeElement as HTMLElement;
     // wake up cdk-virtual-scroll (uses polyfill)
     container.scrollTo(0, 1);
-    container.scrollTo(0, 0);*/
+    container.scrollTo(0, 0);
   }
 
   afterAnimation() {
