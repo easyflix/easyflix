@@ -73,6 +73,8 @@ class LibraryActor()(implicit val application: Application) extends Actor {
     case AddLibrary(library) =>
       if (library.name == "") {
         sender() ! AddLibraryError("name", "required")
+      } else if (library.name.contains(":")) {
+        sender() ! AddLibraryError("name", "pattern")
       } else if (libraries.map(_.name).contains(library.name)) {
         sender() ! AddLibraryError("name", "alreadyExists")
       } else if (library.path.toString == "") {
