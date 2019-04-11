@@ -15,19 +15,35 @@ import {CoreService} from '@app/services/core.service';
   selector: 'app-sidenav',
   template: `
     <nav>
-      <button mat-icon-button [routerLink]="[{ outlets: { nav: ['library'] } }]" queryParamsHandling="preserve" #firstButton>
+      <button mat-icon-button
+              [routerLink]="[{ outlets: { nav: ['library'] } }]"
+              routerLinkActive="active"
+              queryParamsHandling="preserve" #firstButton>
         <mat-icon>video_library</mat-icon>
       </button>
-      <button mat-icon-button [routerLink]="[{ outlets: { nav: ['search'] } }]" queryParamsHandling="preserve">
+      <button mat-icon-button
+              [routerLink]="[{ outlets: { nav: ['search'] } }]"
+              routerLinkActive="active"
+              queryParamsHandling="preserve">
         <mat-icon>search</mat-icon>
       </button>
-      <button mat-icon-button [routerLink]="[{ outlets: { nav: ['history'] } }]" queryParamsHandling="preserve">
+      <button mat-icon-button
+              [routerLink]="[{ outlets: { nav: ['history'] } }]"
+              routerLinkActive="active"
+              queryParamsHandling="preserve">
         <mat-icon>history</mat-icon>
       </button>
-      <button mat-icon-button [routerLink]="[{ outlets: { nav: ['settings'] } }]" queryParamsHandling="preserve">
+      <button mat-icon-button
+              [routerLink]="[{ outlets: { nav: ['settings'] } }]"
+              routerLinkActive="active"
+              queryParamsHandling="preserve">
         <mat-icon>settings</mat-icon>
       </button>
-      <button mat-icon-button [routerLink]="[{ outlets: { nav: ['about'] } }]" queryParamsHandling="preserve" class="about">
+      <button mat-icon-button
+              [routerLink]="[{ outlets: { nav: ['about'] } }]"
+              routerLinkActive="active"
+              queryParamsHandling="preserve"
+              class="about">
         <mat-icon>info</mat-icon>
       </button>
       <button mat-icon-button (click)="closeSidenav.emit()">
