@@ -89,7 +89,7 @@
     <mat-form-field class="content-type" floatLabel="always" appearance="standard">
       <mat-label>Content-Type</mat-label>
       <input matInput spellcheck="false" placeholder="Content-Type header" formControlName="contentType" required/>
-      <mat-hint>Header served by the server</mat-hint>
+      <mat-hint>Content-Type header as set by the server</mat-hint>
       <mat-error *ngIf="mediaTypeForm.controls.contentType.invalid">{{ getErrorMessage(mediaTypeForm.controls.contentType) }}</mat-error>
     </mat-form-field>
     <mat-form-field class="extensions" floatLabel="always" appearance="standard">
