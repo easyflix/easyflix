@@ -7,12 +7,13 @@ import {Store} from '@ngrx/store';
 import {
   getAllLibraries,
   getLibrariesAdding,
-  getLibrariesError,
   getLibrariesLoaded,
+  getLibrariesValidationError,
   getLibraryByName,
   State
 } from '@app/reducers';
 import {AddLibrary, LoadLibraries, RemoveLibrary} from '@app/actions/libraries.actions';
+import {ValidationError} from '@app/models/validation-error';
 
 @Injectable()
 export class LibrariesService {
@@ -39,8 +40,8 @@ export class LibrariesService {
     this.store.dispatch(new RemoveLibrary(name));
   }
 
-  getError(): Observable<string> {
-    return this.store.select(getLibrariesError);
+  getValidationError(): Observable<ValidationError> {
+    return this.store.select(getLibrariesValidationError);
   }
 
   getAdding(): Observable<boolean> {

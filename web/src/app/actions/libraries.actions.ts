@@ -1,5 +1,6 @@
 import {Action} from '@ngrx/store';
 import {Library} from '@app/models/file';
+import {ValidationError} from '@app/models/validation-error';
 
 export enum LibrariesActionTypes {
   LoadLibraries = 'libraries/load',
@@ -39,7 +40,7 @@ export class AddLibrarySuccess implements Action {
 
 export class AddLibraryError implements Action {
   readonly type = LibrariesActionTypes.AddLibraryError;
-  constructor(public payload: string) {}
+  constructor(public payload: ValidationError) {}
 }
 
 export class RemoveLibrary implements Action {
@@ -54,7 +55,7 @@ export class RemoveLibrarySuccess implements Action {
 
 export class RemoveLibraryError implements Action {
   readonly type = LibrariesActionTypes.RemoveLibraryError;
-  constructor(public payload: string) {}
+  constructor(public payload: ValidationError) {}
 }
 
 export type LibrariesActionsUnion =

@@ -8,11 +8,12 @@ import {
   getAllMediaTypes,
   getMediaTypeBySubType,
   getMediaTypesAdding,
-  getMediaTypesError,
   getMediaTypesLoaded,
+  getMediaTypesValidationError,
   State
 } from '@app/reducers';
 import {AddMediaType, LoadMediaTypes, RemoveMediaType} from '@app/actions/media-types.actions';
+import {ValidationError} from '@app/models/validation-error';
 
 @Injectable()
 export class MediaTypesService {
@@ -31,8 +32,8 @@ export class MediaTypesService {
     return this.store.select(getMediaTypeBySubType, subType);
   }
 
-  getError(): Observable<string> {
-    return this.store.select(getMediaTypesError);
+  getValidationError(): Observable<ValidationError> {
+    return this.store.select(getMediaTypesValidationError);
   }
 
   getLoaded(): Observable<boolean> {

@@ -6,11 +6,12 @@ import {filter, map, tap} from 'rxjs/operators';
 import {SidenavModeType, SidenavSizeType} from '@app/reducers/core.reducer';
 import {FilesService} from '@app/services/files.service';
 import {Library, MediaType} from '@app/models/file';
-import {FormBuilder, Validators} from '@angular/forms';
+import {AbstractControl, FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {MediaTypesService} from '@app/services/media-types.service';
 import {LibrariesService} from '@app/services/libraries.service';
 import {Theme, ThemesUtils} from '@app/utils/themes.utils';
 import {DomSanitizer} from '@angular/platform-browser';
+import {ValidationError} from '@app/models/validation-error';
 
 @Component({
   selector: 'app-settings',
@@ -37,11 +38,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
   sidenavSize$: Observable<SidenavSizeType>;
 
   libraries$: Observable<Library[]>;
-  librariesError$: Observable<string>;
+  librariesError$: Observable<ValidationError>;
   librariesAdding$: Observable<boolean>;
 
   mediaTypes$: Observable<MediaType[]>;
-  mediaTypesError$: Observable<string>;
+  mediaTypesError$: Observable<ValidationError>;
   mediaTypesAdding$: Observable<boolean>;
 
   subscriptions: Subscription[] = [];
@@ -62,11 +63,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.libraries$ = libraries.getAll().pipe(
       map(libs => libs.sort((a, b) => a.path.localeCompare(b.path)))
     );
-    this.librariesError$ = libraries.getError();
+    this.librariesError$ = libraries.getValidationError();
     this.librariesAdding$ = libraries.getAdding();
 
     this.mediaTypes$ = mediaTypes.getAll();
-    this.mediaTypesError$ = mediaTypes.getError();
+    this.mediaTypesError$ = mediaTypes.getValidationError();
     this.mediaTypesAdding$ = mediaTypes.getAdding();
 
     this.theme$ = core.getTheme();
@@ -74,21 +75,27 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.subscriptions.push(
-      this.librariesAdding$.pipe(
-        filter(b => !b),
+      this.libraries$.pipe(
         tap(() => {
           this.libraryForm.reset();
           this.libraryForm.controls.name.setErrors(null);
           this.libraryForm.controls.path.setErrors(null);
         })
       ).subscribe(),
-      this.mediaTypesAdding$.pipe(
-        filter(b => !b),
+      this.mediaTypes$.pipe(
         tap(() => {
           this.mediaTypeForm.reset();
           this.mediaTypeForm.controls.contentType.setErrors(null);
           this.mediaTypeForm.controls.extensions.setErrors(null);
         })
+      ).subscribe(),
+      this.librariesError$.pipe(
+        filter(error => error !== null),
+        tap(error => this.setControlErrors(error, this.libraryForm))
+      ).subscribe(),
+      this.mediaTypesError$.pipe(
+        filter(error => error !== null),
+        tap(error => this.setControlErrors(error, this.mediaTypeForm))
       ).subscribe()
     );
 
@@ -96,6 +103,17 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  setControlErrors(error: ValidationError, form: FormGroup) {
+    const formError = {};
+    formError[error.code] = error.value || true;
+    const control = form.controls[error.control];
+    if (control) {
+      control.setErrors(formError);
+    } else {
+      form.setErrors(formError);
+    }
   }
 
   focus(): void {
@@ -154,26 +172,36 @@ export class SettingsComponent implements OnInit, OnDestroy {
     return this.sanitizer.bypassSecurityTrustStyle(style);
   }
 
-  getLibraryNameErrorMessage(): string {
-    const formControl = this.libraryForm.controls.name;
-    if (formControl.hasError('required')) {
+  getErrorMessage(control: AbstractControl): string {
+    if (control.hasError('required')) {
       return 'A value is required';
-    } else if (formControl.hasError('pattern')) {
+    }
+    if (control.hasError('pattern') && control === this.libraryForm.controls.name) {
       return 'Invalid name (" : " is not allowed)';
-    } else {
-      return '';
     }
-  }
-
-  getContentTypeErrorMessage(): string {
-    const formControl = this.mediaTypeForm.controls.contentType;
-    if (formControl.hasError('required')) {
-      return 'A value is required';
-    } else if (formControl.hasError('pattern')) {
+    if (control.hasError('pattern') && control === this.mediaTypeForm.controls.contentType) {
       return 'Content-Type must start with video/';
-    } else {
-      return '';
     }
+    if (control.hasError('alreadyExists') && control === this.libraryForm.controls.name) {
+      return 'A library with that name already exists';
+    }
+    if (control.hasError('alreadyExists') && control === this.libraryForm.controls.path) {
+      return 'A library with that path already exists';
+    }
+    if (control.hasError('doesNotExist')) {
+      return 'This path does not exist';
+    }
+    if (control.hasError('notDirectory')) {
+      return 'This path is not a directory';
+    }
+    if (control.hasError('notReadable')) {
+      return 'This path is not readable';
+    }
+    if (control.hasError('noChildren')) {
+      return 'A library cannot contain another';
+    }
+    console.warn('Unhandled error', control.errors);
+    return '';
   }
 
 }

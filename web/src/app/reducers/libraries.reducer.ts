@@ -1,6 +1,7 @@
 import {createEntityAdapter, EntityAdapter, EntityState} from '@ngrx/entity';
 import {Library} from '@app/models/file';
 import {LibrariesActionsUnion, LibrariesActionTypes} from '@app/actions/libraries.actions';
+import {ValidationError} from '@app/models/validation-error';
 
 /**
  * State
@@ -11,13 +12,13 @@ export const adapter: EntityAdapter<Library> = createEntityAdapter<Library>({
 });
 
 export interface State extends EntityState<Library> {
-  error: string;
+  validationError: ValidationError;
   adding: boolean;
   loaded: boolean;
 }
 
 export const initialState: State = adapter.getInitialState({
-  error: null,
+  validationError: null,
   adding: false,
   loaded: false,
 });
@@ -42,21 +43,21 @@ export function reducer(
       return {
         ...state,
         adding: true,
-        error: null
+        validationError: null
       };
     }
 
     case LibrariesActionTypes.RemoveLibrary: {
       return {
         ...state,
-        error: null
+        validationError: null
       };
     }
 
     case LibrariesActionTypes.AddLibrarySuccess: {
       return adapter.upsertOne(action.payload, {
         ...state,
-        error: null,
+        validationError: null,
         adding: false,
       });
     }
@@ -64,7 +65,7 @@ export function reducer(
     case LibrariesActionTypes.RemoveLibrarySuccess: {
       return adapter.removeOne(action.payload, {
         ...state,
-        error: null,
+        validationError: null,
         adding: false
       });
     }
@@ -72,7 +73,7 @@ export function reducer(
     case LibrariesActionTypes.AddLibraryError || LibrariesActionTypes.RemoveLibraryError: {
       return {
         ...state,
-        error: action.payload,
+        validationError: action.payload,
         adding: false,
       };
     }
@@ -86,4 +87,4 @@ export function reducer(
  */
 export const getLoaded = (state: State) => state.loaded;
 export const getAdding = (state: State) => state.adding;
-export const getError = (state: State) => state.error;
+export const getValidationError = (state: State) => state.validationError;

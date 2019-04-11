@@ -1,5 +1,6 @@
 import {Action} from '@ngrx/store';
 import {MediaType} from '@app/models/file';
+import {ValidationError} from '@app/models/validation-error';
 
 export enum MediaTypesActionTypes {
   LoadMediaTypes = 'media-types/load',
@@ -39,7 +40,7 @@ export class AddMediaTypeSuccess implements Action {
 
 export class AddMediaTypeError implements Action {
   readonly type = MediaTypesActionTypes.AddMediaTypeError;
-  constructor(public payload: string) {}
+  constructor(public payload: ValidationError) {}
 }
 
 export class RemoveMediaType implements Action {
@@ -54,7 +55,7 @@ export class RemoveMediaTypeSuccess implements Action {
 
 export class RemoveMediaTypeError implements Action {
   readonly type = MediaTypesActionTypes.RemoveMediaTypeError;
-  constructor(public payload: string) {}
+  constructor(public payload: ValidationError) {}
 }
 
 export type MediaTypesActionsUnion =

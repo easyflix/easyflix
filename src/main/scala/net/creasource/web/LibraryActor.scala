@@ -12,6 +12,9 @@ import net.creasource.model._
 
 import scala.util.{Failure, Success}
 
+import spray.json._
+import spray.json.DefaultJsonProtocol._
+
 object LibraryActor {
 
   case object GetLibraries
@@ -22,7 +25,12 @@ object LibraryActor {
   case class AddLibrary(library: Library)
   sealed trait AddLibraryResult
   case class AddLibrarySuccess(library: Library) extends AddLibraryResult
-  case class AddLibraryError(error: String) extends AddLibraryResult
+  case class AddLibraryError(control: String, code: String, value: Option[String]) extends AddLibraryResult
+
+  object AddLibraryError {
+    def apply(control: String, code: String): AddLibraryError = apply(control, code, None)
+    implicit val format: RootJsonFormat[AddLibraryError] = jsonFormat3(AddLibraryError.apply)
+  }
 
   case class RemoveLibrary(name: String)
   sealed trait RemoveLibraryResult
@@ -64,27 +72,27 @@ class LibraryActor()(implicit val application: Application) extends Actor {
 
     case AddLibrary(library) =>
       if (library.name == "") {
-        sender() ! AddLibraryError("Library name is empty")
+        sender() ! AddLibraryError("name", "required")
       } else if (libraries.map(_.name).contains(library.name)) {
-        sender() ! AddLibraryError("A library with that name already exists: " + library.name)
+        sender() ! AddLibraryError("name", "alreadyExists")
       } else if (library.path.toString == "") {
-        sender() ! AddLibraryError("Library path is empty")
+        sender() ! AddLibraryError("path", "required")
       } else if (!library.path.toFile.exists) {
-        sender() ! AddLibraryError("Library path does not exist: " + library.path)
+        sender() ! AddLibraryError("path", "doesNotExist")
       } else if (!library.path.toFile.isDirectory) {
-        sender() ! AddLibraryError("Library path is not a directory: " + library.path)
+        sender() ! AddLibraryError("path", "notDirectory")
       } else if (!library.path.toFile.canRead) {
-        sender() ! AddLibraryError("Library path is not readable: " + library.path)
+        sender() ! AddLibraryError("path", "notReadable")
       }  else if (libraries.map(_.path).contains(library.path)) {
-        sender() ! AddLibraryError("A library with that path already exists: " + library.path)
+        sender() ! AddLibraryError("path", "alreadyExists")
       } else if (libraries.map(_.path).exists(path => path.startsWith(library.path) || library.path.startsWith(path))) {
-        sender() ! AddLibraryError("A library cannot contain another")
+        sender() ! AddLibraryError("path", "noChildren")
       } else {
         libraries +:= library
         val s = sender()
         scanLibrary(library).runWith(Sink.ignore).onComplete {
           case Success(Done) => s ! AddLibrarySuccess(library)
-          case Failure(exception) => s ! AddLibraryError(s"An error occurred while scanning library: ${exception.getMessage}")
+          case Failure(exception) => s ! AddLibraryError("other", "failure", Some(exception.getMessage))
         }
       }
 

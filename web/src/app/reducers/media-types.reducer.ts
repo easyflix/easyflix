@@ -1,6 +1,7 @@
 import {createEntityAdapter, EntityAdapter, EntityState} from '@ngrx/entity';
 import {MediaType} from '@app/models/file';
 import {MediaTypesActionsUnion, MediaTypesActionTypes} from '@app/actions/media-types.actions';
+import {ValidationError} from '@app/models/validation-error';
 
 /**
  * State
@@ -10,13 +11,13 @@ export const adapter: EntityAdapter<MediaType> = createEntityAdapter<MediaType>(
 });
 
 export interface State extends EntityState<MediaType> {
-  error: string;
+  validationError: ValidationError;
   adding: boolean;
   loaded: boolean;
 }
 
 export const initialState: State = adapter.getInitialState({
-  error: null,
+  validationError: null,
   adding: false,
   loaded: false,
 });
@@ -41,21 +42,21 @@ export function reducer(
       return {
         ...state,
         adding: true,
-        error: null
+        validationError: null
       };
     }
 
     case MediaTypesActionTypes.RemoveMediaType: {
       return {
         ...state,
-        error: null
+        validationError: null
       };
     }
 
     case MediaTypesActionTypes.AddMediaTypeSuccess: {
       return adapter.upsertOne(action.payload, {
         ...state,
-        error: null,
+        validationError: null,
         adding: false,
       });
     }
@@ -63,7 +64,7 @@ export function reducer(
     case MediaTypesActionTypes.RemoveMediaTypeSuccess: {
       return adapter.removeOne(action.payload, {
         ...state,
-        error: null,
+        validationError: null,
         adding: false
       });
     }
@@ -71,7 +72,7 @@ export function reducer(
     case MediaTypesActionTypes.AddMediaTypeError || MediaTypesActionTypes.RemoveMediaTypeError: {
       return {
         ...state,
-        error: action.payload,
+        validationError: action.payload,
         adding: false,
       };
     }
@@ -85,4 +86,4 @@ export function reducer(
  */
 export const getLoaded = (state: State) => state.loaded;
 export const getAdding = (state: State) => state.adding;
-export const getError = (state: State) => state.error;
+export const getValidationError = (state: State) => state.validationError;
