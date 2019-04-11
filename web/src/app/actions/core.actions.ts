@@ -1,5 +1,5 @@
 import {Action} from '@ngrx/store';
-import {SidenavModeType, SidenavSizeType} from '@app/reducers/core.reducer';
+import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
 import {Theme} from '@app/utils/themes.utils';
 
 export enum CoreActionTypes {
@@ -30,7 +30,7 @@ export class SetSidenavMode implements Action {
 
 export class SetSidenavSize implements Action {
   readonly type = CoreActionTypes.SetSidenavSize;
-  constructor(public payload: SidenavSizeType) {}
+  constructor(public payload: SidenavWidthType) {}
 }
 
 export class ChangeTheme implements Action {

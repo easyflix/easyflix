@@ -15,7 +15,7 @@
 
   <h3>Sidenav</h3>
   <section class="sidenav">
-    <mat-form-field appearance="standard">
+    <mat-form-field>
       <mat-label>Mode</mat-label>
       <mat-select [value]="sidenavMode$ | async" (selectionChange)="setSidenavMode($event.value)">
         <mat-option value="side">Side</mat-option>
@@ -23,10 +23,11 @@
         <mat-option value="over">Over</mat-option>
       </mat-select>
     </mat-form-field>
-    <mat-form-field appearance="standard">
+    <mat-form-field>
       <mat-label>Width</mat-label>
-      <mat-select [value]="sidenavSize$ | async" (selectionChange)="setSidenavSize($event.value)">
+      <mat-select [value]="sidenavWidth$ | async" (selectionChange)="setSidenavSize($event.value)">
         <mat-option value="narrow">Narrow</mat-option>
+        <mat-option value="normal">Normal</mat-option>
         <mat-option value="wide">Wide</mat-option>
       </mat-select>
     </mat-form-field>

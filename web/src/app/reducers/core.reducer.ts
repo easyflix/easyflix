@@ -5,19 +5,19 @@ import {CoreActionsUnion, CoreActionTypes} from '../actions/core.actions';
 import {Theme, ThemesUtils} from '@app/utils/themes.utils';
 
 export type SidenavModeType = 'over' | 'push' | 'side';
-export type SidenavSizeType = 'wide' | 'narrow';
+export type SidenavWidthType = 'wide' | 'normal' |'narrow';
 
 export interface State {
   showSidenav: boolean;
   sidenavMode: SidenavModeType;
-  sidenavSize: SidenavSizeType;
+  sidenavWidth: SidenavWidthType;
   theme: Theme;
 }
 
 const initialState: State = {
   showSidenav: true,
   sidenavMode: 'side',
-  sidenavSize: 'wide',
+  sidenavWidth: 'normal',
   theme: ThemesUtils.allThemes[0],
 };
 
@@ -57,7 +57,7 @@ export function reducer(
     case CoreActionTypes.SetSidenavSize:
       return {
         ...state,
-        sidenavSize: action.payload
+        sidenavWidth: action.payload
       };
 
     case CoreActionTypes.ChangeTheme:
@@ -76,5 +76,5 @@ export function reducer(
  */
 export const getShowSidenav = (state: State) => state.showSidenav;
 export const getSidenavMode = (state: State) => state.sidenavMode;
-export const getSidenavSize = (state: State) => state.sidenavSize;
+export const getSidenavWidth = (state: State) => state.sidenavWidth;
 export const getTheme = (state: State) => state.theme;

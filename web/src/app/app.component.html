@@ -2,7 +2,7 @@
   <mat-sidenav-container>
     <mat-sidenav #sidenav
         [mode]="sidenavMode$ | async"
-        [class.wide]="sidenavWide$ | async"
+        [ngClass]="sidenavWidth$ | async"
         [opened]="showSidenav$ | async"
         [cdkTrapFocus]="showSidenav$ | async">
       <app-sidenav (closeSidenav)="closeSidenav()"></app-sidenav>

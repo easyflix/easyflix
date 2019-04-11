@@ -10,7 +10,7 @@ import {
   SetSidenavSize,
   ToggleSidenav
 } from '../actions/core.actions';
-import {SidenavModeType, SidenavSizeType} from '@app/reducers/core.reducer';
+import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
 import {Theme} from '@app/utils/themes.utils';
 
 @Injectable()
@@ -42,12 +42,12 @@ export class CoreService {
     return this.store.select(fromStore.getSidenavMode);
   }
 
-  setSidenavSize(size: SidenavSizeType) {
+  setSidenavSize(size: SidenavWidthType) {
     this.store.dispatch(new SetSidenavSize(size));
   }
 
-  getSidenavSize(): Observable<SidenavSizeType> {
-    return this.store.select(fromStore.getSidenavSize);
+  getSidenavWidth(): Observable<SidenavWidthType> {
+    return this.store.select(fromStore.getSidenavWidth);
   }
 
   getTheme(): Observable<Theme> {

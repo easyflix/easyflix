@@ -5,7 +5,7 @@ import {CoreService} from './services/core.service';
 import {playerAnimations} from '@app/animations';
 import {RouterOutlet} from '@angular/router';
 import {FilesService} from '@app/services/files.service';
-import {SidenavModeType} from '@app/reducers/core.reducer';
+import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
 import {map} from 'rxjs/operators';
 import {MediaTypesService} from '@app/services/media-types.service';
 import {LibrariesService} from '@app/services/libraries.service';
@@ -22,7 +22,7 @@ export class AppComponent implements OnInit {
   themeCssClass$: Observable<string>;
   showSidenav$: Observable<boolean>;
   sidenavMode$: Observable<SidenavModeType>;
-  sidenavWide$: Observable<boolean>;
+  sidenavWidth$: Observable<SidenavWidthType>;
 
   @ViewChild('sidenav')
   sidenav: MatSidenav;
@@ -38,9 +38,7 @@ export class AppComponent implements OnInit {
     this.themeCssClass$ = this.core.getTheme().pipe(map(t => t.cssClass));
     this.showSidenav$ = this.core.getShowSidenav();
     this.sidenavMode$ = this.core.getSidenavMode();
-    this.sidenavWide$ = this.core.getSidenavSize().pipe(
-      map(size => size === 'wide')
-    );
+    this.sidenavWidth$ = this.core.getSidenavWidth();
     this.libraries.load();
     this.files.load();
     this.mediaTypes.load();

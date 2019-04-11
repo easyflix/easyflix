@@ -44,9 +44,9 @@ export const getSidenavMode = createSelector(
   fromCore.getSidenavMode
 );
 
-export const getSidenavSize = createSelector(
+export const getSidenavWidth = createSelector(
   getCoreState,
-  fromCore.getSidenavSize
+  fromCore.getSidenavWidth
 );
 
 export const getTheme = createSelector(

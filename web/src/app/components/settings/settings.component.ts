@@ -3,7 +3,7 @@ import {MatButton} from '@angular/material';
 import {CoreService} from '@app/services/core.service';
 import {Observable, Subscription} from 'rxjs';
 import {filter, map, tap} from 'rxjs/operators';
-import {SidenavModeType, SidenavSizeType} from '@app/reducers/core.reducer';
+import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
 import {FilesService} from '@app/services/files.service';
 import {Library, MediaType} from '@app/models/file';
 import {AbstractControl, FormBuilder, FormGroup, Validators} from '@angular/forms';
@@ -35,7 +35,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   closeButton: MatButton;
 
   sidenavMode$: Observable<SidenavModeType>;
-  sidenavSize$: Observable<SidenavSizeType>;
+  sidenavWidth$: Observable<SidenavWidthType>;
 
   libraries$: Observable<Library[]>;
   librariesError$: Observable<ValidationError>;
@@ -59,7 +59,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private fb: FormBuilder
   ) {
     this.sidenavMode$ = core.getSidenavMode();
-    this.sidenavSize$ = core.getSidenavSize();
+    this.sidenavWidth$ = core.getSidenavWidth();
     this.libraries$ = libraries.getAll().pipe(
       map(libs => libs.sort((a, b) => a.path.localeCompare(b.path)))
     );
@@ -124,7 +124,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.core.setSidenavMode(mode);
   }
 
-  setSidenavSize(size: SidenavSizeType) {
+  setSidenavSize(size: SidenavWidthType) {
     this.core.setSidenavSize(size);
     setTimeout(() => this.core.closeSidenav());
     setTimeout(() => this.core.openSidenav());
