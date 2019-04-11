@@ -14,7 +14,7 @@ $light-theme: mat-light-theme(
 
 $dark-theme: mat-dark-theme(
     mat-palette($mat-light-green),
-    mat-palette($mat-light-blue),
+    mat-palette($mat-light-blue, 300),
     mat-palette($mat-deep-orange, A200)
 );
 
@@ -126,10 +126,6 @@ body {
 
 h2, h3, h4 {
   font-weight: 500;
-}
-
-.accent {
-  color: chartreuse;
 }
 
 button.md-36 {

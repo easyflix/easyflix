@@ -79,7 +79,6 @@ import {AnimatableComponent} from '@app/components/library/library.component';
     .subtext {
       margin-top: 0.25rem !important;
       font-size: 11px !important;
-      color: rgba(255,255,255,0.7);
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush

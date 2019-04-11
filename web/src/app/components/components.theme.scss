@@ -28,4 +28,23 @@
 
   }
 
+  app-search {
+    .accent {
+      color: mat-color($accent);
+    }
+  }
+
+  app-main {
+    a {
+      color: mat-color($foreground, text);
+      border-color: mat-color($foreground, disabled-text) !important;
+    }
+  }
+
+  app-library {
+    .path, .subtext {
+      color: mat-color($foreground, secondary-text);
+    }
+  }
+
 }

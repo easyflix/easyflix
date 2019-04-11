@@ -14,8 +14,8 @@ import {map} from 'rxjs/operators';
     <header>
       <h1>Webflix</h1>
       <nav>
-        <a [routerLink]="['/home']" routerLinkActive="active" queryParamsHandling="preserve">Home</a> |
-        <a routerLink="/movies" routerLinkActive="active" queryParamsHandling="preserve">Movies</a> |
+        <a [routerLink]="['/home']" routerLinkActive="active" queryParamsHandling="preserve">Home</a>
+        <a routerLink="/movies" routerLinkActive="active" queryParamsHandling="preserve">Movies</a>
         <a routerLink="/shows" routerLinkActive="active" queryParamsHandling="preserve">TV Shows</a>
       </nav>
       <mat-icon (click)="searchInput.focus()">search</mat-icon>
@@ -51,8 +51,15 @@ import {map} from 'rxjs/operators';
     h1 {
       margin: 0 1rem 0 0;
     }
-    nav a {
-      color: white; /* TODO theme it */
+    a {
+      text-decoration: none;
+      display: inline-block;
+      padding: 0 1rem;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    a:not(:last-child) {
+      border-right: 1px solid;
     }
     mat-icon {
       margin-left: auto;

@@ -29,7 +29,7 @@ export interface AnimatableComponent {
   template: `
     <header>
       <h2>Video Libraries</h2>
-      <h3>{{getCurrentPath()}}</h3>
+      <h3 class="path">{{getCurrentPath()}}</h3>
     </header>
     <mat-divider></mat-divider>
     <div class='content' [ngClass]='state'>
@@ -63,9 +63,7 @@ export interface AnimatableComponent {
       text-overflow: ellipsis;
       white-space: nowrap;
       font-size: 12px;
-      font-weight: 300;
       padding-left: 1rem;
-      color: rgba(255,255,255,0.7);
     }
     .content {
       overflow-y: auto;
