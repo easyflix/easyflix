@@ -169,7 +169,10 @@ export class VideoComponent implements OnInit, OnDestroy {
 
   closeVideo() {
     this.video.updateCurrentTime(0);
-    this.router.navigate([{ outlets: { player: null } }], { queryParamsHandling: 'preserve' }).then(() => {
+    this.router.navigate(
+      [{ outlets: { player: null } }],
+      { queryParams: { pt: null, pp: null }, queryParamsHandling: 'merge' }
+    ).then(() => {
       this.video.setSource(null);
     });
   }
