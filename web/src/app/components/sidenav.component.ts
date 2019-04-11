@@ -49,7 +49,6 @@ import {CoreService} from '@app/services/core.service';
       flex-direction: row;
       align-items: center;
       min-height: 60px;
-      background-color: #303030;
     }
     button:not(:last-of-type) {
       margin-right: 0.6rem;

@@ -21,7 +21,7 @@ $dark-theme: mat-dark-theme(
 $blue-theme:  (
   primary: mat-palette($mat-orange, 600),
   accent: mat-palette($mat-light-blue),
-  warn: mat-palette($mat-deep-orange, A200),
+  warn: mat-palette($mat-red),
   is-dark: true,
   foreground: (
     base:              white,
@@ -96,10 +96,10 @@ $pink-theme:  (
   ),
 );
 
-//@import 'app/settings/settings.theme';
+@import 'app/components/components.theme';
 
 @mixin custom-components-theme($theme) {
-  //@include settings-theme($theme);
+  @include components-theme($theme);
 }
 
 .light-theme {
