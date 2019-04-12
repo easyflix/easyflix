@@ -3,7 +3,7 @@ import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import {Action} from '@ngrx/store';
 import {Actions, Effect, ofType} from '@ngrx/effects';
 import {Observable, of} from 'rxjs';
-import {catchError, map, switchMap, tap} from 'rxjs/operators';
+import {catchError, map, mergeMap, switchMap, tap} from 'rxjs/operators';
 
 import {FilesActionTypes, LoadFilesError, LoadFilesSuccess} from '@app/actions/files.actions';
 import {Library, LibraryFile, MediaType} from '@app/models/file';
@@ -82,12 +82,14 @@ export class AppEffects {
    * Add Library
    */
   @Effect()
-  addLibrary$: Observable<any> =
+  addLibrary$: Observable<Action> =
     this.actions$.pipe(
       ofType(LibrariesActionTypes.AddLibrary),
       switchMap((action: AddLibrary) =>
         this.httpClient.post('http://localhost:8081/api/libraries', action.payload).pipe(
-          map((library: Library) => new AddLibrarySuccess(library)),
+          mergeMap((response: { library: Library, files: LibraryFile[] }) =>
+            of(new AddLibrarySuccess(response.library), new LoadFilesSuccess(response.files))
+          ),
           catchError((error: HttpErrorResponse) => of(new AddLibraryError(error.error)))
         )
       )
@@ -97,7 +99,7 @@ export class AppEffects {
    * Remove Library
    */
   @Effect()
-  removeLibrary$: Observable<any> =
+  removeLibrary$: Observable<Action> =
     this.actions$.pipe(
       ofType(LibrariesActionTypes.RemoveLibrary),
       switchMap((action: RemoveLibrary) =>
@@ -127,7 +129,7 @@ export class AppEffects {
    * Add MediaType
    */
   @Effect()
-  addMediaType$: Observable<any> =
+  addMediaType$: Observable<Action> =
     this.actions$.pipe(
       ofType(MediaTypesActionTypes.AddMediaType),
       switchMap((action: AddMediaType) =>
@@ -142,7 +144,7 @@ export class AppEffects {
    * Remove MediaType
    */
   @Effect()
-  removeMediaType$: Observable<any> =
+  removeMediaType$: Observable<Action> =
     this.actions$.pipe(
       ofType(MediaTypesActionTypes.RemoveMediaType),
       switchMap((action: RemoveMediaType) =>

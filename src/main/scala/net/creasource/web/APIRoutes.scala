@@ -46,7 +46,7 @@ object APIRoutes extends Directives with JsonSupport {
               post {
                 entity(as[Library]) { library =>
                   onSuccess((application.libraryActor ? AddLibrary(library))(2.minute).mapTo[AddLibraryResult]){
-                    case AddLibrarySuccess(lib) => complete(lib)
+                    case AddLibrarySuccess(lib, files) => complete(JsObject("library" -> lib.toJson, "files" -> files.toJson))
                     case error: AddLibraryError => complete(StatusCodes.BadRequest, error)
                   }
                 }

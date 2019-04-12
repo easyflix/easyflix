@@ -2,18 +2,18 @@ package net.creasource.web
 
 import java.nio.file.{Path, Paths}
 
-import akka.{Done, NotUsed}
+import akka.NotUsed
 import akka.actor.{Actor, Props}
 import akka.stream.alpakka.file.scaladsl.Directory
-import akka.stream.scaladsl.{Sink, Source}
+import akka.stream.scaladsl.{Flow, Sink, Source}
 import me.nimavat.shortid.ShortId
 import net.creasource.core.Application
 import net.creasource.model._
-
-import scala.util.{Failure, Success}
-
-import spray.json._
 import spray.json.DefaultJsonProtocol._
+import spray.json._
+
+import scala.collection.immutable.Seq
+import scala.util.{Failure, Success}
 
 object LibraryActor {
 
@@ -24,7 +24,7 @@ object LibraryActor {
 
   case class AddLibrary(library: Library)
   sealed trait AddLibraryResult
-  case class AddLibrarySuccess(library: Library) extends AddLibraryResult
+  case class AddLibrarySuccess(library: Library, files: Seq[LibraryFile]) extends AddLibraryResult
   case class AddLibraryError(control: String, code: String, value: Option[String]) extends AddLibraryResult
 
   object AddLibraryError {
@@ -94,10 +94,13 @@ class LibraryActor()(implicit val application: Application) extends Actor {
       } else {
         libraries +:= library
         val s = sender()
-        scanLibrary(library).runWith(Sink.ignore).onComplete {
-          case Success(Done) => s ! AddLibrarySuccess(library)
-          case Failure(exception) => s ! AddLibraryError("other", "failure", Some(exception.getMessage))
-        }
+        scanLibrary(library)
+          .alsoTo(Sink.foreach(file => self ! AddLibraryFile(file)))
+          .runWith(Sink.seq)
+          .onComplete {
+            case Success(files) => s ! AddLibrarySuccess(library, files)
+            case Failure(exception) => s ! AddLibraryError("other", "failure", Some(exception.getMessage))
+          }
       }
 
     case RemoveLibrary(name) =>
@@ -109,11 +112,16 @@ class LibraryActor()(implicit val application: Application) extends Actor {
   }
 
   def scanLibrary(library: Library): Source[LibraryFile, NotUsed] = {
+    Directory.walk(library.path)
+      .filter(path => path != library.path)
+      .via(toVideoFlow(library))
+  }
+
+  def toVideoFlow(library: Library): Flow[Path, LibraryFile, NotUsed] = {
     def getParentPathRelativeToLibrary(path: Path) = {
       Paths.get(library.name).resolve(library.path.relativize(path)).getParent
     }
-    Directory.walk(library.path)
-      .filter(path => path != library.path)
+    Flow[Path]
       .map(path => {
         val file = path.toFile
         if (file.isFile) {
@@ -136,10 +144,6 @@ class LibraryActor()(implicit val application: Application) extends Actor {
         }
       })
       .collect[LibraryFile] { case Some(libraryFile) => libraryFile }
-      .alsoTo(Sink.foreach(file => {
-        println(file)
-        self ! AddLibraryFile(file)
-      }))
   }
 
 }
