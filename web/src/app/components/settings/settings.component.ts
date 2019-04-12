@@ -1,32 +1,17 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
-import {ErrorStateMatcher, MatButton} from '@angular/material';
+import {MatButton} from '@angular/material';
 import {CoreService} from '@app/services/core.service';
 import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
 import {FilesService} from '@app/services/files.service';
 import {Library, MediaType} from '@app/models/file';
-import {
-  AbstractControl,
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  FormGroupDirective,
-  NgForm,
-  Validators
-} from '@angular/forms';
+import {AbstractControl, FormBuilder, FormGroup, FormGroupDirective, Validators} from '@angular/forms';
 import {MediaTypesService} from '@app/services/media-types.service';
 import {LibrariesService} from '@app/services/libraries.service';
 import {Theme, ThemesUtils} from '@app/utils/themes.utils';
 import {DomSanitizer} from '@angular/platform-browser';
 import {ValidationError} from '@app/models/validation-error';
-
-// Fix for angular material showing invalid state after form submission
-export class CustomErrorStateMatcher implements ErrorStateMatcher {
-  isErrorState(control: FormControl, form: NgForm | FormGroupDirective | null) {
-    return control && control.invalid && control.touched;
-  }
-}
 
 @Component({
   selector: 'app-settings',
@@ -35,8 +20,6 @@ export class CustomErrorStateMatcher implements ErrorStateMatcher {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SettingsComponent implements OnInit {
-
-  errorMatcher = new CustomErrorStateMatcher();
 
   libraryForm = this.fb.group({
     name: ['', [Validators.required, Validators.pattern(/^[^:]+$/)]],
@@ -49,6 +32,10 @@ export class SettingsComponent implements OnInit {
   });
 
   @ViewChild('closeButton') closeButton: MatButton;
+
+  // Required because we have to call resetForm() (https://github.com/angular/material2/issues/4190)
+  @ViewChild('libraryNgForm', { read: FormGroupDirective }) libraryNgForm;
+  @ViewChild('mediaTypeNgForm', { read: FormGroupDirective }) mediaTypeNgForm;
 
   sidenavMode$: Observable<SidenavModeType>;
   sidenavWidth$: Observable<SidenavWidthType>;
@@ -111,7 +98,7 @@ export class SettingsComponent implements OnInit {
     const normalizedName = this.libraryForm.value.name.replace(/:/g, '');
     this.addingLibrary = true;
     this.libraries.add({ type: 'library', name: normalizedName, path: this.libraryForm.value.path }).subscribe(
-      () => this.libraryForm.reset(),
+      () => this.libraryNgForm.resetForm(),
       (error: ValidationError) => {
         SettingsComponent.setControlErrors(error, this.libraryForm);
         this.addingLibrary = false;
@@ -146,7 +133,7 @@ export class SettingsComponent implements OnInit {
 
     this.addingMediaType = true;
     this.mediaTypes.add({ subType, extensions }).subscribe(
-      () => this.mediaTypeForm.reset(),
+      () => this.mediaTypeNgForm.resetForm(),
       (error: ValidationError) => {
         SettingsComponent.setControlErrors(error, this.mediaTypeForm);
         this.addingMediaType = false;

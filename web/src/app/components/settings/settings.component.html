@@ -48,16 +48,16 @@
       <mat-icon>close</mat-icon>
     </button>
   </section>
-  <form (ngSubmit)="addLibrary()" class="library-form" [formGroup]="libraryForm" autocomplete="off">
+  <form (ngSubmit)="addLibrary()" class="library-form" [formGroup]="libraryForm" autocomplete="off" #libraryNgForm>
     <mat-form-field class="name" floatLabel="always" appearance="standard">
       <mat-label>Name</mat-label>
-      <input matInput spellcheck="false" placeholder="Display name" formControlName="name" required [errorStateMatcher]="errorMatcher" />
+      <input matInput spellcheck="false" placeholder="Display name" formControlName="name" required />
       <mat-hint>Display name of the library</mat-hint>
       <mat-error *ngIf="libraryForm.controls.name.invalid">{{ getErrorMessage(libraryForm.controls.name) }}</mat-error>
     </mat-form-field>
     <mat-form-field class="path" floatLabel="always" appearance="standard">
       <mat-label>Path</mat-label>
-      <input matInput spellcheck="false" placeholder="Path to folder" formControlName="path" required [errorStateMatcher]="errorMatcher" />
+      <input matInput spellcheck="false" placeholder="Path to folder" formControlName="path" required />
       <mat-error *ngIf="libraryForm.controls.path.invalid">{{ getErrorMessage(libraryForm.controls.path) }}</mat-error>
       <mat-hint>Path must exist, be absolute and readable</mat-hint>
     </mat-form-field>
@@ -85,16 +85,16 @@
       <mat-icon>close</mat-icon>
     </button>
   </section>
-  <form class="media-type-form" (ngSubmit)="addMediaType()" [formGroup]="mediaTypeForm" autocomplete="off">
+  <form class="media-type-form" (ngSubmit)="addMediaType()" [formGroup]="mediaTypeForm" autocomplete="off" #mediaTypeNgForm>
     <mat-form-field class="content-type" floatLabel="always" appearance="standard">
       <mat-label>Content-Type</mat-label>
-      <input matInput spellcheck="false" placeholder="Content-Type header" formControlName="contentType" required [errorStateMatcher]="errorMatcher" />
+      <input matInput spellcheck="false" placeholder="Content-Type header" formControlName="contentType" required />
       <mat-hint>Content-Type header as set by the server</mat-hint>
       <mat-error *ngIf="mediaTypeForm.controls.contentType.invalid">{{ getErrorMessage(mediaTypeForm.controls.contentType) }}</mat-error>
     </mat-form-field>
     <mat-form-field class="extensions" floatLabel="always" appearance="standard">
       <mat-label>Extensions</mat-label>
-      <input matInput spellcheck="false" placeholder="File extensions" formControlName="extensions" required [errorStateMatcher]="errorMatcher" />
+      <input matInput spellcheck="false" placeholder="File extensions" formControlName="extensions" required />
       <mat-hint>Comma-separated list of file extensions</mat-hint>
       <mat-error *ngIf="mediaTypeForm.controls.extensions.invalid">{{ getErrorMessage(mediaTypeForm.controls.extensions) }}</mat-error>
     </mat-form-field>
