@@ -182,6 +182,12 @@ export class SettingsComponent implements OnInit {
     if (control.hasError('alreadyExists') && control === this.libraryForm.controls.path) {
       return 'A library with that path already exists';
     }
+    if (control.hasError('alreadyExists') && control === this.mediaTypeForm.controls.contentType) {
+      return 'A rule with that Content-Type already exists';
+    }
+    if (control.hasError('alreadyExists') && control === this.mediaTypeForm.controls.extensions) {
+      return 'One of these extensions already have a rule';
+    }
     if (control.hasError('doesNotExist')) {
       return 'This path does not exist';
     }

@@ -23,16 +23,14 @@ object LibraryActor extends JsonSupport {
   case object GetLibraryFiles
 
   case class AddLibrary(library: Library)
+
   sealed trait AddLibraryResult
   case class AddLibrarySuccess(library: Library, files: Seq[LibraryFile]) extends AddLibraryResult
-
+  case class AddLibraryError(control: String, code: String, value: Option[String]) extends AddLibraryResult
   object AddLibrarySuccess extends JsonSupport {
     implicit val writer: RootJsonWriter[AddLibrarySuccess] = (success: AddLibrarySuccess) =>
       JsObject("library" -> success.library.toJson, "files" -> success.files.toJson)
   }
-
-  case class AddLibraryError(control: String, code: String, value: Option[String]) extends AddLibraryResult
-
   object AddLibraryError {
     def apply(control: String, code: String): AddLibraryError = apply(control, code, None)
     implicit val format: RootJsonFormat[AddLibraryError] = jsonFormat3(AddLibraryError.apply)
@@ -42,8 +40,6 @@ object LibraryActor extends JsonSupport {
   sealed trait RemoveLibraryResult
   case object RemoveLibrarySuccess extends RemoveLibraryResult
   case class RemoveLibraryError(error: String) extends RemoveLibraryResult
-
-//  case class ScanLibrary(library: Library)
 
   def props()(implicit application: Application): Props = Props(new LibraryActor)
 

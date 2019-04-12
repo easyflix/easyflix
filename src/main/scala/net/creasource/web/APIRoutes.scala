@@ -8,7 +8,7 @@ import akka.pattern.ask
 import net.creasource.core.Application
 import net.creasource.model.{Library, LibraryFile}
 import net.creasource.web.LibraryActor._
-import net.creasource.web.MediaTypesActor.{AddMediaType, GetMediaTypes, RemoveMediaType}
+import net.creasource.web.MediaTypesActor.{AddMediaType, AddMediaTypeError, AddMediaTypeResult, AddMediaTypeSuccess, GetMediaTypes, RemoveMediaType}
 import spray.json._
 
 import scala.collection.immutable.Seq
@@ -68,7 +68,10 @@ object APIRoutes extends Directives with JsonSupport {
               } ~
               post {
                 entity(as[MediaType.Binary]) { mediaType =>
-                  onSuccess((application.mediaTypesActor ? AddMediaType(mediaType)).mapTo[Done])(_ => complete(mediaType))
+                  onSuccess((application.mediaTypesActor ? AddMediaType(mediaType)).mapTo[AddMediaTypeResult]){
+                    case AddMediaTypeSuccess(mt) => complete(mt)
+                    case error: AddMediaTypeError => complete(StatusCodes.BadRequest, error.toJson)
+                  }
                 }
               }
             } ~
