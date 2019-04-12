@@ -1,17 +1,32 @@
-import {ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {MatButton} from '@angular/material';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
+import {ErrorStateMatcher, MatButton} from '@angular/material';
 import {CoreService} from '@app/services/core.service';
-import {Observable, Subscription} from 'rxjs';
-import {filter, map, tap} from 'rxjs/operators';
+import {Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
 import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
 import {FilesService} from '@app/services/files.service';
 import {Library, MediaType} from '@app/models/file';
-import {AbstractControl, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  FormGroupDirective,
+  NgForm,
+  Validators
+} from '@angular/forms';
 import {MediaTypesService} from '@app/services/media-types.service';
 import {LibrariesService} from '@app/services/libraries.service';
 import {Theme, ThemesUtils} from '@app/utils/themes.utils';
 import {DomSanitizer} from '@angular/platform-browser';
 import {ValidationError} from '@app/models/validation-error';
+
+// Fix for angular material showing invalid state after form submission
+export class CustomErrorStateMatcher implements ErrorStateMatcher {
+  isErrorState(control: FormControl, form: NgForm | FormGroupDirective | null) {
+    return control && control.invalid && control.touched;
+  }
+}
 
 @Component({
   selector: 'app-settings',
@@ -19,7 +34,9 @@ import {ValidationError} from '@app/models/validation-error';
   styleUrls: ['./settings.component.sass'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SettingsComponent implements OnInit, OnDestroy {
+export class SettingsComponent implements OnInit {
+
+  errorMatcher = new CustomErrorStateMatcher();
 
   libraryForm = this.fb.group({
     name: ['', [Validators.required, Validators.pattern(/^[^:]+$/)]],
@@ -31,81 +48,21 @@ export class SettingsComponent implements OnInit, OnDestroy {
     extensions: ['', Validators.required]
   });
 
-  @ViewChild('closeButton')
-  closeButton: MatButton;
+  @ViewChild('closeButton') closeButton: MatButton;
 
   sidenavMode$: Observable<SidenavModeType>;
   sidenavWidth$: Observable<SidenavWidthType>;
 
   libraries$: Observable<Library[]>;
-  librariesError$: Observable<ValidationError>;
-  librariesAdding$: Observable<boolean>;
+  addingLibrary = false;
 
   mediaTypes$: Observable<MediaType[]>;
-  mediaTypesError$: Observable<ValidationError>;
-  mediaTypesAdding$: Observable<boolean>;
-
-  subscriptions: Subscription[] = [];
+  addingMediaType = false;
 
   allThemes: Theme[] = ThemesUtils.allThemes;
   theme$: Observable<Theme>;
 
-  constructor(
-    private core: CoreService,
-    private files: FilesService,
-    private libraries: LibrariesService,
-    private mediaTypes: MediaTypesService,
-    private sanitizer: DomSanitizer,
-    private fb: FormBuilder
-  ) {
-    this.sidenavMode$ = core.getSidenavMode();
-    this.sidenavWidth$ = core.getSidenavWidth();
-    this.libraries$ = libraries.getAll().pipe(
-      map(libs => libs.sort((a, b) => a.path.localeCompare(b.path)))
-    );
-    this.librariesError$ = libraries.getValidationError();
-    this.librariesAdding$ = libraries.getAdding();
-
-    this.mediaTypes$ = mediaTypes.getAll();
-    this.mediaTypesError$ = mediaTypes.getValidationError();
-    this.mediaTypesAdding$ = mediaTypes.getAdding();
-
-    this.theme$ = core.getTheme();
-  }
-
-  ngOnInit() {
-    this.subscriptions.push(
-      this.libraries$.pipe(
-        tap(() => {
-          this.libraryForm.reset();
-          this.libraryForm.controls.name.setErrors(null);
-          this.libraryForm.controls.path.setErrors(null);
-        })
-      ).subscribe(),
-      this.mediaTypes$.pipe(
-        tap(() => {
-          this.mediaTypeForm.reset();
-          this.mediaTypeForm.controls.contentType.setErrors(null);
-          this.mediaTypeForm.controls.extensions.setErrors(null);
-        })
-      ).subscribe(),
-      this.librariesError$.pipe(
-        filter(error => error !== null),
-        tap(error => this.setControlErrors(error, this.libraryForm))
-      ).subscribe(),
-      this.mediaTypesError$.pipe(
-        filter(error => error !== null),
-        tap(error => this.setControlErrors(error, this.mediaTypeForm))
-      ).subscribe()
-    );
-
-  }
-
-  ngOnDestroy() {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
-  }
-
-  setControlErrors(error: ValidationError, form: FormGroup) {
+  static setControlErrors(error: ValidationError, form: FormGroup) {
     const formError = {};
     formError[error.code] = error.value || true;
     const control = form.controls[error.control];
@@ -115,6 +72,26 @@ export class SettingsComponent implements OnInit, OnDestroy {
       form.setErrors(formError);
     }
   }
+
+  constructor(
+    private core: CoreService,
+    private files: FilesService,
+    private libraries: LibrariesService,
+    private mediaTypes: MediaTypesService,
+    private sanitizer: DomSanitizer,
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
+  ) {
+    this.sidenavMode$ = core.getSidenavMode();
+    this.sidenavWidth$ = core.getSidenavWidth();
+    this.libraries$ = libraries.getAll().pipe(
+      map(libs => libs.sort((a, b) => a.path.localeCompare(b.path)))
+    );
+    this.mediaTypes$ = mediaTypes.getAll();
+    this.theme$ = core.getTheme();
+  }
+
+  ngOnInit() {}
 
   focus(): void {
     this.closeButton._elementRef.nativeElement.focus();
@@ -132,11 +109,26 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   addLibrary() {
     const normalizedName = this.libraryForm.value.name.replace(/:/g, '');
-    this.libraries.add({ type: 'library', name: normalizedName, path: this.libraryForm.value.path });
+    this.addingLibrary = true;
+    this.libraries.add({ type: 'library', name: normalizedName, path: this.libraryForm.value.path }).subscribe(
+      () => this.libraryForm.reset(),
+      (error: ValidationError) => {
+        SettingsComponent.setControlErrors(error, this.libraryForm);
+        this.addingLibrary = false;
+        this.cdr.markForCheck();
+      },
+      () => {
+        this.addingLibrary = false;
+        this.cdr.markForCheck();
+      }
+    );
   }
 
   removeLibrary(name: string) {
-    this.libraries.remove(name);
+    this.libraries.remove(name).subscribe(
+      () => {},
+      error => console.log(error) // TODO handle error
+    );
   }
 
   getExtensionsString(mediaType: MediaType): string {
@@ -152,11 +144,26 @@ export class SettingsComponent implements OnInit, OnDestroy {
     const subType = this.mediaTypeForm.value.contentType
       .split('/')[1];
 
-    this.mediaTypes.addMediaType({ subType, extensions });
+    this.addingMediaType = true;
+    this.mediaTypes.add({ subType, extensions }).subscribe(
+      () => this.mediaTypeForm.reset(),
+      (error: ValidationError) => {
+        SettingsComponent.setControlErrors(error, this.mediaTypeForm);
+        this.addingMediaType = false;
+        this.cdr.markForCheck();
+      },
+      () => {
+        this.addingMediaType = false;
+        this.cdr.markForCheck();
+      }
+    );
   }
 
   removeMediaType(subType: string) {
-    this.mediaTypes.removeMediaType(subType);
+    this.mediaTypes.remove(subType).subscribe(
+      () => {},
+      error => console.log(error) // TODO handle error
+    );
   }
 
   changeTheme(theme: Theme) {

@@ -69,7 +69,7 @@ export class VideoListComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.subscription = this.core.getShowSidenav().subscribe(
       () => {
-        setTimeout(() => this.cdr.detectChanges(), 400);
+        setTimeout(() => this.cdr.markForCheck(), 400); // TODO check this is right, document
       }
     );
     /* try {

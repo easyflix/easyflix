@@ -12,14 +12,10 @@ export const adapter: EntityAdapter<Library> = createEntityAdapter<Library>({
 });
 
 export interface State extends EntityState<Library> {
-  validationError: ValidationError;
-  adding: boolean;
   loaded: boolean;
 }
 
 export const initialState: State = adapter.getInitialState({
-  validationError: null,
-  adding: false,
   loaded: false,
 });
 
@@ -39,43 +35,12 @@ export function reducer(
       });
     }
 
-    case LibrariesActionTypes.AddLibrary: {
-      return {
-        ...state,
-        adding: true,
-        validationError: null
-      };
-    }
-
-    case LibrariesActionTypes.RemoveLibrary: {
-      return {
-        ...state,
-        validationError: null
-      };
-    }
-
     case LibrariesActionTypes.AddLibrarySuccess: {
-      return adapter.upsertOne(action.payload, {
-        ...state,
-        validationError: null,
-        adding: false,
-      });
+      return adapter.upsertOne(action.payload, state);
     }
 
     case LibrariesActionTypes.RemoveLibrarySuccess: {
-      return adapter.removeOne(action.payload, {
-        ...state,
-        validationError: null,
-        adding: false
-      });
-    }
-
-    case LibrariesActionTypes.AddLibraryError || LibrariesActionTypes.RemoveLibraryError: {
-      return {
-        ...state,
-        validationError: action.payload,
-        adding: false,
-      };
+      return adapter.removeOne(action.payload, state);
     }
 
     default: return state;
@@ -86,5 +51,3 @@ export function reducer(
  * Selectors
  */
 export const getLoaded = (state: State) => state.loaded;
-export const getAdding = (state: State) => state.adding;
-export const getValidationError = (state: State) => state.validationError;

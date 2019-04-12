@@ -51,20 +51,20 @@
   <form (ngSubmit)="addLibrary()" class="library-form" [formGroup]="libraryForm" autocomplete="off">
     <mat-form-field class="name" floatLabel="always" appearance="standard">
       <mat-label>Name</mat-label>
-      <input matInput spellcheck="false" placeholder="Display name" formControlName="name" required />
+      <input matInput spellcheck="false" placeholder="Display name" formControlName="name" required [errorStateMatcher]="errorMatcher" />
       <mat-hint>Display name of the library</mat-hint>
       <mat-error *ngIf="libraryForm.controls.name.invalid">{{ getErrorMessage(libraryForm.controls.name) }}</mat-error>
     </mat-form-field>
     <mat-form-field class="path" floatLabel="always" appearance="standard">
       <mat-label>Path</mat-label>
-      <input matInput spellcheck="false" placeholder="Path to folder" formControlName="path" required/>
+      <input matInput spellcheck="false" placeholder="Path to folder" formControlName="path" required [errorStateMatcher]="errorMatcher" />
       <mat-error *ngIf="libraryForm.controls.path.invalid">{{ getErrorMessage(libraryForm.controls.path) }}</mat-error>
       <mat-hint>Path must exist, be absolute and readable</mat-hint>
     </mat-form-field>
-    <button type="submit" mat-icon-button [disabled]="libraryForm.invalid" *ngIf="!(librariesAdding$ | async)">
+    <button type="submit" mat-icon-button [disabled]="libraryForm.invalid" *ngIf="!addingLibrary">
       <mat-icon>add</mat-icon>
     </button>
-    <div class="spinner" *ngIf="librariesAdding$ | async">
+    <div class="spinner" *ngIf="addingLibrary">
       <mat-progress-spinner mode="indeterminate" diameter="25"></mat-progress-spinner>
     </div>
   </form>
@@ -88,20 +88,20 @@
   <form class="media-type-form" (ngSubmit)="addMediaType()" [formGroup]="mediaTypeForm" autocomplete="off">
     <mat-form-field class="content-type" floatLabel="always" appearance="standard">
       <mat-label>Content-Type</mat-label>
-      <input matInput spellcheck="false" placeholder="Content-Type header" formControlName="contentType" required/>
+      <input matInput spellcheck="false" placeholder="Content-Type header" formControlName="contentType" required [errorStateMatcher]="errorMatcher" />
       <mat-hint>Content-Type header as set by the server</mat-hint>
       <mat-error *ngIf="mediaTypeForm.controls.contentType.invalid">{{ getErrorMessage(mediaTypeForm.controls.contentType) }}</mat-error>
     </mat-form-field>
     <mat-form-field class="extensions" floatLabel="always" appearance="standard">
       <mat-label>Extensions</mat-label>
-      <input matInput spellcheck="false" placeholder="File extensions" formControlName="extensions" required/>
+      <input matInput spellcheck="false" placeholder="File extensions" formControlName="extensions" required [errorStateMatcher]="errorMatcher" />
       <mat-hint>Comma-separated list of file extensions</mat-hint>
       <mat-error *ngIf="mediaTypeForm.controls.extensions.invalid">{{ getErrorMessage(mediaTypeForm.controls.extensions) }}</mat-error>
     </mat-form-field>
-    <button mat-icon-button [disabled]="mediaTypeForm.invalid" *ngIf="!(mediaTypesAdding$ | async)">
+    <button mat-icon-button [disabled]="mediaTypeForm.invalid" *ngIf="!addingMediaType">
       <mat-icon>add</mat-icon>
     </button>
-    <div class="spinner" *ngIf="mediaTypesAdding$ | async">
+    <div class="spinner" *ngIf="addingMediaType">
       <mat-progress-spinner mode="indeterminate" diameter="25"></mat-progress-spinner>
     </div>
   </form>

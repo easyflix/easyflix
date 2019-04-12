@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, HostListener, OnInit, ViewChild} from '@angular/core';
 import {MatSidenav} from '@angular/material';
-import {Observable} from 'rxjs';
+import {concat, Observable} from 'rxjs';
 import {CoreService} from './services/core.service';
 import {playerAnimations} from '@app/animations';
 import {RouterOutlet} from '@angular/router';
@@ -9,6 +9,7 @@ import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
 import {map} from 'rxjs/operators';
 import {MediaTypesService} from '@app/services/media-types.service';
 import {LibrariesService} from '@app/services/libraries.service';
+import {and} from "@angular/router/src/utils/collection";
 
 @Component({
   selector: 'app-root',
@@ -39,7 +40,15 @@ export class AppComponent implements OnInit {
     this.showSidenav$ = this.core.getShowSidenav();
     this.sidenavMode$ = this.core.getSidenavMode();
     this.sidenavWidth$ = this.core.getSidenavWidth();
-    this.libraries.load();
+    concat(
+      this.libraries.load(),
+      this.files.load(),
+      this.mediaTypes.load()
+    ).subscribe(
+      () => {},
+      error => console.log(error),
+      () => console.log('complete')
+    );
     this.files.load();
     this.mediaTypes.load();
   }

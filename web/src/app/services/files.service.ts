@@ -5,12 +5,16 @@ import {Folder, Library, LibraryFile} from '@app/models/file';
 import {HttpClient} from '@angular/common/http';
 import {Store} from '@ngrx/store';
 import {getAllFiles, getFileById, getFilesLoaded, getFilesOfFolder, State} from '@app/reducers';
-import {LoadFiles} from '@app/actions/files.actions';
+import {FilesActionTypes, LoadFiles} from '@app/actions/files.actions';
+import {Actions} from '@ngrx/effects';
+import {ServiceHelper} from '@app/services/service-helper';
 
 @Injectable()
-export class FilesService {
+export class FilesService extends ServiceHelper {
 
-  constructor(private httpClient: HttpClient, private store: Store<State>) {}
+  constructor(private httpClient: HttpClient, store: Store<State>, actions$: Actions) {
+    super(store, actions$);
+  }
 
   getAll(): Observable<LibraryFile[]> {
     return this.store.select(getAllFiles);
@@ -32,8 +36,12 @@ export class FilesService {
     return this.store.select(getFilesLoaded);
   }
 
-  load() {
-    this.store.dispatch(new LoadFiles());
+  load(): Observable<LibraryFile[]> {
+    return this.dispatchActionObservable(
+      new LoadFiles(),
+      FilesActionTypes.LoadFilesSuccess,
+      FilesActionTypes.LoadFilesError
+    );
   }
 
 }

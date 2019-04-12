@@ -11,14 +11,10 @@ export const adapter: EntityAdapter<MediaType> = createEntityAdapter<MediaType>(
 });
 
 export interface State extends EntityState<MediaType> {
-  validationError: ValidationError;
-  adding: boolean;
   loaded: boolean;
 }
 
 export const initialState: State = adapter.getInitialState({
-  validationError: null,
-  adding: false,
   loaded: false,
 });
 
@@ -38,43 +34,12 @@ export function reducer(
       });
     }
 
-    case MediaTypesActionTypes.AddMediaType: {
-      return {
-        ...state,
-        adding: true,
-        validationError: null
-      };
-    }
-
-    case MediaTypesActionTypes.RemoveMediaType: {
-      return {
-        ...state,
-        validationError: null
-      };
-    }
-
     case MediaTypesActionTypes.AddMediaTypeSuccess: {
-      return adapter.upsertOne(action.payload, {
-        ...state,
-        validationError: null,
-        adding: false,
-      });
+      return adapter.upsertOne(action.payload, state);
     }
 
     case MediaTypesActionTypes.RemoveMediaTypeSuccess: {
-      return adapter.removeOne(action.payload, {
-        ...state,
-        validationError: null,
-        adding: false
-      });
-    }
-
-    case MediaTypesActionTypes.AddMediaTypeError || MediaTypesActionTypes.RemoveMediaTypeError: {
-      return {
-        ...state,
-        validationError: action.payload,
-        adding: false,
-      };
+      return adapter.removeOne(action.payload, state);
     }
 
     default: return state;
@@ -85,5 +50,3 @@ export function reducer(
  * Selectors
  */
 export const getLoaded = (state: State) => state.loaded;
-export const getAdding = (state: State) => state.adding;
-export const getValidationError = (state: State) => state.validationError;

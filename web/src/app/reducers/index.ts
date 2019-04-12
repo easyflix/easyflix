@@ -123,16 +123,6 @@ export const getLibraryByName = createSelector(
   (libraries: Dictionary<Library>, name: string) => libraries[name]
 );
 
-export const getLibrariesValidationError = createSelector(
-  getLibrariesState,
-  fromLibraries.getValidationError
-);
-
-export const getLibrariesAdding = createSelector(
-  getLibrariesState,
-  fromLibraries.getAdding
-);
-
 export const getLibrariesLoaded = createSelector(
   getLibrariesState,
   fromLibraries.getLoaded
@@ -146,16 +136,6 @@ export const {
 export const getMediaTypeBySubType = createSelector(
   getAllMediaTypesEntities,
   (mediaTypes: Dictionary<MediaType>, subType: string) => mediaTypes[subType]
-);
-
-export const getMediaTypesValidationError = createSelector(
-  getMediaTypesState,
-  fromMediaTypes.getValidationError
-);
-
-export const getMediaTypesAdding = createSelector(
-  getMediaTypesState,
-  fromMediaTypes.getAdding
 );
 
 export const getMediaTypesLoaded = createSelector(

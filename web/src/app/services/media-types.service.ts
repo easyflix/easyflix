@@ -4,24 +4,40 @@ import {Observable} from 'rxjs';
 import {MediaType} from '@app/models/file';
 import {HttpClient} from '@angular/common/http';
 import {Store} from '@ngrx/store';
-import {
-  getAllMediaTypes,
-  getMediaTypeBySubType,
-  getMediaTypesAdding,
-  getMediaTypesLoaded,
-  getMediaTypesValidationError,
-  State
-} from '@app/reducers';
-import {AddMediaType, LoadMediaTypes, RemoveMediaType} from '@app/actions/media-types.actions';
-import {ValidationError} from '@app/models/validation-error';
+import {getAllMediaTypes, getMediaTypeBySubType, getMediaTypesLoaded, State} from '@app/reducers';
+import {AddMediaType, LoadMediaTypes, MediaTypesActionTypes, RemoveMediaType} from '@app/actions/media-types.actions';
+import {Actions} from '@ngrx/effects';
+import {ServiceHelper} from '@app/services/service-helper';
 
 @Injectable()
-export class MediaTypesService {
+export class MediaTypesService extends ServiceHelper {
 
-  constructor(private httpClient: HttpClient, private store: Store<State>) {}
+  constructor(private httpClient: HttpClient, store: Store<State>, actions$: Actions) {
+    super(store, actions$);
+  }
 
-  load() {
-    this.store.dispatch(new LoadMediaTypes());
+  load(): Observable<void> {
+    return this.dispatchActionObservable(
+      new LoadMediaTypes(),
+      MediaTypesActionTypes.LoadMediaTypesSuccess,
+      MediaTypesActionTypes.LoadMediaTypesError
+    );
+  }
+
+  add(mediaType: MediaType): Observable<MediaType> {
+    return this.dispatchActionObservable(
+      new AddMediaType(mediaType),
+      MediaTypesActionTypes.AddMediaTypeSuccess,
+      MediaTypesActionTypes.AddMediaTypeError
+    );
+  }
+
+  remove(subType: string): Observable<string> {
+    return this.dispatchActionObservable(
+      new RemoveMediaType(subType),
+      MediaTypesActionTypes.RemoveMediaTypeSuccess,
+      MediaTypesActionTypes.RemoveMediaTypeError
+    );
   }
 
   getAll(): Observable<MediaType[]> {
@@ -32,24 +48,8 @@ export class MediaTypesService {
     return this.store.select(getMediaTypeBySubType, subType);
   }
 
-  getValidationError(): Observable<ValidationError> {
-    return this.store.select(getMediaTypesValidationError);
-  }
-
   getLoaded(): Observable<boolean> {
     return this.store.select(getMediaTypesLoaded);
-  }
-
-  getAdding(): Observable<boolean> {
-    return this.store.select(getMediaTypesAdding);
-  }
-
-  addMediaType(mediaType: MediaType) {
-    this.store.dispatch(new AddMediaType(mediaType));
-  }
-
-  removeMediaType(subType: string) {
-    this.store.dispatch(new RemoveMediaType(subType));
   }
 
 }

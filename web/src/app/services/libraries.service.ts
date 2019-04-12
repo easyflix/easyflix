@@ -4,21 +4,17 @@ import {Observable} from 'rxjs';
 import {Library} from '@app/models/file';
 import {HttpClient} from '@angular/common/http';
 import {Store} from '@ngrx/store';
-import {
-  getAllLibraries,
-  getLibrariesAdding,
-  getLibrariesLoaded,
-  getLibrariesValidationError,
-  getLibraryByName,
-  State
-} from '@app/reducers';
-import {AddLibrary, LoadLibraries, RemoveLibrary} from '@app/actions/libraries.actions';
-import {ValidationError} from '@app/models/validation-error';
+import {getAllLibraries, getLibrariesLoaded, getLibraryByName, State} from '@app/reducers';
+import {AddLibrary, LibrariesActionTypes, LoadLibraries, RemoveLibrary} from '@app/actions/libraries.actions';
+import {Actions} from '@ngrx/effects';
+import {ServiceHelper} from '@app/services/service-helper';
 
 @Injectable()
-export class LibrariesService {
+export class LibrariesService extends ServiceHelper {
 
-  constructor(private httpClient: HttpClient, private store: Store<State>) {}
+  constructor(private httpClient: HttpClient, store: Store<State>, actions$: Actions) {
+    super(store, actions$);
+  }
 
   getAll(): Observable<Library[]> {
     return this.store.select(getAllLibraries);
@@ -28,24 +24,28 @@ export class LibrariesService {
     return this.store.select(getLibraryByName, name);
   }
 
-  load() {
-    this.store.dispatch(new LoadLibraries());
+  load(): Observable<Library[]> {
+    return this.dispatchActionObservable(
+      new LoadLibraries(),
+      LibrariesActionTypes.LoadLibrariesSuccess,
+      LibrariesActionTypes.LoadLibrariesError
+    );
   }
 
-  add(library: Library) {
-    this.store.dispatch(new AddLibrary(library));
+  add(library: Library): Observable<Library> {
+    return this.dispatchActionObservable(
+      new AddLibrary(library),
+      LibrariesActionTypes.AddLibrarySuccess,
+      LibrariesActionTypes.AddLibraryError
+    );
   }
 
-  remove(name: string) {
-    this.store.dispatch(new RemoveLibrary(name));
-  }
-
-  getValidationError(): Observable<ValidationError> {
-    return this.store.select(getLibrariesValidationError);
-  }
-
-  getAdding(): Observable<boolean> {
-    return this.store.select(getLibrariesAdding);
+  remove(name: string): Observable<string> {
+    return this.dispatchActionObservable(
+      new RemoveLibrary(name),
+      LibrariesActionTypes.RemoveLibrarySuccess,
+      LibrariesActionTypes.RemoveLibraryError
+    );
   }
 
   getLoaded(): Observable<boolean> {
