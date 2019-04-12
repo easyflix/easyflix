@@ -3,7 +3,6 @@
  */
 import {VideoActionsUnion, VideoActionTypes} from '../actions/video.actions';
 
-// TODO remove videoInput and VideoState
 export interface State {
   source: string;
   volume: number;

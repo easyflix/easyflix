@@ -34,19 +34,19 @@ object APIRoutes extends Directives with JsonSupport {
           pathPrefix("files") {
             pathEndOrSingleSlash {
               get {
-                onSuccess((application.libraryActor ? GetLibraryFiles).mapTo[Seq[LibraryFile]])(complete(_))
+                onSuccess((application.libraryActor ? GetLibraryFiles).mapTo[Seq[LibraryFile]])(r => complete(r))
               }
             }
           },
           pathPrefix("libraries") {
             pathEndOrSingleSlash {
               get {
-                onSuccess((application.libraryActor ? GetLibraries).mapTo[Seq[Library]])(complete(_))
+                onSuccess((application.libraryActor ? GetLibraries).mapTo[Seq[Library]])(r => complete(r))
               } ~
               post {
                 entity(as[Library]) { library =>
                   onSuccess((application.libraryActor ? AddLibrary(library))(2.minute).mapTo[AddLibraryResult]){
-                    case AddLibrarySuccess(lib, files) => complete(JsObject("library" -> lib.toJson, "files" -> files.toJson))
+                    case success: AddLibrarySuccess => complete(success)
                     case error: AddLibraryError => complete(StatusCodes.BadRequest, error)
                   }
                 }
@@ -64,7 +64,7 @@ object APIRoutes extends Directives with JsonSupport {
           pathPrefix("media-types") {
             pathEndOrSingleSlash {
               get {
-                onSuccess((application.mediaTypesActor ? GetMediaTypes).mapTo[Seq[MediaType.Binary]])(complete(_))
+                onSuccess((application.mediaTypesActor ? GetMediaTypes).mapTo[Seq[MediaType.Binary]])(r => complete(r))
               } ~
               post {
                 entity(as[MediaType.Binary]) { mediaType =>

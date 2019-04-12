@@ -2,20 +2,20 @@ package net.creasource.web
 
 import java.nio.file.{Path, Paths}
 
-import akka.NotUsed
 import akka.actor.{Actor, Props}
+import akka.event.Logging
 import akka.stream.alpakka.file.scaladsl.Directory
 import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.{Done, NotUsed}
 import me.nimavat.shortid.ShortId
 import net.creasource.core.Application
-import net.creasource.model._
-import spray.json.DefaultJsonProtocol._
+import net.creasource.model.{LibraryFile, _}
 import spray.json._
 
 import scala.collection.immutable.Seq
 import scala.util.{Failure, Success}
 
-object LibraryActor {
+object LibraryActor extends JsonSupport {
 
   case object GetLibraries
 
@@ -25,6 +25,12 @@ object LibraryActor {
   case class AddLibrary(library: Library)
   sealed trait AddLibraryResult
   case class AddLibrarySuccess(library: Library, files: Seq[LibraryFile]) extends AddLibraryResult
+
+  object AddLibrarySuccess extends JsonSupport {
+    implicit val writer: RootJsonWriter[AddLibrarySuccess] = (success: AddLibrarySuccess) =>
+      JsObject("library" -> success.library.toJson, "files" -> success.files.toJson)
+  }
+
   case class AddLibraryError(control: String, code: String, value: Option[String]) extends AddLibraryResult
 
   object AddLibraryError {
@@ -49,15 +55,15 @@ class LibraryActor()(implicit val application: Application) extends Actor {
   import application.materializer
   import context.dispatcher
 
+  private val logger = Logging(context.system, this)
+
   var libraries: Seq[Library] = Seq.empty
 
   var libraryFiles: Map[String, LibraryFile] = Map.empty
 
-  case class AddLibraryFile(file: LibraryFile)
-
   override def receive: Receive = {
 
-    case AddLibraryFile(file) => libraryFiles += (file.id -> file)
+    case file: LibraryFile => libraryFiles += (file.id -> file)
 
     case GetLibraries => sender ! libraries
 
@@ -93,15 +99,20 @@ class LibraryActor()(implicit val application: Application) extends Actor {
         sender() ! AddLibraryError("path", "noChildren")
       } else {
         libraries +:= library
-        val s = sender()
+        val client = sender()
+        logger.info(s"Scanning library: ${library.path}")
         scanLibrary(library)
-          .alsoTo(Sink.foreach(file => self ! AddLibraryFile(file)))
+          .alsoTo(Sink.actorRef(self, Done)) // Sink.foreach(file => self ! AddLibraryFile(file)))
           .runWith(Sink.seq)
           .onComplete {
-            case Success(files) => s ! AddLibrarySuccess(library, files)
-            case Failure(exception) => s ! AddLibraryError("other", "failure", Some(exception.getMessage))
+            case Success(files) => client ! AddLibrarySuccess(library, files)
+            case Failure(exception) => client ! AddLibraryError("other", "failure", Some(exception.getMessage))
           }
       }
+
+    case Done => logger.info("Scan complete")
+
+    case akka.actor.Status.Failure(cause) => logger.error("Scan failed!", cause)
 
     case RemoveLibrary(name) =>
       libraries.find(_.name == name).foreach(lib => libraries = libraries.diff(Seq(lib)))
@@ -114,10 +125,10 @@ class LibraryActor()(implicit val application: Application) extends Actor {
   def scanLibrary(library: Library): Source[LibraryFile, NotUsed] = {
     Directory.walk(library.path)
       .filter(path => path != library.path)
-      .via(toVideoFlow(library))
+      .via(toLibraryFileFlow(library))
   }
 
-  def toVideoFlow(library: Library): Flow[Path, LibraryFile, NotUsed] = {
+  def toLibraryFileFlow(library: Library): Flow[Path, LibraryFile, NotUsed] = {
     def getParentPathRelativeToLibrary(path: Path) = {
       Paths.get(library.name).resolve(library.path.relativize(path)).getParent
     }

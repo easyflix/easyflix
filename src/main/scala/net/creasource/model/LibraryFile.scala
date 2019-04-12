@@ -52,10 +52,11 @@ object Library {
       Library(name, path)
     case _ => throw new UnsupportedOperationException("Invalid Library format")
   }
+  implicit val format: RootJsonFormat[Library] = rootJsonFormat(reader, writer)
 }
 
 object LibraryFile extends DefaultJsonProtocol {
-  implicit val writer: JsonWriter[LibraryFile] = {
+  implicit val writer: RootJsonWriter[LibraryFile] = {
     case Folder(id, name, parent) => JsObject(
       "type" -> "folder".toJson,
       "id" -> id.toJson,
@@ -71,4 +72,5 @@ object LibraryFile extends DefaultJsonProtocol {
       "format" -> format.toString.toJson
     )
   }
+  implicit val format: RootJsonFormat[LibraryFile] = lift(writer)
 }
