@@ -12,9 +12,14 @@ object VideoFormat extends Enumeration {
   val WEBM: Value = Value("webm")
 
   def getFormat(path: Path): Option[VideoFormat] = {
-    val extension: String =
-      path.getFileName.toString.split("""\.""").last.toLowerCase
-    VideoFormat.values.toSeq.find(format => format.toString == extension)
+    val fileName = path.getFileName.toString
+    val lastDotIx = fileName.lastIndexOf(".")
+    if (lastDotIx > 0) {
+      val extension = fileName.substring(lastDotIx + 1)
+      VideoFormat.values.toSeq.find(format => format.toString == extension)
+    } else {
+      None
+    }
   }
 
   def getFormat(file: File): Option[VideoFormat] = {
