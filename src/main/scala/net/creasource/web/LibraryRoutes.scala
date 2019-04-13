@@ -43,7 +43,7 @@ object LibraryRoutes extends FileAndResourceDirectives {
                   case _ => getFromFile(path.toFile)
                 }
               }
-            case Some (Folder(_, _, _)) =>
+            case Some (Folder(_, _, _, _)) =>
               // getFromBrowseableDirectory()
               complete(StatusCodes.NotAcceptable, "Requested id does not match any video file")
             case _ =>

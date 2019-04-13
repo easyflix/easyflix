@@ -13,8 +13,9 @@ sealed trait LibraryFile {
   val id: String
   val name: String
   val parent: Path
+  val filePath: Path
 }
-case class Folder(id: String, name: String, parent: Path) extends LibraryFile
+case class Folder(id: String, name: String, parent: Path, filePath: Path) extends LibraryFile
 case class Video(id: String, name: String, parent: Path, size: Long, format: VideoFormat, filePath: Path) extends LibraryFile
 
 object Video {
@@ -57,19 +58,19 @@ object Library {
 
 object LibraryFile extends DefaultJsonProtocol {
   implicit val writer: RootJsonWriter[LibraryFile] = {
-    case Folder(id, name, parent) => JsObject(
+    case Folder(id, name, parent, _) => JsObject(
       "type" -> "folder".toJson,
       "id" -> id.toJson,
       "parent" -> (parent.toString.replaceAll("""\\""", "/") + "/").toJson,
       "name" -> name.toJson
     )
-    case Video(id, name, parent, size, format, _) => JsObject(
+    case Video(id, name, parent, size, videoFormat, _) => JsObject(
       "type" -> "video".toJson,
       "id" -> id.toJson,
       "parent" -> (parent.toString.replaceAll("""\\""", "/") + "/").toJson,
       "name" -> name.toJson,
       "size" -> size.toJson,
-      "format" -> format.toString.toJson
+      "format" -> videoFormat.toString.toJson
     )
   }
   implicit val format: RootJsonFormat[LibraryFile] = lift(writer)
