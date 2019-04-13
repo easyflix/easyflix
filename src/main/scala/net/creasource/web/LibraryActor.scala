@@ -64,6 +64,9 @@ class LibraryActor()(implicit val application: Application) extends Actor {
 
   var folderKillSwitches: Map[Path, UniqueKillSwitch] = Map.empty
 
+  case class ScanComplete(folder: Path)
+  case class WatchComplete(folder: Path)
+
   override def postStop(): Unit = {
     librariesKillSwitches.values.toSeq.foreach(_.shutdown())
   }
@@ -73,45 +76,6 @@ class LibraryActor()(implicit val application: Application) extends Actor {
     case file: LibraryFile =>
       logger.info(s"New library file: ${file.filePath}")
       libraryFiles += (file.id -> file)
-
-    case (path: Path, library: Library, DirectoryChange.Creation) =>
-      for {
-        library <- libraries.get(library.name) // Check that the library exists
-        killSwitch <- librariesKillSwitches.get(library.name) // Check that the killSwitch exists
-        _ <- Option(path.toFile.exists()).collect{ case true => () } // Check that the created file still exists
-      } yield {
-        libraryFiles.values.toSeq.find(_.filePath == path) match {
-          case None =>
-            for {
-              file <- pathToLibraryFile(path, library)
-            } yield {
-              self ! file
-              file match {
-                case Folder(_, _, _, filePath) =>
-                  scanFolder(filePath, library, killSwitch).runWith(Sink.ignore) // TODO submit to event bus
-                case _ =>
-              }
-              // TODO submit to event bus
-            }
-          case _ => logger.warning("Got a creation message for a file already in library")
-        }
-      }
-
-    case (path: Path, _: Library, DirectoryChange.Deletion) =>
-      for {
-        deletedFile <- libraryFiles.values.toSeq.find(_.filePath == path)
-      } yield {
-        libraryFiles -= deletedFile.id
-        deletedFile match {
-          case Folder(_, _, _, filePath) =>
-            val childrenIds = libraryFiles.values.toSeq.filter(_.filePath.startsWith(filePath)).map(_.id)
-            libraryFiles --= childrenIds
-            logger.info(s"Folder and ${childrenIds.length} children deleted: $filePath")
-            folderKillSwitches.get(filePath).foreach(_.shutdown())
-            folderKillSwitches -= filePath
-          case _ => logger.info(s"File deleted: ${deletedFile.filePath}")
-        }
-      }
 
     case GetLibraries => sender ! libraries.values.toSeq
 
@@ -155,9 +119,11 @@ class LibraryActor()(implicit val application: Application) extends Actor {
           }
       }
 
-    case Done => logger.info("Scan complete")
+    case ScanComplete(folder) => logger.info(s"Scan complete: $folder")
 
-    case akka.actor.Status.Failure(cause) => logger.error("Scan failed!", cause)
+    case WatchComplete(folder) => logger.info(s"Stopped watching: $folder")
+
+    case akka.actor.Status.Failure(cause) => logger.error("An error occurred!", cause)
 
     case RemoveLibrary(libraryName) =>
       logger.info(s"Removing library: $libraryName")
@@ -175,6 +141,44 @@ class LibraryActor()(implicit val application: Application) extends Actor {
       }
       logger.info(s"libraryKillSwitches (${librariesKillSwitches.size}), folderKillSwitches (${folderKillSwitches.size})")
       sender() ! RemoveLibrarySuccess
+
+    case (path: Path, library: Library, DirectoryChange.Creation) =>
+      for {
+        library <- libraries.get(library.name) // Check that the library exists
+        killSwitch <- librariesKillSwitches.get(library.name) // Check that the killSwitch exists
+        _ <- Option(path.toFile.exists()).collect{ case true => () } // Check that the created file still exists
+      } yield {
+        libraryFiles.values.toSeq.find(_.filePath == path) match {
+          case None =>
+            for {
+              file <- pathToLibraryFile(path, library)
+            } yield {
+              self ! file
+              file match {
+                case Folder(_, _, _, filePath) => scanFolder(filePath, library, killSwitch).runWith(Sink.ignore) // TODO submit to event bus
+                case _ =>
+              }
+              // TODO submit to event bus
+            }
+          case _ => logger.warning("Got a creation message for a file already in library")
+        }
+      }
+
+    case (path: Path, _: Library, DirectoryChange.Deletion) =>
+      for {
+        deletedFile <- libraryFiles.values.toSeq.find(_.filePath == path)
+      } yield {
+        libraryFiles -= deletedFile.id
+        deletedFile match {
+          case Folder(_, _, _, filePath) =>
+            val childrenIds = libraryFiles.values.toSeq.filter(_.filePath.startsWith(filePath)).map(_.id)
+            libraryFiles --= childrenIds
+            logger.info(s"Folder and ${childrenIds.length} children deleted: $filePath")
+            folderKillSwitches.get(filePath).foreach(_.shutdown())
+            folderKillSwitches -= filePath
+          case _ => logger.info(s"File deleted: ${deletedFile.filePath}")
+        }
+      }
   }
 
   def scanFolder(folder: Path, library: Library, killSwitch: SharedKillSwitch): Source[LibraryFile, NotUsed] = {
@@ -183,7 +187,7 @@ class LibraryActor()(implicit val application: Application) extends Actor {
     Directory.walk(folder)
       .filter(path => path != folder)
       .via(toLibraryFileFlow(library))
-      .alsoTo(Sink.actorRef(self, Done))
+      .alsoTo(Sink.actorRef(self, ScanComplete(folder)))
       .alsoTo(Sink.foreach {
         case Folder(_, _, _, folderPath) => watchFolder(folderPath, library, killSwitch)
         case _ =>
@@ -193,20 +197,14 @@ class LibraryActor()(implicit val application: Application) extends Actor {
   def watchFolder(folder: Path, library: Library, killSwitch: SharedKillSwitch): Try[Unit] = {
     logger.info(s"Watching folder $folder")
     Try {
-      val (folderKillSwitch, future) = DirectoryChangesSource(folder, pollInterval = 2.seconds, maxBufferSize = 1000)
+      val folderKillSwitch = DirectoryChangesSource(folder, pollInterval = 2.seconds, maxBufferSize = 1000)
         .via(killSwitch.flow)
         .viaMat(KillSwitches.single)(Keep.right)
-        .toMat(Sink.foreach {
-          case (path, DirectoryChange.Creation) => self ! (path, library, DirectoryChange.Creation)
-          case (path, DirectoryChange.Deletion) => self ! (path, library, DirectoryChange.Deletion)
-          case _ =>
-        })(Keep.both).run()
+        .map { case (path, directoryChange) => (path, library, directoryChange) }
+        .toMat(Sink.actorRef(self, WatchComplete(folder)))(Keep.left)
+        .run()
       if (folder != library.path) { // Prevent memory leak. In that case the shared killSwitch is enough.
         folderKillSwitches += (folder -> folderKillSwitch)
-      }
-      future.onComplete {
-        case Success(Done) => logger.info(s"Stopped watching: $folder")
-        case Failure(exception) => logger.warning(s"Error while watching folder $folder", exception)
       }
     }
   }
