@@ -10,7 +10,7 @@ import akka.pattern.ask
 import net.creasource.core.Application
 import net.creasource.model.{Folder, LibraryFile, Video}
 import net.creasource.web.LibraryActor.GetLibraryFile
-import net.creasource.web.MediaTypesActor.GetMediaTypes
+import net.creasource.web.MediaTypesActor.{GetContentTypeResolver, GetMediaTypes}
 
 import scala.concurrent.duration._
 
@@ -18,25 +18,13 @@ object LibraryRoutes extends FileAndResourceDirectives {
 
   implicit val askTimeout: akka.util.Timeout = 2.seconds
 
-  def getContentResolver(customMediaTypes: Seq[MediaType.Binary]): ContentTypeResolver = (fileName: String) =>  {
-    val lastDotIx = fileName.lastIndexOf('.')
-    if (lastDotIx >= 0) {
-      val extension = fileName.substring(lastDotIx + 1)
-      customMediaTypes.find(mediaType => mediaType.fileExtensions.contains(extension)) match {
-        case Some(mediaType) => ContentType(mediaType)
-        case None => ContentTypeResolver.Default(fileName)
-      }
-    } else ContentTypeResolver.Default(fileName)
-  }
-
   def routes(application: Application): Route =
     pathPrefix("videos") {
       Route.seal(
         path(Segment) { id =>
           onSuccess((application.libraryActor ? GetLibraryFile(id)).mapTo[Option[LibraryFile]]) {
-            case Some(Video(_, _, _, _, _, path)) =>
-              onSuccess((application.mediaTypesActor ? GetMediaTypes).mapTo[Seq[MediaType.Binary]]) { customMediaTypes =>
-                implicit val contentTypeResolver: ContentTypeResolver = getContentResolver(customMediaTypes)
+            case Some(Video(_, _, _, _, path)) =>
+              onSuccess((application.mediaTypesActor ? GetContentTypeResolver).mapTo[ContentTypeResolver]) { implicit contentTypeResolver =>
                 // https://bugzilla.mozilla.org/show_bug.cgi?id=1422891
                 optionalHeaderValueByType[Range](()) {
                   case Some(Range(RangeUnits.Bytes, Seq(range))) => Routes.getFromFileWithRange(path.toFile, range)

@@ -25,8 +25,8 @@ class Application {
 
   system.log.info("Application starting.")
 
-  val libraryActor: ActorRef = system.actorOf(LibraryActor.props()(this), "libraries")
   val mediaTypesActor: ActorRef = system.actorOf(MediaTypesActor.props()(this), "media-types")
+  val libraryActor: ActorRef = system.actorOf(LibraryActor.props()(this), "libraries")
 
   def shutdown() {
     system.log.info("Shutting down Akka materializer and system.")

@@ -5,7 +5,6 @@ export interface Video {
   name: string;
   parent: string;
   size: number;
-  format: string;
 }
 
 export interface Folder {

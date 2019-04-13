@@ -2,16 +2,17 @@ package net.creasource.web
 
 import java.nio.file.{Path, Paths}
 
+import akka.NotUsed
 import akka.actor.{Actor, Props}
 import akka.event.Logging
+import akka.http.scaladsl.server.directives.ContentTypeResolver
 import akka.stream.alpakka.file.DirectoryChange
 import akka.stream.alpakka.file.scaladsl.{Directory, DirectoryChangesSource}
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.stream.{KillSwitches, SharedKillSwitch, UniqueKillSwitch}
-import akka.{Done, NotUsed}
-import me.nimavat.shortid.ShortId
 import net.creasource.core.Application
 import net.creasource.model.{LibraryFile, _}
+import net.creasource.web.MediaTypesActor.GetContentTypeResolver
 import spray.json._
 
 import scala.collection.immutable.Seq
@@ -64,8 +65,14 @@ class LibraryActor()(implicit val application: Application) extends Actor {
 
   var folderKillSwitches: Map[Path, UniqueKillSwitch] = Map.empty
 
+  var contentTypeResolver: ContentTypeResolver = _
+
   case class ScanComplete(folder: Path)
   case class WatchComplete(folder: Path)
+
+  override def preStart(): Unit = {
+    application.mediaTypesActor ! GetContentTypeResolver
+  }
 
   override def postStop(): Unit = {
     librariesKillSwitches.values.toSeq.foreach(_.shutdown())
@@ -73,9 +80,30 @@ class LibraryActor()(implicit val application: Application) extends Actor {
 
   override def receive: Receive = {
 
+    case resolver: ContentTypeResolver =>
+      if (contentTypeResolver == null) {
+        contentTypeResolver = resolver
+      } else {
+        logger.info("Content resolver update")
+        contentTypeResolver = resolver
+        // Rescan libraries
+        libraries.values.toSeq.foreach(library =>
+          scanFolder(library.path, library, librariesKillSwitches(library.name), resolver).runWith(Sink.ignore) // TODO submit to event stream
+        )
+        // Delete files that don't resolve to a video content-type anymore
+        libraryFiles.values.toSeq.foreach {
+          case Video(id, name, _, _, _) if !resolver(name).mediaType.isVideo => libraryFiles -= id // TODO submit to event stream
+          case _ =>
+        }
+      }
+
     case file: LibraryFile =>
-      logger.info(s"New library file: ${file.filePath}")
-      libraryFiles += (file.id -> file)
+      if (libraryFiles.values.toSeq.exists(_.filePath == file.filePath)) {
+        logger.info(s"Ignoring file already known: ${file.filePath}")
+      } else {
+        logger.info(s"New library file: ${file.filePath}")
+        libraryFiles += (file.id -> file)
+      }
 
     case GetLibraries => sender ! libraries.values.toSeq
 
@@ -111,7 +139,7 @@ class LibraryActor()(implicit val application: Application) extends Actor {
         librariesKillSwitches += (library.name -> killSwitch)
 
         val client = sender()
-        scanFolder(library.path, library, killSwitch)
+        scanFolder(library.path, library, killSwitch, contentTypeResolver)
           .runWith(Sink.seq)
           .onComplete {
             case Success(files) => client ! AddLibrarySuccess(library, files)
@@ -126,20 +154,23 @@ class LibraryActor()(implicit val application: Application) extends Actor {
     case akka.actor.Status.Failure(cause) => logger.error("An error occurred!", cause)
 
     case RemoveLibrary(libraryName) =>
-      logger.info(s"Removing library: $libraryName")
-      libraries -= libraryName
-      librariesKillSwitches.get(libraryName).foreach(_.shutdown())
-      librariesKillSwitches -= libraryName
-      libraryFiles.foreach {
-        case (_, Folder(_, _, parent, folderPath)) if parent.startsWith(libraryName) =>
-          folderKillSwitches.get(folderPath).foreach(_.shutdown())
-          folderKillSwitches -= folderPath
-        case _ =>
+      if (libraries.get(libraryName).isDefined) {
+        logger.info(s"Removing library: $libraryName")
+        librariesKillSwitches.get(libraryName).foreach(_.shutdown())
+        librariesKillSwitches -= libraryName
+        libraryFiles.foreach {
+          case (_, Folder(_, _, _, folderPath)) if folderPath.startsWith(libraries(libraryName).path) =>
+            folderKillSwitches.get(folderPath).foreach(_.shutdown())
+            folderKillSwitches -= folderPath
+          case _ =>
+        }
+        folderKillSwitches.get(libraries(libraryName).path).foreach(_.shutdown())
+        libraryFiles = libraryFiles.filter {
+          case (_, file) => !file.filePath.startsWith(libraries(libraryName).path)
+        }
+        libraries -= libraryName
+        logger.info(s"libraryKillSwitches (${librariesKillSwitches.size}), folderKillSwitches (${folderKillSwitches.size})")
       }
-      libraryFiles = libraryFiles.filter {
-        case (_, file) => !file.parent.startsWith(libraryName)
-      }
-      logger.info(s"libraryKillSwitches (${librariesKillSwitches.size}), folderKillSwitches (${folderKillSwitches.size})")
       sender() ! RemoveLibrarySuccess
 
     case (path: Path, library: Library, DirectoryChange.Creation) =>
@@ -151,11 +182,11 @@ class LibraryActor()(implicit val application: Application) extends Actor {
         libraryFiles.values.toSeq.find(_.filePath == path) match {
           case None =>
             for {
-              file <- pathToLibraryFile(path, library)
+              file <- pathToLibraryFile(path, library, contentTypeResolver)
             } yield {
               self ! file
               file match {
-                case Folder(_, _, _, filePath) => scanFolder(filePath, library, killSwitch).runWith(Sink.ignore) // TODO submit to event bus
+                case Folder(_, _, _, filePath) => scanFolder(filePath, library, killSwitch, contentTypeResolver).runWith(Sink.ignore) // TODO submit to event bus
                 case _ =>
               }
               // TODO submit to event bus
@@ -181,12 +212,12 @@ class LibraryActor()(implicit val application: Application) extends Actor {
       }
   }
 
-  def scanFolder(folder: Path, library: Library, killSwitch: SharedKillSwitch): Source[LibraryFile, NotUsed] = {
+  def scanFolder(folder: Path, library: Library, killSwitch: SharedKillSwitch, contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed] = {
     watchFolder(folder, library, killSwitch)
     logger.info(s"Scanning folder: $folder")
     Directory.walk(folder)
       .filter(path => path != folder)
-      .via(toLibraryFileFlow(library))
+      .via(toLibraryFileFlow(library, contentTypeResolver))
       .alsoTo(Sink.actorRef(self, ScanComplete(folder)))
       .alsoTo(Sink.foreach {
         case Folder(_, _, _, folderPath) => watchFolder(folderPath, library, killSwitch)
@@ -195,45 +226,47 @@ class LibraryActor()(implicit val application: Application) extends Actor {
   }
 
   def watchFolder(folder: Path, library: Library, killSwitch: SharedKillSwitch): Try[Unit] = {
-    logger.info(s"Watching folder $folder")
-    Try {
-      val folderKillSwitch = DirectoryChangesSource(folder, pollInterval = 2.seconds, maxBufferSize = 1000)
-        .via(killSwitch.flow)
-        .viaMat(KillSwitches.single)(Keep.right)
-        .map { case (path, directoryChange) => (path, library, directoryChange) }
-        .toMat(Sink.actorRef(self, WatchComplete(folder)))(Keep.left)
-        .run()
-      if (folder != library.path) { // Prevent memory leak. In that case the shared killSwitch is enough.
+    if (folderKillSwitches.get(folder).isEmpty) {
+      logger.info(s"Watching folder $folder")
+      Try {
+        val folderKillSwitch = DirectoryChangesSource(folder, pollInterval = 2.seconds, maxBufferSize = 1000)
+          .via(killSwitch.flow)
+          .viaMat(KillSwitches.single)(Keep.right)
+          .map { case (path, directoryChange) => (path, library, directoryChange) }
+          .toMat(Sink.actorRef(self, WatchComplete(folder)))(Keep.left)
+          .run()
         folderKillSwitches += (folder -> folderKillSwitch)
       }
+    } else {
+      logger.info(s"Already Watching folder $folder")
+      Try(())
     }
   }
 
-  def toLibraryFileFlow(library: Library): Flow[Path, LibraryFile, NotUsed] = {
+  def toLibraryFileFlow(library: Library, contentTypeResolver: ContentTypeResolver): Flow[Path, LibraryFile, NotUsed] = {
     Flow[Path]
-      .map(path => pathToLibraryFile(path, library))
+      .map(path => pathToLibraryFile(path, library, contentTypeResolver))
       .collect { case Some(libraryFile) => libraryFile }
   }
 
-  def pathToLibraryFile(path: Path, library: Library): Option[LibraryFile] = {
+  def pathToLibraryFile(path: Path, library: Library, contentTypeResolver: ContentTypeResolver): Option[LibraryFile] = {
     def getParentPathRelativeToLibrary(path: Path) = {
       Paths.get(library.name).resolve(library.path.relativize(path)).getParent
     }
     val file = path.toFile
     if (file.isFile) {
-      VideoFormat.getFormat(file) match {
-        case Some(format) => Some(Video(
+      if (contentTypeResolver(file.getName).mediaType.isVideo) {
+        Some(Video(
           parent = getParentPathRelativeToLibrary(path),
           name = file.getName,
           size = file.length,
-          format = format,
           filePath = path
         ))
-        case _ => None
+      } else {
+        None
       }
     } else {
       Some(Folder(
-        id = ShortId.generate(),
         parent = getParentPathRelativeToLibrary(path),
         name = file.getName,
         filePath = path
