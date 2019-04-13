@@ -5,6 +5,8 @@ import java.nio.file.{Path, Paths}
 import net.creasource.json.JsonSupport
 import spray.json._
 
+import scala.util.{Failure, Success, Try}
+
 case class Library(name: String, path: Path)
 
 object Library extends JsonSupport {
@@ -21,23 +23,22 @@ object Library extends JsonSupport {
     case obj: JsObject =>
       obj.fields.get("type") match {
         case Some(JsString("library")) =>
-        case _ => throw new UnsupportedOperationException("Invalid or missing type attribute")
+        case _ => throw DeserializationException("Invalid or missing type attribute", fieldNames = List("type"))
       }
       val name = obj.fields.get("name") match {
         case Some(JsString(n)) => n
-        case _ => throw new UnsupportedOperationException("Invalid or missing name attribute")
+        case _ => throw DeserializationException("Invalid or missing name attribute", fieldNames = List("name"))
       }
       val path = obj.fields.get("path") match {
         case Some(JsString(p)) =>
-          try {
-            Paths.get(p)
-          } catch {
-            case e: Exception => throw new UnsupportedOperationException("Invalid path (" + e.getMessage + ")")
+          Try(Paths.get(p)) match {
+            case Success(value) => value
+            case Failure(e) => throw DeserializationException("Invalid path (" + e.getMessage + ")", fieldNames = List("path"))
           }
-        case _ => throw new UnsupportedOperationException("Invalid or missing path attribute")
+        case _ => throw DeserializationException("Invalid or missing path attribute", fieldNames = List("path"))
       }
       Library(name, path)
-    case _ => throw new UnsupportedOperationException("Invalid Library format")
+    case _ => throw DeserializationException("Invalid Library format")
   }
 
   implicit val format: RootJsonFormat[Library] = rootJsonFormat(reader, writer)
