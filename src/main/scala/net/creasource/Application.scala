@@ -18,7 +18,7 @@ object Application {
   */
 class Application {
 
-  val config: Config = ConfigFactory.load()
+  val config: Config = ConfigFactory.load().getConfig("webflix")
 
   implicit val system: ActorSystem = ActorSystem("MySystem", config)
   implicit val materializer: ActorMaterializer = ActorMaterializer()
