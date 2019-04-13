@@ -1,4 +1,4 @@
-package net.creasource.web
+package net.creasource.webflix
 
 import java.io.File
 
@@ -10,7 +10,7 @@ import akka.http.scaladsl.server.directives.ContentTypeResolver
 import akka.http.scaladsl.server.directives.RouteDirectives.{complete, reject}
 import akka.stream.scaladsl.FileIO
 
-object Routes {
+package object routes {
 
   private class IndexRange(val start: Long, val end: Long) {
     def length: Long = end - start

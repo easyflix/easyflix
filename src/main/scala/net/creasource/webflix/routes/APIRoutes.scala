@@ -1,14 +1,15 @@
-package net.creasource.web
+package net.creasource.webflix.routes
 
 import akka.Done
-import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
+import akka.http.scaladsl.model.{HttpHeader, MediaType, StatusCodes}
 import akka.http.scaladsl.server.{Directives, Route}
 import akka.pattern.ask
-import net.creasource.core.Application
-import net.creasource.model.{Library, LibraryFile}
-import net.creasource.web.LibraryActor._
-import net.creasource.web.MediaTypesActor.{AddMediaType, AddMediaTypeError, AddMediaTypeResult, AddMediaTypeSuccess, GetMediaTypes, RemoveMediaType}
+import net.creasource.Application
+import net.creasource.json.JsonSupport
+import net.creasource.webflix.actors.LibraryActor.{AddLibrary, AddLibraryError, AddLibraryResult, AddLibrarySuccess, GetLibraries, GetLibraryFiles, RemoveLibrary, RemoveLibraryError, RemoveLibraryResult, RemoveLibrarySuccess}
+import net.creasource.webflix.actors.MediaTypesActor.{AddMediaType, AddMediaTypeError, AddMediaTypeResult, AddMediaTypeSuccess, GetMediaTypes, RemoveMediaType}
+import net.creasource.webflix.{Library, LibraryFile}
 import spray.json._
 
 import scala.collection.immutable.Seq

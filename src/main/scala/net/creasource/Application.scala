@@ -1,9 +1,9 @@
-package net.creasource.core
+package net.creasource
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.stream.ActorMaterializer
 import com.typesafe.config.{Config, ConfigFactory}
-import net.creasource.web.{LibraryActor, MediaTypesActor}
+import net.creasource.webflix.actors.{LibraryActor, MediaTypesActor}
 
 import scala.concurrent.Await
 

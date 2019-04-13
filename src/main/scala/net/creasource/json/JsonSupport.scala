@@ -1,8 +1,8 @@
-package net.creasource.web
+package net.creasource.json
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.MediaType.NotCompressible
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpHeader, HttpMethods, HttpRequest, HttpResponse, MediaType, Uri}
+import akka.http.scaladsl.model._
 import akka.util.ByteString
 import spray.json._
 

@@ -1,4 +1,4 @@
-package net.creasource.web
+package net.creasource.json
 
 import spray.json.{JsValue, RootJsonFormat}
 

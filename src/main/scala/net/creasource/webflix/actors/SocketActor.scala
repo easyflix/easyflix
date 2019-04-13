@@ -1,4 +1,4 @@
-package net.creasource.web
+package net.creasource.webflix.actors
 
 import akka.actor.{Actor, Props, Stash}
 import akka.event.Logging
@@ -7,7 +7,8 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.RouteResult.route2HandlerFlow
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
-import net.creasource.core.Application
+import net.creasource.Application
+import net.creasource.json.{JsonMessage, JsonSupport}
 import spray.json._
 
 import scala.collection.immutable.Seq

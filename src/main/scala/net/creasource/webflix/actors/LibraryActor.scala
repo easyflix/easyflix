@@ -1,4 +1,4 @@
-package net.creasource.web
+package net.creasource.webflix.actors
 
 import java.nio.file.{Path, Paths}
 
@@ -10,9 +10,11 @@ import akka.stream.alpakka.file.DirectoryChange
 import akka.stream.alpakka.file.scaladsl.{Directory, DirectoryChangesSource}
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.stream.{KillSwitches, SharedKillSwitch, UniqueKillSwitch}
-import net.creasource.core.Application
-import net.creasource.model.{LibraryFile, _}
-import net.creasource.web.MediaTypesActor.GetContentTypeResolver
+import net.creasource.Application
+import net.creasource.json.JsonSupport
+import net.creasource.webflix.LibraryFile.{Folder, Video}
+import net.creasource.webflix.actors.MediaTypesActor.GetContentTypeResolver
+import net.creasource.webflix.{Library, LibraryFile}
 import spray.json._
 
 import scala.collection.immutable.Seq

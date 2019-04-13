@@ -1,11 +1,12 @@
-package net.creasource.web
+package net.creasource.webflix.actors
 
 import akka.Done
 import akka.actor.{Actor, Props}
-import akka.http.scaladsl.model.{ContentType, MediaType}
 import akka.http.scaladsl.model.MediaType.NotCompressible
+import akka.http.scaladsl.model.{ContentType, MediaType}
 import akka.http.scaladsl.server.directives.ContentTypeResolver
-import net.creasource.core.Application
+import net.creasource.Application
+import net.creasource.json.JsonSupport
 import spray.json.RootJsonFormat
 
 object MediaTypesActor extends JsonSupport {
