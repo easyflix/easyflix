@@ -9,23 +9,18 @@
   $background: map-get($theme, background);
 
   app-sidenav {
-
     > nav {
       background-color: mat-color($background, app-bar);
     }
-
     .active {
       color: mat-color($primary);
     }
-
   }
 
   app-about {
-
     a {
       color: mat-color($accent);
     }
-
   }
 
   app-search {
@@ -44,6 +39,12 @@
   app-library {
     .path, .subtext {
       color: mat-color($foreground, secondary-text);
+    }
+  }
+
+  app-settings {
+    input[disabled] {
+      color: mat-color($foreground, text) !important;
     }
   }
 
