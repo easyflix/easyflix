@@ -16,6 +16,7 @@ sealed trait LibraryFile {
 object LibraryFile extends JsonSupport {
 
   case class Folder(id: String, name: String, parent: Path, filePath: Path) extends LibraryFile
+
   case class Video(id: String, name: String, parent: Path, size: Long, filePath: Path) extends LibraryFile
 
   object Video {
@@ -43,5 +44,6 @@ object LibraryFile extends JsonSupport {
       "size" -> size.toJson
     )
   }
+
   implicit val format: RootJsonFormat[LibraryFile] = lift(writer)
 }

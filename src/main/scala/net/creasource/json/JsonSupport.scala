@@ -1,5 +1,7 @@
 package net.creasource.json
 
+import java.nio.file.{Path, Paths}
+
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.MediaType.NotCompressible
 import akka.http.scaladsl.model._
@@ -78,6 +80,11 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   }
 
   implicit val mediaTypeFormat: RootJsonFormat[MediaType.Binary] = rootJsonFormat(mediaTypeReader, mediaTypeWriter)
+
+  implicit val pathReader: RootJsonReader[Path] = {
+    case JsString(path) => Paths.get(path)
+    case _ => throw DeserializationException("Path must be a string")
+  }
 }
 
 object JsonSupport extends JsonSupport
