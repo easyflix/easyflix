@@ -48,4 +48,5 @@ testem.log
 .DS_Store
 Thumbs.db
 
-data/
+/data
+/config
