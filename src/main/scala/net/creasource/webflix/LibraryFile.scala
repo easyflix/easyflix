@@ -1,7 +1,8 @@
 package net.creasource.webflix
 
-import java.nio.file.Path
+import java.nio.file.{Path, Paths}
 
+import akka.http.scaladsl.server.directives.ContentTypeResolver
 import me.nimavat.shortid.ShortId
 import net.creasource.json.JsonSupport
 import spray.json._
@@ -46,4 +47,25 @@ object LibraryFile extends JsonSupport {
   }
 
   implicit val format: RootJsonFormat[LibraryFile] = lift(writer)
+
+  def fromPath(path: Path, library: Library)(implicit contentTypeResolver: ContentTypeResolver = ContentTypeResolver.Default): Option[LibraryFile] = {
+    def getParentPathRelativeToLibrary(path: Path) = {
+      Paths.get(library.name).resolve(library.path.relativize(path)).getParent
+    }
+    val file = path.toFile
+    if (file.isFile) {
+      Option(contentTypeResolver(file.getName).mediaType.isVideo).collect{ case true => Video(
+        parent = getParentPathRelativeToLibrary(path),
+        name = file.getName,
+        size = file.length,
+        filePath = path
+      )}
+    } else {
+      Some(Folder(
+        parent = getParentPathRelativeToLibrary(path),
+        name = file.getName,
+        filePath = path
+      ))
+    }
+  }
 }

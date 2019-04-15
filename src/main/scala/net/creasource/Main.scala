@@ -14,7 +14,7 @@ import scala.io.StdIn
   */
 object Main extends App with SPAWebServer with SocketWebServer {
 
-  implicit val app: Application = Application()
+  implicit private val app: Application = Application()
 
   private val host = app.config.getString("http.host")
   private val port = app.config.getInt("http.port")

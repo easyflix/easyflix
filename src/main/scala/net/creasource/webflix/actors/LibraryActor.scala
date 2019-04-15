@@ -1,6 +1,6 @@
 package net.creasource.webflix.actors
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.Path
 
 import akka.NotUsed
 import akka.actor.{Actor, Props}
@@ -67,7 +67,7 @@ class LibraryActor()(implicit val application: Application) extends Actor {
 
   var folderKillSwitches: Map[Path, UniqueKillSwitch] = Map.empty
 
-  var contentTypeResolver: ContentTypeResolver = _
+  implicit var contentTypeResolver: ContentTypeResolver = _
 
   case class ScanComplete(folder: Path)
   case class WatchComplete(folder: Path)
@@ -90,7 +90,7 @@ class LibraryActor()(implicit val application: Application) extends Actor {
         contentTypeResolver = resolver
         // Rescan libraries
         libraries.values.toSeq.foreach(library =>
-          scanFolder(library.path, library, librariesKillSwitches(library.name), resolver).runWith(Sink.ignore) // TODO submit to event stream
+          scanFolder(library.path, library, librariesKillSwitches(library.name)).runWith(Sink.ignore) // TODO submit to event stream
         )
         // Delete files that don't resolve to a video content-type anymore
         libraryFiles.values.toSeq.foreach {
@@ -141,7 +141,7 @@ class LibraryActor()(implicit val application: Application) extends Actor {
         librariesKillSwitches += (library.name -> killSwitch)
 
         val client = sender()
-        scanFolder(library.path, library, killSwitch, contentTypeResolver)
+        scanFolder(library.path, library, killSwitch)
           .runWith(Sink.seq)
           .onComplete {
             case Success(files) => client ! AddLibrarySuccess(library, files)
@@ -184,11 +184,11 @@ class LibraryActor()(implicit val application: Application) extends Actor {
         libraryFiles.values.toSeq.find(_.filePath == path) match {
           case None =>
             for {
-              file <- pathToLibraryFile(path, library, contentTypeResolver)
+              file <- LibraryFile.fromPath(path, library)
             } yield {
               self ! file
               file match {
-                case Folder(_, _, _, filePath) => scanFolder(filePath, library, killSwitch, contentTypeResolver).runWith(Sink.ignore) // TODO submit to event bus
+                case Folder(_, _, _, filePath) => scanFolder(filePath, library, killSwitch).runWith(Sink.ignore) // TODO submit to event bus
                 case _ =>
               }
               // TODO submit to event bus
@@ -214,12 +214,13 @@ class LibraryActor()(implicit val application: Application) extends Actor {
       }
   }
 
-  def scanFolder(folder: Path, library: Library, killSwitch: SharedKillSwitch, contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed] = {
+  def scanFolder(folder: Path, library: Library, killSwitch: SharedKillSwitch): Source[LibraryFile, NotUsed] = {
     watchFolder(folder, library, killSwitch)
     logger.info(s"Scanning folder: $folder")
     Directory.walk(folder)
       .filter(path => path != folder)
-      .via(toLibraryFileFlow(library, contentTypeResolver))
+      .map(LibraryFile.fromPath(_, library))
+      .collect { case Some(libraryFile) => libraryFile }
       .alsoTo(Sink.actorRef(self, ScanComplete(folder)))
       .alsoTo(Sink.foreach {
         case Folder(_, _, _, folderPath) => watchFolder(folderPath, library, killSwitch)
@@ -242,37 +243,6 @@ class LibraryActor()(implicit val application: Application) extends Actor {
     } else {
       logger.info(s"Already Watching folder $folder")
       Try(())
-    }
-  }
-
-  def toLibraryFileFlow(library: Library, contentTypeResolver: ContentTypeResolver): Flow[Path, LibraryFile, NotUsed] = {
-    Flow[Path]
-      .map(path => pathToLibraryFile(path, library, contentTypeResolver))
-      .collect { case Some(libraryFile) => libraryFile }
-  }
-
-  def pathToLibraryFile(path: Path, library: Library, contentTypeResolver: ContentTypeResolver): Option[LibraryFile] = {
-    def getParentPathRelativeToLibrary(path: Path) = {
-      Paths.get(library.name).resolve(library.path.relativize(path)).getParent
-    }
-    val file = path.toFile
-    if (file.isFile) {
-      if (contentTypeResolver(file.getName).mediaType.isVideo) {
-        Some(Video(
-          parent = getParentPathRelativeToLibrary(path),
-          name = file.getName,
-          size = file.length,
-          filePath = path
-        ))
-      } else {
-        None
-      }
-    } else {
-      Some(Folder(
-        parent = getParentPathRelativeToLibrary(path),
-        name = file.getName,
-        filePath = path
-      ))
     }
   }
 

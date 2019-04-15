@@ -18,14 +18,14 @@ object Library extends JsonSupport {
   }
 
   implicit val reader: RootJsonReader[Library] = { js: JsValue =>
-      val obj = js.asJsObject
-      obj.fields.get("type") match {
-        case Some(JsString("library")) =>
-        case _ => throw DeserializationException("Invalid or missing type attribute", fieldNames = List("type"))
-      }
-      val name = obj.fields("name").convertTo[String]
-      val path = obj.fields("path").convertTo[Path]
-      Library(name, path)
+    val obj = js.asJsObject
+    obj.fields("type").convertTo[String] match {
+      case "library" =>
+      case _ => throw DeserializationException("Invalid type attribute", fieldNames = List("type"))
+    }
+    val name = obj.fields("name").convertTo[String]
+    val path = obj.fields("path").convertTo[Path]
+    Library(name, path)
   }
 
   implicit val format: RootJsonFormat[Library] = rootJsonFormat(reader, writer)

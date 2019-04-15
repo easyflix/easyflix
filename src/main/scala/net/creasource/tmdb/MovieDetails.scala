@@ -35,7 +35,7 @@ object MovieDetails extends JsonSupport {
   def get(
       movie_id: Int,
       api_key: String,
-      language: Option[String] = None,
+      language: Option[String] = Some("en-US"),
       append_to_response: Option[String] = None): String = {
 
     s"/3/movie/$movie_id?api_key=$api_key" +
