@@ -21,6 +21,7 @@ lazy val root = (project in file("."))
     libraryDependencies += alpakka,
 
     libraryDependencies += scalaTest % Test,
+    libraryDependencies += akkaTestkit % Test,
 
     unmanagedResourceDirectories in Compile += baseDirectory.value / "config",
     unmanagedResourceDirectories in Compile += target.value / "front",

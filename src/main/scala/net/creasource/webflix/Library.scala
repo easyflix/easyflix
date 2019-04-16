@@ -2,32 +2,28 @@ package net.creasource.webflix
 
 import java.nio.file.Path
 
+import akka.NotUsed
+import akka.http.scaladsl.server.directives.ContentTypeResolver
+import akka.stream.alpakka.file.DirectoryChange
+import akka.stream.scaladsl.Source
 import net.creasource.json.JsonSupport
-import spray.json._
 
-case class Library(name: String, path: Path)
+import scala.concurrent.duration.FiniteDuration
+
+trait Library {
+  val id: String
+  val name: String
+  val path: Path
+  def scan()(implicit contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed] = scan(path)
+  def scan(path: Path)(implicit contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed]
+}
 
 object Library extends JsonSupport {
 
-  implicit val writer: RootJsonWriter[Library] = {
-    case Library(name, path) => JsObject(
-      "type" -> "library".toJson,
-      "name" -> name.toJson,
-      "path" -> path.toString.toJson
-    )
+  trait Watchable { self: Library =>
+    val pollInterval: FiniteDuration
+    def watch(): Source[(LibraryFile, DirectoryChange), NotUsed] = watch(path)
+    def watch(path: Path): Source[(LibraryFile, DirectoryChange), NotUsed]
   }
-
-  implicit val reader: RootJsonReader[Library] = { js: JsValue =>
-    val obj = js.asJsObject
-    obj.fields("type").convertTo[String] match {
-      case "library" =>
-      case _ => throw DeserializationException("Invalid type attribute", fieldNames = List("type"))
-    }
-    val name = obj.fields("name").convertTo[String]
-    val path = obj.fields("path").convertTo[Path]
-    Library(name, path)
-  }
-
-  implicit val format: RootJsonFormat[Library] = rootJsonFormat(reader, writer)
 
 }
