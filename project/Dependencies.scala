@@ -6,6 +6,8 @@ object Dependencies {
 
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5"
   lazy val akkaTestkit = "com.typesafe.akka" %% "akka-testkit" % akkaVersion
+  lazy val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion
+  lazy val akkaHttpTestkit = "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion
 
   lazy val akkaHttp = "com.typesafe.akka" %% "akka-http" % akkaHttpVersion
   lazy val akkaHttpSprayJson = "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion

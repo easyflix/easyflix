@@ -9,9 +9,9 @@ import akka.http.scaladsl.server.directives.{ContentTypeResolver, FileAndResourc
 import akka.pattern.ask
 import net.creasource.Application
 import net.creasource.webflix.LibraryFile
-import net.creasource.webflix.LibraryFile.{Folder, Video}
+/*import net.creasource.webflix.LibraryFile.{Folder, Video}
 import net.creasource.webflix.actors.LibraryActor.GetLibraryFile
-import net.creasource.webflix.actors.MediaTypesActor.GetContentTypeResolver
+import net.creasource.webflix.actors.MediaTypesActor.GetContentTypeResolver*/
 
 import scala.concurrent.duration._
 
@@ -20,9 +20,8 @@ object VideosRoutes extends FileAndResourceDirectives {
   implicit val askTimeout: akka.util.Timeout = 2.seconds
 
   def routes(application: Application): Route =
-    pathPrefix("videos") {
-      Route.seal(
-        path(Segment) { id =>
+    complete(StatusCodes.OK)
+        /*path(Segment) { id =>
           onSuccess((application.libraryActor ? GetLibraryFile(id)).mapTo[Option[LibraryFile]]) {
             case Some(Video(_, _, _, _, path)) =>
               onSuccess((application.mediaTypesActor ? GetContentTypeResolver).mapTo[ContentTypeResolver]) { implicit contentTypeResolver =>
@@ -38,8 +37,7 @@ object VideosRoutes extends FileAndResourceDirectives {
             case _ =>
               complete(StatusCodes.NotFound, "The requested resource could not be found")
           }
-        }
-      )
-    }
+        }*/
+
 
 }

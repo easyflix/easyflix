@@ -23,10 +23,15 @@ object Main extends App with SPAWebServer with SocketWebServer {
   override implicit val system: ActorSystem = app.system
 
   private val apiRoutes = APIRoutes.routes(app)
-  private val libraryRoutes = VideosRoutes.routes(app)
+  private val videosRoutes = VideosRoutes.routes(app)
 
   override val socketActorProps: Props = SocketActor.props(apiRoutes)
-  override val routes: Route = apiRoutes ~ libraryRoutes ~ super.routes
+  override val routes: Route =
+    pathPrefix("api") {
+      Route.seal(apiRoutes)
+    } ~ pathPrefix("videos") {
+      Route.seal(videosRoutes)
+    } ~ super.routes
 
   val startFuture = start(host, port)
 

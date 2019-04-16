@@ -15,7 +15,7 @@ class LibraryTest extends SimpleTest with WithLibrary {
     val pollInterval = 100.milliseconds
 
     "scan root directory recursively" in {
-      val lib = LocalLibrary("id", "name", libraryPath)
+      val lib = Library.Local("name", libraryPath)
       val future = lib.scan().runWith(Sink.seq)
       val files = Await.result(future, 2.seconds)
 
@@ -28,7 +28,7 @@ class LibraryTest extends SimpleTest with WithLibrary {
     }
 
     "scan a sub directory" in {
-      val lib = LocalLibrary("id", "name", libraryPath)
+      val lib = Library.Local("name", libraryPath)
       val folder = libraryPath.relativize(libraryFiles.head._1)
       val future = lib.scan(folder).runWith(Sink.seq)
       val files = Await.result(future, 2.seconds)
@@ -43,7 +43,7 @@ class LibraryTest extends SimpleTest with WithLibrary {
     }
 
     "watch root directory" in {
-      val lib = LocalLibrary("", "", libraryPath, pollInterval)
+      val lib = Library.Local("name", libraryPath, pollInterval)
       val (ks, future) = lib
         .watch()
         .viaMat(KillSwitches.single)(Keep.right)
@@ -64,7 +64,7 @@ class LibraryTest extends SimpleTest with WithLibrary {
     }
 
     "watch a sub directory" in {
-      val lib = LocalLibrary("", "", libraryPath, pollInterval)
+      val lib = Library.Local("name", libraryPath, pollInterval)
       val (ks, future) = lib
         .watch(libraryFiles.head._1) // folder1
         .viaMat(KillSwitches.single)(Keep.right)
