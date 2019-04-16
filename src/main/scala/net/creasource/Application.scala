@@ -3,7 +3,8 @@ package net.creasource
 import akka.actor.{ActorRef, ActorSystem}
 import akka.stream.ActorMaterializer
 import com.typesafe.config.{Config, ConfigFactory}
-import net.creasource.webflix.actors.LibrarySupervisor
+import net.creasource.webflix.actors.{LibrarySupervisor, MediaTypesActor}
+import net.creasource.webflix.events.ApplicationBus
 
 import scala.concurrent.Await
 
@@ -25,10 +26,9 @@ class Application {
 
   system.log.info("Application starting.")
 
-//  val mediaTypesActor: ActorRef = system.actorOf(MediaTypesActor.props()(this), "media-types")
-//  val libraryActor: ActorRef = system.actorOf(LibraryActor.props()(this), "libraries")
-
+  val bus: ApplicationBus = new ApplicationBus
   val libraries: ActorRef = system.actorOf(LibrarySupervisor.props()(this), "libraries")
+  val mediaTypesActor: ActorRef = system.actorOf(MediaTypesActor.props()(this), "media-types")
 
   def shutdown() {
     system.log.info("Shutting down Akka materializer and system.")
