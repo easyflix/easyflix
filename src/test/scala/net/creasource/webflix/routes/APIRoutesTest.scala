@@ -1,15 +1,13 @@
 package net.creasource.webflix.routes
 
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit._
-import akka.pattern.ask
 import net.creasource.Application
 import net.creasource.json.JsonSupport
 import net.creasource.util.WithLibrary
 import net.creasource.webflix.Library
-import net.creasource.webflix.actors.LibrarySupervisor
 import org.scalatest.{Matchers, Suite, WordSpecLike}
-
-import scala.concurrent.duration._
+import spray.json.{JsArray, JsObject}
 
 class APIRoutesTest extends Suite
   with WordSpecLike
@@ -29,6 +27,7 @@ class APIRoutesTest extends Suite
     "return an empty array for GETs on /libraries" in {
 
       Get("/libraries") ~> route ~> check {
+        status shouldEqual StatusCodes.OK
         responseAs[Seq[Library]] shouldEqual Seq.empty
       }
 
@@ -37,6 +36,7 @@ class APIRoutesTest extends Suite
     "return a library for POSTs on /libraries" in {
 
       Post("/libraries", lib.toJson) ~> route ~> check {
+        status shouldEqual StatusCodes.OK
         responseAs[Library] shouldEqual lib
       }
 
@@ -45,7 +45,38 @@ class APIRoutesTest extends Suite
     "return created libraries for GETs on /libraries" in {
 
       Get("/libraries") ~> route ~> check {
+        status shouldEqual StatusCodes.OK
         responseAs[Seq[Library]] shouldEqual Seq(lib)
+      }
+
+    }
+
+    "return an object for GETs on /library/{name}" in {
+
+      Get(s"/libraries/${lib.name}") ~> route ~> check {
+        status shouldEqual StatusCodes.OK
+        responseAs[JsObject] shouldEqual JsObject(
+          "library" -> lib.toJson,
+          "files" -> JsArray()
+        )
+      }
+
+    }
+
+    "return an empty response for DELETEs on /library/{name}" in {
+
+      Delete(s"/libraries/${lib.name}") ~> route ~> check {
+        status shouldEqual StatusCodes.Accepted
+        responseAs[String] shouldEqual ""
+      }
+
+    }
+
+    "return an empty array for GETs on /libraries (2)" in {
+
+      Get("/libraries") ~> route ~> check {
+        status shouldEqual StatusCodes.OK
+        responseAs[Seq[Library]] shouldEqual Seq.empty
       }
 
     }
