@@ -8,7 +8,7 @@ import akka.pattern.ask
 import net.creasource.Application
 import net.creasource.json.JsonSupport
 import net.creasource.webflix.actors.LibrarySupervisor._
-import net.creasource.webflix.exceptions.NotFoundException
+import net.creasource.exceptions.NotFoundException
 import net.creasource.webflix.{Library, LibraryFile}
 import spray.json._
 
