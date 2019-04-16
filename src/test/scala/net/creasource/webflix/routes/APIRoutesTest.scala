@@ -7,7 +7,7 @@ import net.creasource.json.JsonSupport
 import net.creasource.util.WithLibrary
 import net.creasource.webflix.Library
 import org.scalatest.{Matchers, Suite, WordSpecLike}
-import spray.json.{JsArray, JsObject}
+import spray.json.{JsArray, JsObject, JsString, JsValue}
 
 class APIRoutesTest extends Suite
   with WordSpecLike
@@ -42,6 +42,15 @@ class APIRoutesTest extends Suite
 
     }
 
+    "return a BadRequest for consecutive POSTs on /libraries" in {
+
+      Post("/libraries", lib.toJson) ~> route ~> check {
+        status shouldEqual StatusCodes.BadRequest
+        responseAs[String] shouldEqual "" // TODO explain
+      }
+
+    }
+
     "return created libraries for GETs on /libraries" in {
 
       Get("/libraries") ~> route ~> check {
@@ -63,6 +72,15 @@ class APIRoutesTest extends Suite
 
     }
 
+    "return a 404 for GETs on /library/unknown" in {
+
+      Get(s"/libraries/unknown") ~> route ~> check {
+        status shouldEqual StatusCodes.NotFound
+        responseAs[JsValue] shouldEqual JsString("No library with that name")
+      }
+
+    }
+
     "return an empty response for DELETEs on /library/{name}" in {
 
       Delete(s"/libraries/${lib.name}") ~> route ~> check {
@@ -73,6 +91,8 @@ class APIRoutesTest extends Suite
     }
 
     "return an empty array for GETs on /libraries (2)" in {
+
+      Thread.sleep(100) // Remove this test ?
 
       Get("/libraries") ~> route ~> check {
         status shouldEqual StatusCodes.OK

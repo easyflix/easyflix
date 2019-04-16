@@ -8,6 +8,7 @@ import akka.pattern.ask
 import net.creasource.Application
 import net.creasource.json.JsonSupport
 import net.creasource.webflix.actors.LibrarySupervisor._
+import net.creasource.webflix.exceptions.NotFoundException
 import net.creasource.webflix.{Library, LibraryFile}
 import spray.json._
 
@@ -55,7 +56,7 @@ object APIRoutes extends Directives with JsonSupport {
                   for {
                     library <- (app.libraries ? GetLibrary(name)).map {
                       case Some(library: Library) => library
-                      case None => throw new RuntimeException("No library with that name")
+                      case None => throw NotFoundException("No library with that name")
                     }
                     files <- (app.libraries ? GetLibraryFiles(library.name)).mapTo[Seq[LibraryFile]]
                   } yield {
@@ -64,8 +65,9 @@ object APIRoutes extends Directives with JsonSupport {
                       "files" -> files.toJson
                     )
                   }
-                } { cause =>
-                  complete(StatusCodes.BadRequest -> cause.getMessage.toJson)
+                } {
+                  case NotFoundException(message) => complete(StatusCodes.NotFound -> message.toJson)
+                  case cause => complete(StatusCodes.InternalServerError -> cause.getMessage.toJson)
                 }
               }
             } ~
