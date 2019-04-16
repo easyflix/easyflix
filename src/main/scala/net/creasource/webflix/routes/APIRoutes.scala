@@ -2,13 +2,14 @@ package net.creasource.webflix.routes
 
 import akka.Done
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
+import akka.http.scaladsl.model.{HttpHeader, MediaType, StatusCodes}
 import akka.http.scaladsl.server.{Directives, Route}
 import akka.pattern.ask
 import net.creasource.Application
+import net.creasource.exceptions.NotFoundException
 import net.creasource.json.JsonSupport
 import net.creasource.webflix.actors.LibrarySupervisor._
-import net.creasource.exceptions.NotFoundException
+import net.creasource.webflix.actors.MediaTypesActor._
 import net.creasource.webflix.{Library, LibraryFile}
 import spray.json._
 
@@ -76,14 +77,14 @@ object APIRoutes extends Directives with JsonSupport {
             }
           }
         },
-        /*pathPrefix("media-types") {
+        pathPrefix("media-types") {
           pathEndOrSingleSlash {
             get {
-              onSuccess((application.mediaTypesActor ? GetMediaTypes).mapTo[Seq[MediaType.Binary]])(r => complete(r))
+              onSuccess((app.mediaTypesActor ? GetMediaTypes).mapTo[Seq[MediaType.Binary]])(r => complete(r))
             } ~
             post {
               entity(as[MediaType.Binary]) { mediaType =>
-                onSuccess((application.mediaTypesActor ? AddMediaType(mediaType)).mapTo[AddMediaTypeResult]){
+                onSuccess((app.mediaTypesActor ? AddMediaType(mediaType)).mapTo[AddMediaTypeResult]){
                   case AddMediaTypeSuccess(mt) => complete(mt)
                   case error: AddMediaTypeError => complete(StatusCodes.BadRequest, error.toJson)
                 }
@@ -92,12 +93,12 @@ object APIRoutes extends Directives with JsonSupport {
           } ~
           path(Segment) { subType =>
             delete {
-              onSuccess((application.mediaTypesActor ? RemoveMediaType(subType)).mapTo[Done]){
-                _ => complete(StatusCodes.OK, subType.toJson)
+              onSuccess((app.mediaTypesActor ? RemoveMediaType(subType)).mapTo[Done]){
+                _ => complete(StatusCodes.OK, "")
               }
             }
           }
-        }*/
+        }
       )
     }
 
