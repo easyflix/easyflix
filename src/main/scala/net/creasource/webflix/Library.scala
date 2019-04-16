@@ -50,7 +50,6 @@ object Library extends JsonSupport {
           (LibraryFile(file.getName, p, file.isDirectory, file.length(), file.lastModified()), directoryChange)
       }
     }
-
   }
 
   case class FTP(name: String, path: Path) extends Library {
@@ -62,8 +61,16 @@ object Library extends JsonSupport {
   }
 
   object Local {
-    implicit val reader: RootJsonReader[Local] = ???
-    implicit val writer: RootJsonWriter[Local] = ???
+    implicit val reader: RootJsonReader[Local] = js => {
+      val obj = js.asJsObject
+      val name = obj.fields("name").convertTo[String]
+      val path = obj.fields("path").convertTo[Path]
+      Local(name, path) // TODO must ensure that path is absolute
+    }
+    implicit val writer: RootJsonWriter[Local] = local => JsObject(
+      "name" -> local.name.toJson,
+      "path" -> local.path.toJson
+    )
     implicit val format: RootJsonFormat[Local] = rootJsonFormat(reader, writer)
   }
 
