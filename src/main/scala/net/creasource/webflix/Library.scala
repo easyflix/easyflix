@@ -68,6 +68,7 @@ object Library extends JsonSupport {
       Local(name, path) // TODO must ensure that path is absolute
     }
     implicit val writer: RootJsonWriter[Local] = local => JsObject(
+      "type" -> "local".toJson,
       "name" -> local.name.toJson,
       "path" -> local.path.toJson
     )
