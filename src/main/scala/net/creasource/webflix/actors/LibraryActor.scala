@@ -2,248 +2,163 @@ package net.creasource.webflix.actors
 
 import java.nio.file.Path
 
-import akka.NotUsed
 import akka.actor.{Actor, Props}
 import akka.event.Logging
 import akka.http.scaladsl.server.directives.ContentTypeResolver
 import akka.stream.alpakka.file.DirectoryChange
-import akka.stream.alpakka.file.scaladsl.{Directory, DirectoryChangesSource}
-import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
+import akka.stream.scaladsl.{Keep, Sink}
 import akka.stream.{KillSwitches, SharedKillSwitch, UniqueKillSwitch}
 import net.creasource.Application
-import net.creasource.json.JsonSupport
-import net.creasource.webflix.LibraryFile.{Folder, Video}
-import net.creasource.webflix.actors.MediaTypesActor.GetContentTypeResolver
+import net.creasource.webflix.events.ResolverUpdate
 import net.creasource.webflix.{Library, LibraryFile}
-import spray.json._
 
-import scala.collection.immutable.Seq
-import scala.concurrent.duration._
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
-object LibraryActor extends JsonSupport {
+object LibraryActor {
 
-  case object GetLibraries
+  case object GetFiles
+  case class GetFile(path: Path)
 
-  case class GetLibraryFile(id: String)
-  case object GetLibraryFiles
+  case object Scan
+  sealed trait ScanResult
+  case class ScanSuccess(files: Seq[LibraryFile]) extends ScanResult
+  case class ScanFailure(cause: Throwable) extends ScanResult
 
-  case class AddLibrary(library: Library)
-
-  sealed trait AddLibraryResult
-  case class AddLibrarySuccess(library: Library, files: Seq[LibraryFile]) extends AddLibraryResult
-  case class AddLibraryError(control: String, code: String, value: Option[String]) extends AddLibraryResult
-  object AddLibrarySuccess extends JsonSupport {
-    implicit val writer: RootJsonWriter[AddLibrarySuccess] = (success: AddLibrarySuccess) =>
-      JsObject("library" -> success.library.toJson, "files" -> success.files.toJson)
-  }
-  object AddLibraryError {
-    def apply(control: String, code: String): AddLibraryError = apply(control, code, None)
-    implicit val format: RootJsonFormat[AddLibraryError] = jsonFormat3(AddLibraryError.apply)
-  }
-
-  case class RemoveLibrary(name: String)
-  sealed trait RemoveLibraryResult
-  case object RemoveLibrarySuccess extends RemoveLibraryResult
-  case class RemoveLibraryError(error: String) extends RemoveLibraryResult
-
-  def props()(implicit application: Application): Props = Props(new LibraryActor)
+  def props(library: Library)(implicit app: Application): Props = Props(new LibraryActor(library))
 
 }
 
-class LibraryActor()(implicit val application: Application) extends Actor {
+class LibraryActor(library: Library)(implicit app: Application) extends Actor {
 
   import LibraryActor._
-  import application.materializer
+  import app.materializer
   import context.dispatcher
 
-  private val logger = Logging(context.system, this)
+  val logger = Logging(context.system, this)
 
-  var libraries: Map[String, Library] = Map.empty
+  var files: Map[Path, LibraryFile] = Map.empty
 
-  var libraryFiles: Map[String, LibraryFile] = Map.empty
+  val killSwitch: SharedKillSwitch = KillSwitches.shared(library.name)
 
-  var librariesKillSwitches: Map[String, SharedKillSwitch] = Map.empty
+  var foldersKillSwitches: Map[Path, UniqueKillSwitch] = Map.empty
 
-  var folderKillSwitches: Map[Path, UniqueKillSwitch] = Map.empty
+  implicit var contentTypeResolver: ContentTypeResolver = ContentTypeResolver.Default
 
-  implicit var contentTypeResolver: ContentTypeResolver = _
+  case class ScanComplete(path: Path)
 
-  case class ScanComplete(folder: Path)
-  case class WatchComplete(folder: Path)
+  case class WatchComplete(path: Path)
 
-  override def preStart(): Unit = {
-    application.mediaTypesActor ! GetContentTypeResolver
-  }
+  app.bus.subscribe(self, classOf[ResolverUpdate])
 
-  override def postStop(): Unit = {
-    librariesKillSwitches.values.toSeq.foreach(_.shutdown())
-  }
+  def common: Receive = {
 
-  override def receive: Receive = {
+    case ResolverUpdate(ctr) =>
+      logger.info("Received a content type resolver update. Rescanning.")
+      contentTypeResolver = ctr
+      files.values.foreach {
+        case LibraryFile(name, path, false, _, _) if !ctr(name).mediaType.isVideo => files -= path // TODO submit to event stream
+      }
+      self ! Scan
 
-    case resolver: ContentTypeResolver =>
-      if (contentTypeResolver == null) {
-        contentTypeResolver = resolver
-      } else {
-        logger.info("Content resolver update")
-        contentTypeResolver = resolver
-        // Rescan libraries
-        libraries.values.toSeq.foreach(library =>
-          scanFolder(library.path, library, librariesKillSwitches(library.name)).runWith(Sink.ignore) // TODO submit to event stream
-        )
-        // Delete files that don't resolve to a video content-type anymore
-        libraryFiles.values.toSeq.foreach {
-          case Video(id, name, _, _, _) if !resolver(name).mediaType.isVideo => libraryFiles -= id // TODO submit to event stream
+    case GetFiles => sender() ! files.values.toSeq
+
+    case GetFile(path) => sender() ! files.get(path)
+
+    case file: LibraryFile => files += (file.path -> file)
+
+    case (file: LibraryFile, DirectoryChange.Creation) =>
+      logger.info(s"File created: ${file.path}")
+      files += (file.path -> file)
+      if (file.isDirectory) {
+        // Watch it
+        library match {
+          case lib: Library.Watchable =>
+            val ks = lib
+              .watch(file.path)
+              .via(killSwitch.flow)
+              .viaMat(KillSwitches.single)(Keep.right)
+              .to(Sink.actorRef(self, WatchComplete(file.path)))
+              .run()
+            foldersKillSwitches += (file.path -> ks)
           case _ =>
         }
+        // Scan it
+        library
+          .scan(file.path)
+          .via(killSwitch.flow)
+          .to(Sink.actorRef(self, ScanComplete(file.path)))
+          .run()
       }
 
-    case file: LibraryFile =>
-      if (libraryFiles.values.toSeq.exists(_.filePath == file.filePath)) {
-        logger.info(s"Ignoring file already known: ${file.filePath}")
+    case (file: LibraryFile, DirectoryChange.Deletion) =>
+      files -= file.path
+      if (file.isDirectory) {
+        // Stop watching it
+        foldersKillSwitches.get(file.path).foreach(_.shutdown())
+        foldersKillSwitches -= file.path
+        // Delete children
+        val children = files.values.filter(_.path.startsWith(file.path)).map(_.path)
+        files --= children
+        logger.info(s"Folder and ${children.toSeq.length} children deleted: ${file.path}")
       } else {
-        logger.info(s"New library file: ${file.filePath}")
-        libraryFiles += (file.id -> file)
+        logger.info(s"File deleted: ${file.path}")
       }
 
-    case GetLibraries => sender ! libraries.values.toSeq
-
-    case GetLibraryFiles => sender ! libraryFiles.values.toSeq
-
-    case GetLibraryFile(id) => sender ! libraryFiles.get(id)
-
-    case AddLibrary(library) =>
-      if (library.name == "") {
-        sender() ! AddLibraryError("name", "required")
-      } else if (library.name.contains(":")) {
-        sender() ! AddLibraryError("name", "pattern")
-      } else if (libraries.keys.toSeq.contains(library.name)) {
-        sender() ! AddLibraryError("name", "alreadyExists")
-      } else if (library.path.toString == "") {
-        sender() ! AddLibraryError("path", "required")
-      } else if (!library.path.isAbsolute) {
-        sender() ! AddLibraryError("path", "notAbsolute")
-      } else if (!library.path.toFile.exists) {
-        sender() ! AddLibraryError("path", "doesNotExist")
-      } else if (!library.path.toFile.isDirectory) {
-        sender() ! AddLibraryError("path", "notDirectory")
-      } else if (!library.path.toFile.canRead) {
-        sender() ! AddLibraryError("path", "notReadable")
-      }  else if (libraries.values.toSeq.map(_.path).contains(library.path)) {
-        sender() ! AddLibraryError("path", "alreadyExists")
-      } else if (libraries.values.toSeq.map(_.path).exists(path => path.startsWith(library.path) || library.path.startsWith(path))) {
-        sender() ! AddLibraryError("path", "noChildren")
-      } else {
-        libraries += (library.name -> library)
-
-        val killSwitch = KillSwitches.shared(library.name)
-        librariesKillSwitches += (library.name -> killSwitch)
-
-        val client = sender()
-        scanFolder(library.path, library, killSwitch)
-          .runWith(Sink.seq)
-          .onComplete {
-            case Success(files) => client ! AddLibrarySuccess(library, files)
-            case Failure(exception) => client ! AddLibraryError("other", "failure", Some(exception.getMessage))
-          }
-      }
-
-    case ScanComplete(folder) => logger.info(s"Scan complete: $folder")
+    case (file: LibraryFile, DirectoryChange.Modification) => files += (file.path -> file)
 
     case WatchComplete(folder) => logger.info(s"Stopped watching: $folder")
 
-    case akka.actor.Status.Failure(cause) => logger.error("An error occurred!", cause)
+  }
 
-    case RemoveLibrary(libraryName) =>
-      if (libraries.get(libraryName).isDefined) {
-        logger.info(s"Removing library: $libraryName")
-        librariesKillSwitches.get(libraryName).foreach(_.shutdown())
-        librariesKillSwitches -= libraryName
-        libraryFiles.foreach {
-          case (_, Folder(_, _, _, folderPath)) if folderPath.startsWith(libraries(libraryName).path) =>
-            folderKillSwitches.get(folderPath).foreach(_.shutdown())
-            folderKillSwitches -= folderPath
+  def ready: Receive = common orElse {
+
+    case Scan =>
+      val client = sender()
+      library.scan()
+        .via(killSwitch.flow)
+        .alsoTo(Sink.actorRef(self, ScanComplete(library.path)))
+        .alsoTo(Sink.foreach {
+          case file if file.isDirectory & library.isInstanceOf[Library.Watchable] & foldersKillSwitches.get(file.path).isEmpty =>
+            logger.info(s"Watching: ${file.path}")
+            val ks = library.asInstanceOf[Library.Watchable]
+              .watch(file.path)
+              .via(killSwitch.flow)
+              .viaMat(KillSwitches.single)(Keep.right)
+              .to(Sink.actorRef(self, WatchComplete(file.path)))
+              .run()
+            foldersKillSwitches += (file.path -> ks)
           case _ =>
+        })
+        .runWith(Sink.seq)
+        .onComplete {
+          case Success(scannedFiles) => client ! ScanSuccess(scannedFiles)
+          case Failure(exception) => client ! ScanFailure(exception)
         }
-        folderKillSwitches.get(libraries(libraryName).path).foreach(_.shutdown())
-        libraryFiles = libraryFiles.filter {
-          case (_, file) => !file.filePath.startsWith(libraries(libraryName).path)
-        }
-        libraries -= libraryName
-        logger.info(s"libraryKillSwitches (${librariesKillSwitches.size}), folderKillSwitches (${folderKillSwitches.size})")
-      }
-      sender() ! RemoveLibrarySuccess
+      context become scanning
 
-    case (path: Path, library: Library, DirectoryChange.Creation) =>
-      for {
-        library <- libraries.get(library.name) // Check that the library exists
-        killSwitch <- librariesKillSwitches.get(library.name) // Check that the killSwitch exists
-        _ <- Option(path.toFile.exists()).collect{ case true => () } // Check that the created file still exists
-      } yield {
-        libraryFiles.values.toSeq.find(_.filePath == path) match {
-          case None =>
-            for {
-              file <- LibraryFile.fromPath(path, library)
-            } yield {
-              self ! file
-              file match {
-                case Folder(_, _, _, filePath) => scanFolder(filePath, library, killSwitch).runWith(Sink.ignore) // TODO submit to event bus
-                case _ =>
-              }
-              // TODO submit to event bus
-            }
-          case _ => logger.warning("Got a creation message for a file already in library")
-        }
-      }
+    case ScanComplete(folder) => logger.info(s"Scan complete: $folder")
 
-    case (path: Path, _: Library, DirectoryChange.Deletion) =>
-      for {
-        deletedFile <- libraryFiles.values.toSeq.find(_.filePath == path)
-      } yield {
-        libraryFiles -= deletedFile.id
-        deletedFile match {
-          case Folder(_, _, _, filePath) =>
-            val childrenIds = libraryFiles.values.toSeq.filter(_.filePath.startsWith(filePath)).map(_.id)
-            libraryFiles --= childrenIds
-            logger.info(s"Folder and ${childrenIds.length} children deleted: $filePath")
-            folderKillSwitches.get(filePath).foreach(_.shutdown())
-            folderKillSwitches -= filePath
-          case _ => logger.info(s"File deleted: ${deletedFile.filePath}")
-        }
-      }
   }
 
-  def scanFolder(folder: Path, library: Library, killSwitch: SharedKillSwitch): Source[LibraryFile, NotUsed] = {
-    watchFolder(folder, library, killSwitch)
-    logger.info(s"Scanning folder: $folder")
-    Directory.walk(folder)
-      .filter(path => path != folder)
-      .map(LibraryFile.fromPath(_, library))
-      .collect { case Some(libraryFile) => libraryFile }
-      .alsoTo(Sink.actorRef(self, ScanComplete(folder)))
-      .alsoTo(Sink.foreach {
-        case Folder(_, _, _, folderPath) => watchFolder(folderPath, library, killSwitch)
-        case _ =>
-      })
+  def scanning: Receive = common orElse {
+
+    case Scan =>
+      if (sender() != self)
+        sender() ! ScanFailure(new RuntimeException("A scan is already in progress"))
+
+    case ScanComplete(path) if path == library.path =>
+      logger.info(s"Library scan complete: $path")
+      context become ready
+
+    case ScanComplete(folder) => logger.info(s"Scan complete: $folder")
+
   }
 
-  def watchFolder(folder: Path, library: Library, killSwitch: SharedKillSwitch): Try[Unit] = {
-    if (folderKillSwitches.get(folder).isEmpty) {
-      logger.info(s"Watching folder $folder")
-      Try {
-        val folderKillSwitch = DirectoryChangesSource(folder, pollInterval = 2.seconds, maxBufferSize = 1000)
-          .via(killSwitch.flow)
-          .viaMat(KillSwitches.single)(Keep.right)
-          .map { case (path, directoryChange) => (path, library, directoryChange) }
-          .toMat(Sink.actorRef(self, WatchComplete(folder)))(Keep.left)
-          .run()
-        folderKillSwitches += (folder -> folderKillSwitch)
-      }
-    } else {
-      logger.info(s"Already Watching folder $folder")
-      Try(())
-    }
+  override def receive: Receive = ready
+
+  override def postStop(): Unit = {
+    killSwitch.shutdown()
+    foldersKillSwitches.values.foreach(_.shutdown())
   }
 
 }

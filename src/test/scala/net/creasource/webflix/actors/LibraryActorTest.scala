@@ -1,7 +1,7 @@
-package net.creasource.webflix
+package net.creasource.webflix.actors
 
-import net.creasource.webflix.actors.LibraryActor2
 import net.creasource.util.{SimpleActorTest, WithLibrary}
+import net.creasource.webflix.{Library, LibraryFile}
 
 import scala.concurrent.duration._
 
@@ -10,42 +10,42 @@ class LibraryActorTest extends SimpleActorTest with WithLibrary {
   "A LibraryActor" should {
 
     val pollInterval = 100.milliseconds
-    val actor = system.actorOf(LibraryActor2.props(Library.Local("name", libraryPath,pollInterval)))
+    val actor = system.actorOf(LibraryActor.props(Library.Local("name", libraryPath,pollInterval)))
 
     "scan its library" in {
 
-      actor ! LibraryActor2.Scan
+      actor ! LibraryActor.Scan
 
       expectMsgPF() {
-        case LibraryActor2.ScanSuccess(files) => files.length should be (libraryFiles.length + 1)
+        case LibraryActor.ScanSuccess(files) => files.length should be (libraryFiles.length + 1)
       }
 
-      actor ! LibraryActor2.Scan
+      actor ! LibraryActor.Scan
 
       expectMsgPF() {
-        case LibraryActor2.ScanSuccess(files) => files.length should be (libraryFiles.length + 1)
+        case LibraryActor.ScanSuccess(files) => files.length should be (libraryFiles.length + 1)
       }
 
     }
 
     "fail to scan if already scanning" in {
 
-      actor ! LibraryActor2.Scan
-      actor ! LibraryActor2.Scan
+      actor ! LibraryActor.Scan
+      actor ! LibraryActor.Scan
 
       expectMsgPF() {
-        case LibraryActor2.ScanFailure(exception) => exception.getMessage should be (null)
+        case LibraryActor.ScanFailure(exception) => exception.getMessage should be ("A scan is already in progress")
       }
 
       expectMsgPF() {
-        case LibraryActor2.ScanSuccess(files) => files.length should be (libraryFiles.length + 1)
+        case LibraryActor.ScanSuccess(files) => files.length should be (libraryFiles.length + 1)
       }
 
     }
 
     "return scanned files" in {
 
-      actor ! LibraryActor2.GetFiles
+      actor ! LibraryActor.GetFiles
 
       expectMsgPF() {
         case files: Seq[_] => files.length should be (libraryFiles.length + 1)
@@ -59,7 +59,7 @@ class LibraryActorTest extends SimpleActorTest with WithLibrary {
 
       Thread.sleep(pollInterval.toMillis * 2)
 
-      actor ! LibraryActor2.GetFiles
+      actor ! LibraryActor.GetFiles
 
       expectMsgPF() {
         case files: Seq[_] =>
@@ -71,7 +71,7 @@ class LibraryActorTest extends SimpleActorTest with WithLibrary {
 
       Thread.sleep(pollInterval.toMillis * 2)
 
-      actor ! LibraryActor2.GetFiles
+      actor ! LibraryActor.GetFiles
 
       expectMsgPF() {
         case files: Seq[_] =>
@@ -87,7 +87,7 @@ class LibraryActorTest extends SimpleActorTest with WithLibrary {
 
       Thread.sleep(pollInterval.toMillis * 2)
 
-      actor ! LibraryActor2.GetFiles
+      actor ! LibraryActor.GetFiles
 
       expectMsgPF() {
         case files: Seq[_] =>
@@ -99,7 +99,7 @@ class LibraryActorTest extends SimpleActorTest with WithLibrary {
 
       Thread.sleep(pollInterval.toMillis * 2)
 
-      actor ! LibraryActor2.GetFiles
+      actor ! LibraryActor.GetFiles
 
       expectMsgPF() {
         case files: Seq[_] =>
@@ -115,7 +115,7 @@ class LibraryActorTest extends SimpleActorTest with WithLibrary {
 
       Thread.sleep(pollInterval.toMillis * 2)
 
-      actor ! LibraryActor2.GetFiles
+      actor ! LibraryActor.GetFiles
 
       expectMsgPF() {
         case files: Seq[_] =>
@@ -127,7 +127,7 @@ class LibraryActorTest extends SimpleActorTest with WithLibrary {
 
       Thread.sleep(pollInterval.toMillis * 2)
 
-      actor ! LibraryActor2.GetFiles
+      actor ! LibraryActor.GetFiles
 
       expectMsgPF() {
         case files: Seq[_] => files.length should be (libraryFiles.length + 3)

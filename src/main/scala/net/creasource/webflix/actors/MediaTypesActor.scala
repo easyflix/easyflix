@@ -7,11 +7,12 @@ import akka.http.scaladsl.model.{ContentType, MediaType}
 import akka.http.scaladsl.server.directives.ContentTypeResolver
 import net.creasource.Application
 import net.creasource.json.JsonSupport
+import net.creasource.webflix.events.ResolverUpdate
 import spray.json.RootJsonFormat
 
 object MediaTypesActor extends JsonSupport {
 
-  private val `video/x-mastroka`: MediaType.Binary = MediaType.video("x-mastroka", NotCompressible, "mkv")
+  val `video/x-mastroka`: MediaType.Binary = MediaType.video("x-mastroka", NotCompressible, "mkv")
 
   case object GetMediaTypes
   case object GetContentTypeResolver
@@ -26,13 +27,13 @@ object MediaTypesActor extends JsonSupport {
     implicit val format: RootJsonFormat[AddMediaTypeError] = jsonFormat3(AddMediaTypeError.apply)
   }
 
-  case class RemoveMediaType(contentType: String)
+  case class RemoveMediaType(subType: String)
 
-  def props()(implicit application: Application): Props = Props(new MediaTypesActor)
+  def props()(implicit app: Application): Props = Props(new MediaTypesActor)
 
 }
 
-class MediaTypesActor()(implicit val application: Application) extends Actor {
+class MediaTypesActor()(implicit val app: Application) extends Actor {
 
   import MediaTypesActor._
 
@@ -45,21 +46,25 @@ class MediaTypesActor()(implicit val application: Application) extends Actor {
     case GetMediaTypes => sender() ! mediaTypes.values.toSeq
 
     case AddMediaType(mediaType) =>
-      if (mediaTypes.keys.toSeq.contains(mediaType.subType)) {
+      if (!mediaType.isVideo) {
+        sender() ! AddMediaTypeError("other", "notAVideoMediaType")
+      } else if (mediaTypes.keys.toSeq.contains(mediaType.subType)) {
         sender() ! AddMediaTypeError("contentType", "alreadyExists")
       } else if (mediaTypes.values.toSeq.flatMap(_.fileExtensions).intersect(mediaType.fileExtensions).nonEmpty) {
         sender() ! AddMediaTypeError("extensions", "alreadyExists")
       } else {
         mediaTypes += (mediaType.subType -> mediaType)
         contentTypeResolver = getContentTypeResolver(mediaTypes.values.toSeq)
-        application.libraryActor ! contentTypeResolver
+        app.bus.publish(ResolverUpdate(contentTypeResolver))
         sender() ! AddMediaTypeSuccess(mediaType)
       }
 
-    case RemoveMediaType(contentType) =>
-      mediaTypes -= contentType
-      contentTypeResolver = getContentTypeResolver(mediaTypes.values.toSeq)
-      application.libraryActor ! contentTypeResolver
+    case RemoveMediaType(subType) =>
+      if (mediaTypes.isDefinedAt(subType)) {
+        mediaTypes -= subType
+        contentTypeResolver = getContentTypeResolver(mediaTypes.values.toSeq)
+        app.bus.publish(ResolverUpdate(contentTypeResolver))
+      }
       sender() ! Done
 
     case GetContentTypeResolver => sender() ! contentTypeResolver

@@ -81,7 +81,7 @@ class APIRoutesTest extends Suite
 
     }
 
-    "return an empty response for DELETEs on /library/{name}" in {
+    "return an Accepted status for DELETEs on /library/{name}" in {
 
       Delete(s"/libraries/${lib.name}") ~> route ~> check {
         status shouldEqual StatusCodes.Accepted
