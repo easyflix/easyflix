@@ -30,7 +30,7 @@ object Library extends JsonSupport {
 
   case class Local(name: String, path: Path, pollInterval: FiniteDuration = 1.second) extends Library with Library.Watchable {
 
-    require(path.isAbsolute, "Path must be absolute")
+    // require(path.isAbsolute, "Path must be absolute")
 
     override def scan(path: Path)(implicit contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed] = {
       if (path.isAbsolute & !path.startsWith(this.path)) throw new IllegalArgumentException("")
@@ -98,6 +98,7 @@ object Library extends JsonSupport {
       case "local" => js.convertTo[Local]
       case "ftp" => js.convertTo[FTP]
       case "s3" => js.convertTo[S3]
+      case _ => throw DeserializationException("Only local, ftp and s3 library types are supported", fieldNames = List("type"))
     }
 
   implicit val format: RootJsonFormat[Library] = rootJsonFormat(reader, writer)

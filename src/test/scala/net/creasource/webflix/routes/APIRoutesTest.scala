@@ -10,7 +10,7 @@ import net.creasource.webflix.Library
 import net.creasource.webflix.actors.MediaTypesActor
 import net.creasource.webflix.actors.MediaTypesActor.AddMediaTypeError
 import org.scalatest.{Matchers, Suite, WordSpecLike}
-import spray.json.{JsArray, JsObject, JsString, JsValue}
+import spray.json._
 
 class APIRoutesTest extends Suite
   with WordSpecLike
@@ -44,7 +44,10 @@ class APIRoutesTest extends Suite
     "return a BadRequest for consecutive POSTs on /libraries" in {
       Post("/libraries", lib.toJson) ~> route ~> check {
         status shouldEqual StatusCodes.BadRequest
-        responseAs[String] shouldEqual "" // TODO explain
+        responseAs[JsValue] shouldEqual JsObject(
+          "control" -> "name".toJson,
+          "code" -> "alreadyExists".toJson
+        )
       }
     }
 

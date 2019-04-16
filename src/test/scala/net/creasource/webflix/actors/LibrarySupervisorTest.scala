@@ -23,7 +23,7 @@ class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
 
       supervisor ! LibrarySupervisor.AddLibrary(Library.Local("name", libraryPath))
 
-      expectMsg(LibrarySupervisor.AddLibraryFailure)
+      expectMsg(LibrarySupervisor.AddLibraryFailure("name", "alreadyExists", None))
 
     }
 
@@ -78,6 +78,16 @@ class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
       supervisor ! LibrarySupervisor.RemoveLibrary("name")
 
       expectMsg(Done)
+
+    }
+
+    "add a Library successfully regardless of special characters in name" in {
+
+      Thread.sleep(10)
+
+      supervisor ! LibrarySupervisor.AddLibrary(Library.Local("""nameéà@ç-.+*_8/\\'"#;,%$£&~^""", libraryPath))
+
+      expectMsg(LibrarySupervisor.AddLibrarySuccess)
 
     }
 

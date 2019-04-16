@@ -68,7 +68,7 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
     case _ => throw DeserializationException("Path must be a string")
   }
 
-  implicit val pathWriter: RootJsonWriter[Path] = path => JsString(path.toString.replaceAll("""\\""", "/"))
+  implicit val pathWriter: RootJsonWriter[Path] = path => path.toString.toJson
 
   implicit val pathFormat: RootJsonFormat[Path] = rootJsonFormat(pathReader, pathWriter)
 

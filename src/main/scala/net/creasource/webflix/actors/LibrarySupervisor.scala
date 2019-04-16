@@ -5,11 +5,13 @@ import akka.actor.SupervisorStrategy.{Restart, Stop}
 import akka.actor.{Actor, ActorInitializationException, ActorKilledException, ActorRef, DeathPactException, OneForOneStrategy, Props, SupervisorStrategy, Terminated}
 import akka.event.Logging
 import net.creasource.Application
+import net.creasource.json.JsonSupport
 import net.creasource.webflix.{Library, LibraryFile}
+import spray.json.RootJsonFormat
 
 import scala.util.{Failure, Success, Try}
 
-object LibrarySupervisor {
+object LibrarySupervisor extends JsonSupport {
 
   case object GetLibraries
   case class GetLibrary(libraryName: String)
@@ -20,7 +22,11 @@ object LibrarySupervisor {
   case class AddLibrary(library: Library)
   sealed trait AddLibraryResult
   case object AddLibrarySuccess extends AddLibraryResult
-  case object AddLibraryFailure extends AddLibraryResult
+  case class AddLibraryFailure(control: String, code: String, value: Option[String]) extends AddLibraryResult
+  object AddLibraryFailure {
+    def apply(control: String, code: String): AddLibraryFailure = apply(control, code, None)
+    implicit val format: RootJsonFormat[AddLibraryFailure] = jsonFormat3(AddLibraryFailure.apply)
+  }
 
   case class RemoveLibrary(libraryName: String)
 
@@ -55,16 +61,35 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
       }
 
     case AddLibrary(library) =>
-      if (libraries.values.map(_.name).toSeq.contains(library.name)) {
-        sender() ! AddLibraryFailure
+      if (library.name == "") {
+        sender() ! AddLibraryFailure("name", "required")
+      } else if (library.name.contains(":")) {
+        sender() ! AddLibraryFailure("name", "pattern")
+      } else if (libraries.values.map(_.name).toSeq.contains(library.name)) {
+        sender() ! AddLibraryFailure("name", "alreadyExists")
+      } else if (library.path.toString == "") {
+        sender() ! AddLibraryFailure("path", "required")
+      } else if (!library.path.isAbsolute) {
+        sender() ! AddLibraryFailure("path", "notAbsolute")
+      } else if (!library.path.toFile.exists) {
+        sender() ! AddLibraryFailure("path", "doesNotExist")
+      } else if (!library.path.toFile.isDirectory) {
+        sender() ! AddLibraryFailure("path", "notDirectory")
+      } else if (!library.path.toFile.canRead) {
+        sender() ! AddLibraryFailure("path", "notReadable")
+      }  else if (libraries.values.toSeq.map(_.path).contains(library.path)) {
+        sender() ! AddLibraryFailure("path", "alreadyExists")
+      } else if (libraries.values.toSeq.map(_.path).exists(path => path.startsWith(library.path) || library.path.startsWith(path))) {
+        sender() ! AddLibraryFailure("path", "noChildren")
       } else {
-        Try(context.actorOf(LibraryActor.props(library), library.name)) match {
+        val actorName = library.name.replaceAll("""[^0-9a-zA-Z-_\.\*\$\+:@&=,!~';]""", "") + "-" + libraries.size
+        Try(context.actorOf(LibraryActor.props(library), actorName)) match {
           case Success(actorRef) =>
             context.watch(actorRef)
             libraries += (actorRef -> library)
             sender() ! AddLibrarySuccess
-          case Failure(_) =>
-            sender() ! AddLibraryFailure
+          case Failure(cause) =>
+            sender() ! AddLibraryFailure("other", "failure", Some(cause.getMessage))
         }
       }
 
