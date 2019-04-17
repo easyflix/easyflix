@@ -3,7 +3,7 @@ package net.creasource.webflix.actors
 import akka.Done
 import akka.actor.Status
 import akka.testkit.TestActorRef
-import net.creasource.exceptions.NotFoundException
+import net.creasource.exceptions.{NotFoundException, ValidationErrorException}
 import net.creasource.util.{SimpleActorTest, WithLibrary}
 import net.creasource.webflix.Library
 
@@ -17,7 +17,7 @@ class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
 
       supervisor ! LibrarySupervisor.AddLibrary(Library.Local("name", libraryPath))
 
-      expectMsg(LibrarySupervisor.AddLibrarySuccess)
+      expectMsg(Library.Local("name", libraryPath))
 
     }
 
@@ -25,7 +25,7 @@ class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
 
       supervisor ! LibrarySupervisor.AddLibrary(Library.Local("name", libraryPath))
 
-      expectMsg(LibrarySupervisor.AddLibraryFailure("name", "alreadyExists", None))
+      expectMsg(Status.Failure(ValidationErrorException("name", "alreadyExists", None)))
 
     }
 
@@ -87,9 +87,11 @@ class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
 
       Thread.sleep(10)
 
-      supervisor ! LibrarySupervisor.AddLibrary(Library.Local("""nameéà@ç-.+*_8/\\'"#;,%$£&~^""", libraryPath))
+      val lib = Library.Local("""nameéà@ç-.+*_8/\\'"#;,%$£&~^""", libraryPath)
 
-      expectMsg(LibrarySupervisor.AddLibrarySuccess)
+      supervisor ! LibrarySupervisor.AddLibrary(lib)
+
+      expectMsg(lib)
 
     }
 

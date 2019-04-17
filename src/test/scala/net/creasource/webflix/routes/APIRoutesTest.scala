@@ -46,7 +46,8 @@ class APIRoutesTest extends Suite
         status shouldEqual StatusCodes.BadRequest
         responseAs[JsValue] shouldEqual JsObject(
           "control" -> "name".toJson,
-          "code" -> "alreadyExists".toJson
+          "code" -> "alreadyExists".toJson,
+          "value" -> JsNull
         )
       }
     }

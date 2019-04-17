@@ -5,31 +5,20 @@ import akka.actor.SupervisorStrategy.{Restart, Stop}
 import akka.actor._
 import akka.event.Logging
 import net.creasource.Application
-import net.creasource.exceptions.NotFoundException
+import net.creasource.exceptions.{NotFoundException, ValidationErrorException}
 import net.creasource.json.JsonSupport
 import net.creasource.webflix.Library
-import spray.json.RootJsonFormat
 
 import scala.util.{Failure, Success, Try}
 
 object LibrarySupervisor extends JsonSupport {
 
   case object GetLibraries
-  case class GetLibrary(libraryName: String)
-  case class GetLibraryFiles(libraryName: String)
-
-  case class ScanLibrary(libraryName: String)
-
   case class AddLibrary(library: Library)
-  sealed trait AddLibraryResult
-  case object AddLibrarySuccess extends AddLibraryResult
-  case class AddLibraryFailure(control: String, code: String, value: Option[String]) extends AddLibraryResult
-  object AddLibraryFailure {
-    def apply(control: String, code: String): AddLibraryFailure = apply(control, code, None)
-    implicit val format: RootJsonFormat[AddLibraryFailure] = jsonFormat3(AddLibraryFailure.apply)
-  }
-
-  case class RemoveLibrary(libraryName: String)
+  case class GetLibrary(name: String)
+  case class GetLibraryFiles(name: String)
+  case class ScanLibrary(name: String)
+  case class RemoveLibrary(name: String)
 
   def props()(implicit app: Application): Props = Props(new LibrarySupervisor())
 
@@ -42,6 +31,9 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
   val logger = Logging(context.system, this)
 
   var libraries: Map[ActorRef, Library] = Map.empty
+
+  def valError(control: String, code: String, value: Option[String] = None) =
+    Status.Failure(ValidationErrorException(control, code, value))
 
   override def receive: Receive = {
 
@@ -67,34 +59,34 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
 
     case AddLibrary(library) =>
       if (library.name == "") {
-        sender() ! AddLibraryFailure("name", "required")
+        sender() ! valError("name", "required")
       } else if (library.name.contains(":")) {
-        sender() ! AddLibraryFailure("name", "pattern")
+        sender() ! valError("name", "pattern")
       } else if (libraries.values.map(_.name).toSeq.contains(library.name)) {
-        sender() ! AddLibraryFailure("name", "alreadyExists")
+        sender() ! valError("name", "alreadyExists")
       } else if (library.path.toString == "") {
-        sender() ! AddLibraryFailure("path", "required")
+        sender() ! valError("path", "required")
       } else if (!library.path.isAbsolute) {
-        sender() ! AddLibraryFailure("path", "notAbsolute")
+        sender() ! valError("path", "notAbsolute")
       } else if (!library.path.toFile.exists) {
-        sender() ! AddLibraryFailure("path", "doesNotExist")
+        sender() ! valError("path", "doesNotExist")
       } else if (!library.path.toFile.isDirectory) {
-        sender() ! AddLibraryFailure("path", "notDirectory")
+        sender() ! valError("path", "notDirectory")
       } else if (!library.path.toFile.canRead) {
-        sender() ! AddLibraryFailure("path", "notReadable")
+        sender() ! valError("path", "notReadable")
       }  else if (libraries.values.toSeq.map(_.path).contains(library.path)) {
-        sender() ! AddLibraryFailure("path", "alreadyExists")
+        sender() ! valError("path", "alreadyExists")
       } else if (libraries.values.toSeq.map(_.path).exists(path => path.startsWith(library.path) || library.path.startsWith(path))) {
-        sender() ! AddLibraryFailure("path", "noChildren")
+        sender() ! valError("path", "noChildren")
       } else {
         val actorName = library.name.replaceAll("""[^0-9a-zA-Z-_\.\*\$\+:@&=,!~';]""", "") + "-" + libraries.size
         Try(context.actorOf(LibraryActor.props(library), actorName)) match {
           case Success(actorRef) =>
             context.watch(actorRef)
             libraries += (actorRef -> library)
-            sender() ! AddLibrarySuccess
+            sender() ! library
           case Failure(cause) =>
-            sender() ! AddLibraryFailure("other", "failure", Some(cause.getMessage))
+            sender() ! valError("other", "failure", Some(cause.getMessage))
         }
       }
 
