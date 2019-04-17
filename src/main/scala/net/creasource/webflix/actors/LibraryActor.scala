@@ -53,7 +53,7 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
       logger.info("Received a content type resolver update. Rescanning.")
       contentTypeResolver = ctr
       files.values.foreach {
-        case LibraryFile(name, path, false, _, _) if !ctr(name).mediaType.isVideo => files -= path // TODO submit to event stream
+        case LibraryFile(name, path, false, _, _, _) if !ctr(name).mediaType.isVideo => files -= path // TODO submit to event stream
       }
       self ! Scan
 
@@ -87,18 +87,21 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
           .run()
       }
 
+    // TODO wrap in an object and only pass the path here: don't create a LibraryFile for a file that has been deleted
     case (file: LibraryFile, DirectoryChange.Deletion) =>
-      files -= file.path
-      if (file.isDirectory) {
-        // Stop watching it
-        foldersKillSwitches.get(file.path).foreach(_.shutdown())
-        foldersKillSwitches -= file.path
-        // Delete children
-        val children = files.values.filter(_.path.startsWith(file.path)).map(_.path)
-        files --= children
-        logger.info(s"Folder and ${children.toSeq.length} children deleted: ${file.path}")
-      } else {
-        logger.info(s"File deleted: ${file.path}")
+      if (files.isDefinedAt(file.path)) {
+        if (files(file.path).isDirectory) { // check in our map if it was a directory, see TODO above
+          // Stop watching it
+          foldersKillSwitches.get(file.path).foreach(_.shutdown())
+          foldersKillSwitches -= file.path
+          // Delete children
+          val children = files.values.filter(_.path.startsWith(file.path)).map(_.path)
+          files --= children
+          logger.info(s"Folder and ${children.toSeq.length} children deleted: ${file.path}")
+        } else {
+          logger.info(s"File deleted: ${file.path}")
+        }
+        files -= file.path
       }
 
     case (file: LibraryFile, DirectoryChange.Modification) => files += (file.path -> file)

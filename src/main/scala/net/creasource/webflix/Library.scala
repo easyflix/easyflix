@@ -1,6 +1,6 @@
 package net.creasource.webflix
 
-import java.nio.file.Path
+import java.nio.file.{Path, Paths}
 
 import akka.NotUsed
 import akka.http.scaladsl.server.directives.ContentTypeResolver
@@ -9,8 +9,8 @@ import akka.stream.alpakka.file.scaladsl.{Directory, DirectoryChangesSource}
 import akka.stream.scaladsl.Source
 import net.creasource.json.JsonSupport
 import spray.json._
-import scala.concurrent.duration._
 
+import scala.concurrent.duration._
 import scala.concurrent.duration.FiniteDuration
 
 sealed trait Library {
@@ -24,30 +24,40 @@ object Library extends JsonSupport {
 
   trait Watchable { self: Library =>
     val pollInterval: FiniteDuration
-    def watch(): Source[(LibraryFile, DirectoryChange), NotUsed] = watch(path)
-    def watch(path: Path): Source[(LibraryFile, DirectoryChange), NotUsed]
+    def watch()(implicit contentTypeResolver: ContentTypeResolver): Source[(LibraryFile, DirectoryChange), NotUsed] = watch(path)
+    def watch(path: Path)(implicit contentTypeResolver: ContentTypeResolver): Source[(LibraryFile, DirectoryChange), NotUsed]
   }
 
   case class Local(name: String, path: Path, pollInterval: FiniteDuration = 1.second) extends Library with Library.Watchable {
 
-    // require(path.isAbsolute, "Path must be absolute")
+    def relativizePath(path: Path): Path = {
+      Paths.get(name).resolve(this.path.relativize(path))
+    }
+
+    def resolvePath(relativePath: Path): Path = {
+      if (relativePath.isAbsolute) {
+        relativePath
+      } else {
+        this.path.resolve(Paths.get(name).relativize(relativePath))
+      }
+    }
 
     override def scan(path: Path)(implicit contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed] = {
-      if (path.isAbsolute & !path.startsWith(this.path)) throw new IllegalArgumentException("")
-      Directory.walk(this.path.resolve(path)).map(path => {
-        val file = path.toFile
+      if (path.isAbsolute & path != this.path) throw new IllegalArgumentException("Path must be the library path or a sub-folder relative path")
+      Directory.walk(resolvePath(path)).map(p => {
+        val file = p.toFile
         Option(file.isDirectory || file.isFile & contentTypeResolver(file.getName).mediaType.isVideo).collect{
-          case true => LibraryFile(file.getName, path, file.isDirectory, file.length(), file.lastModified())
+          case true => LibraryFile(file.getName, relativizePath(p), file.isDirectory, file.length(), file.lastModified(), name)
         }
       }).collect{ case option if option.isDefined => option.get }
     }
 
-    override def watch(path: Path): Source[(LibraryFile, DirectoryChange), NotUsed] = {
-      if (path.isAbsolute & !path.startsWith(this.path)) throw new IllegalArgumentException("")
-      DirectoryChangesSource(this.path.resolve(path), pollInterval, maxBufferSize = 1000).map {
+    override def watch(path: Path)(implicit contentTypeResolver: ContentTypeResolver): Source[(LibraryFile, DirectoryChange), NotUsed] = {
+      if (path.isAbsolute & path != this.path) throw new IllegalArgumentException("Path must be the library path or a sub-folder relative path")
+      DirectoryChangesSource(resolvePath(path), pollInterval, maxBufferSize = 1000).map {
         case (p, directoryChange) =>
           val file = p.toFile
-          (LibraryFile(file.getName, p, file.isDirectory, file.length(), file.lastModified()), directoryChange)
+          (LibraryFile(file.getName, relativizePath(p), file.isDirectory, file.length(), file.lastModified(), name), directoryChange)
       }
     }
   }
