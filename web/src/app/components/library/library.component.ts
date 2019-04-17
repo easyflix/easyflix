@@ -11,11 +11,11 @@ import {
 } from '@angular/core';
 import {PanelDirective} from '@app/shared/directives/panel.directive';
 import {FileListComponent} from './file-list.component';
-import {EMPTY, Subscription, of} from 'rxjs';
+import {Subscription} from 'rxjs';
 import {LibraryListComponent} from './library-list.component';
-import {Folder, Library} from '@app/models/file';
+import {LibraryFile} from '@app/models';
 import {ActivatedRoute, Router} from '@angular/router';
-import {map, mergeMap, take, tap, filter} from 'rxjs/operators';
+import {mergeMap, take} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
 import {LibrariesService} from '@app/services/libraries.service';
 
@@ -127,12 +127,15 @@ export class LibraryComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.librariesComponent = this.librariesFactory.create(this.panels.viewContainerRef.injector);
-    this.librariesSub = this.librariesComponent.instance.openLibrary.subscribe((library: Library) => this.goTo(library));
+    this.librariesSub =
+      this.librariesComponent.instance.openLibrary.pipe(
+        mergeMap(library => this.files.getByPath(library.path).pipe(take(1)))
+      ).subscribe((folder: LibraryFile) => this.goTo(folder));
     this.panels.viewContainerRef.insert(this.librariesComponent.hostView, 0);
     this.librariesComponent.instance.afterAnimation();
     this.components.push(this.librariesComponent);
 
-    this.routeSub = this.activatedRoute.queryParamMap.pipe(
+    /*this.routeSub = this.activatedRoute.queryParamMap.pipe(
       take(1),
       mergeMap(route => {
         const param = route.get('l');
@@ -145,8 +148,8 @@ export class LibraryComponent implements OnInit, OnDestroy {
               return of({library, folders: []});
             }
             return this.files.getByIds(foldersIds).pipe(
-              map((folds: Folder[]) => {
-                const folders = folds.filter(f => !!f).sort((a, b) => a.parent.localeCompare(b.parent));
+              map((folds: LibraryFile[]) => {
+                const folders = folds.filter(f => !!f).sort((a, b) => a.path.localeCompare(b.path));
                 return ({ library, folders });
               })
             );
@@ -157,12 +160,12 @@ export class LibraryComponent implements OnInit, OnDestroy {
           })
         );
       }),
-    ).subscribe();
+    ).subscribe();*/
   }
 
   ngOnDestroy() {
     this.librariesSub.unsubscribe();
-    this.routeSub.unsubscribe();
+    // this.routeSub.unsubscribe();
   }
 
   navigate() {
@@ -170,7 +173,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
     this.router.navigate([], { queryParams: { l: id }, queryParamsHandling: 'merge', replaceUrl: true });
   }
 
-  goTo(folder: Folder | Library, navigate: boolean = true, animationTime: number = this.DRAWER_ANIMATION_TIME) {
+  goTo(folder: LibraryFile, navigate: boolean = true, animationTime: number = this.DRAWER_ANIMATION_TIME) {
     if (this.animating) { return; }
     this.animating = true;
     const fromRef = this.components[this.components.length - 1];
@@ -180,10 +183,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
     toRef.instance.next.subscribe(f => this.goTo(f));
     this.components.push(toRef);
     this.breadcrumbs.push(folder.name);
-    switch (folder.type) {
-      case 'folder': this.breadcrumbsIds.push(folder.id); break;
-      case 'library': this.breadcrumbsIds.push(folder.name);
-    }
+    this.breadcrumbsIds.push(folder.id);
     if (navigate) { this.navigate(); }
     this.animate(fromRef, toRef, true, animationTime);
   }

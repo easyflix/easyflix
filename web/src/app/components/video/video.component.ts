@@ -4,7 +4,7 @@ import {Observable, Subscription, zip} from 'rxjs';
 import {filter, map, take, tap, throttleTime} from 'rxjs/operators';
 import {CoreService} from '@app/services/core.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {Video} from '@app/models/file';
+import {LibraryFile} from '@app/models';
 
 @Component({
   selector: 'app-video',
@@ -48,7 +48,7 @@ export class VideoComponent implements OnInit, OnDestroy {
     this.loading$ = this.video.getLoading();
 
     this.route.data.subscribe(
-      (data: { video: Video }) => this.video.setSource(`http://localhost:8081/videos/${data.video.id}`)
+      (data: { video: LibraryFile }) => this.video.setSource(`http://localhost:8081/videos/${data.video.id}`)
     );
 
     this.route.queryParamMap.pipe(

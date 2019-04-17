@@ -8,7 +8,7 @@ import * as fromFiles from './files.reducer';
 import * as fromLibraries from './libraries.reducer';
 import * as fromMediaTypes from './media-types.reducer';
 
-import {Folder, Library, LibraryFile, MediaType} from '@app/models/file';
+import {Library, LibraryFile, MediaType} from '@app/models';
 
 export interface State {
   core: fromCore.State;
@@ -91,27 +91,29 @@ export const {
 
 export const getFilesOfFolder = createSelector(
   getAllFiles,
-  (files: LibraryFile[], folder: Folder | Library) => {
-    let folderPath;
-    switch (folder.type) {
-      case 'library':
-        folderPath = `${folder.name}/`; break;
-      case 'folder':
-        folderPath = `${folder.parent}${folder.name}/`;
+  (files: LibraryFile[], folder: LibraryFile) => {
+    function getParentPath(file: LibraryFile) {
+      const segments = file.path.split('/');
+      return segments.slice(0, segments.length - 1).join('/');
     }
-    return files.filter(file => file.parent === folderPath);
+    return files.filter(file => getParentPath(file) === folder.path);
   }
 );
 
 export const getFileById = createSelector(
-  getAllFilesEntities,
-  (entities: Dictionary<LibraryFile>, id: string) => entities[id]
+  getAllFiles,
+  (files: LibraryFile[], id: string) => files.find(file => file.id === id)
 );
 
-export const getFilesLoaded = createSelector(
+export const getFileByPath = createSelector(
+  getAllFilesEntities,
+  (entities: Dictionary<LibraryFile>, path: string) => entities[path]
+);
+
+/*export const getFilesLoaded = createSelector(
   getFilesState,
   fromFiles.getLoaded
-);
+);*/
 
 export const {
   selectEntities: getAllLibrariesEntities,

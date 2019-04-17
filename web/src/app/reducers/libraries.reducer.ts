@@ -1,7 +1,6 @@
-import {createEntityAdapter, EntityAdapter, EntityState} from '@ngrx/entity';
-import {Library} from '@app/models/file';
+import {createEntityAdapter, EntityAdapter, EntityState, Update} from '@ngrx/entity';
+import {Library} from '@app/models';
 import {LibrariesActionsUnion, LibrariesActionTypes} from '@app/actions/libraries.actions';
-import {ValidationError} from '@app/models/validation-error';
 
 /**
  * State
@@ -41,6 +40,10 @@ export function reducer(
 
     case LibrariesActionTypes.RemoveLibrarySuccess: {
       return adapter.removeOne(action.payload, state);
+    }
+
+    case LibrariesActionTypes.ScanLibrary: {
+      return adapter.updateOne({ id: action.payload, changes: { scanning: true } }, state);
     }
 
     default: return state;

@@ -1,11 +1,17 @@
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 
-import {Library} from '@app/models/file';
+import {Library, LibraryFile} from '@app/models';
 import {HttpClient} from '@angular/common/http';
 import {Store} from '@ngrx/store';
 import {getAllLibraries, getLibrariesLoaded, getLibraryByName, State} from '@app/reducers';
-import {AddLibrary, LibrariesActionTypes, LoadLibraries, RemoveLibrary} from '@app/actions/libraries.actions';
+import {
+  AddLibrary,
+  LibrariesActionTypes,
+  LoadLibraries,
+  RemoveLibrary,
+  ScanLibrary
+} from '@app/actions/libraries.actions';
 import {Actions} from '@ngrx/effects';
 import {ServiceHelper} from '@app/services/service-helper';
 
@@ -45,6 +51,14 @@ export class LibrariesService extends ServiceHelper {
       new RemoveLibrary(name),
       LibrariesActionTypes.RemoveLibrarySuccess,
       LibrariesActionTypes.RemoveLibraryError
+    );
+  }
+
+  scan(name: string): Observable<LibraryFile[]> {
+    return this.dispatchActionObservable(
+      new ScanLibrary(name),
+      LibrariesActionTypes.ScanLibrarySuccess,
+      LibrariesActionTypes.ScanLibraryError
     );
   }
 

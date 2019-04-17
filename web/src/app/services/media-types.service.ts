@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 
-import {MediaType} from '@app/models/file';
+import {MediaType} from '@app/models';
 import {HttpClient} from '@angular/common/http';
 import {Store} from '@ngrx/store';
 import {getAllMediaTypes, getMediaTypeBySubType, getMediaTypesLoaded, State} from '@app/reducers';

@@ -1,7 +1,7 @@
 import {AfterViewInit, ChangeDetectionStrategy, Component, OnDestroy, OnInit} from '@angular/core';
 import {FilesService} from '@app/services/files.service';
 import {Observable, of, Subject, Subscription} from 'rxjs';
-import {Video} from '@app/models/file';
+import {LibraryFile} from '@app/models';
 import {map, switchMap, take, tap} from 'rxjs/operators';
 import {ActivatedRoute, Router} from '@angular/router';
 import {VideoService} from '@app/services/video.service';
@@ -14,7 +14,7 @@ import {VideoService} from '@app/services/video.service';
 })
 export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  files$: Observable<Video[]>;
+  files$: Observable<LibraryFile[]>;
 
   private searchVar = '';
   get search() {
@@ -39,9 +39,9 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
     private video: VideoService
   ) {}
 
-  static matchesSearch(video: Video, searchTerms: string[]): boolean {
+  static matchesSearch(video: LibraryFile, searchTerms: string[]): boolean {
     return searchTerms.every(term =>
-      video.name.toLowerCase().includes(term.toLowerCase()) || video.parent.toLowerCase().includes(term.toLowerCase())
+      video.name.toLowerCase().includes(term.toLowerCase()) || video.path.toLowerCase().includes(term.toLowerCase())
     );
   }
 
@@ -49,7 +49,7 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
     this.files$ = this.searchSubject.asObservable().pipe(
       switchMap(searchTerms => {
         return searchTerms.length === 0 ? of([]) : this.files.getAll().pipe(
-          map(f => f.filter(file => file.type === 'video' && SearchComponent.matchesSearch(file, searchTerms))),
+          map(f => f.filter(file => file.isDirectory === false && SearchComponent.matchesSearch(file, searchTerms))),
         );
       })
     );
@@ -73,7 +73,7 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
     this.navSubscription.unsubscribe();
   }
 
-  playVideo(video: Video) {
+  playVideo(video: LibraryFile) {
     this.video.playVideo(video);
   }
 

@@ -2,10 +2,10 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild
 import {MatButton} from '@angular/material';
 import {CoreService} from '@app/services/core.service';
 import {Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {map, mergeMap} from 'rxjs/operators';
 import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
 import {FilesService} from '@app/services/files.service';
-import {Library, MediaType} from '@app/models/file';
+import {Library, MediaType} from '@app/models';
 import {AbstractControl, FormBuilder, FormGroup, FormGroupDirective, Validators} from '@angular/forms';
 import {MediaTypesService} from '@app/services/media-types.service';
 import {LibrariesService} from '@app/services/libraries.service';
@@ -95,10 +95,14 @@ export class SettingsComponent implements OnInit {
   }
 
   addLibrary() {
-    const normalizedName = this.libraryForm.value.name.replace(/:/g, '');
     this.addingLibrary = true;
-    this.libraries.add({ type: 'library', name: normalizedName, path: this.libraryForm.value.path }).subscribe(
-      () => this.libraryNgForm.resetForm(),
+    this.libraries.add({ type: 'local', name: this.libraryForm.value.name, path: this.libraryForm.value.path }).pipe(
+      mergeMap(library => this.libraries.scan(library.name))
+    ).subscribe(
+      files => {
+        console.log('files scanned: ', files);
+        this.libraryNgForm.resetForm();
+      },
       (error: ValidationError) => {
         SettingsComponent.setControlErrors(error, this.libraryForm);
         this.addingLibrary = false;

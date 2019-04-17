@@ -1,5 +1,5 @@
 import {Action} from '@ngrx/store';
-import {LibraryFile} from '@app/models/file';
+import {Library, LibraryFile} from '@app/models';
 
 export enum FilesActionTypes {
   LoadFiles = 'files/load',
@@ -9,6 +9,7 @@ export enum FilesActionTypes {
 
 export class LoadFiles implements Action {
   readonly type = FilesActionTypes.LoadFiles;
+  constructor(public payload: Library) {}
 }
 
 export class LoadFilesSuccess implements Action {

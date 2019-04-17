@@ -1,3 +1,4 @@
+/*
 import {Injectable} from '@angular/core';
 import {ActivatedRouteSnapshot, CanActivate, RouterStateSnapshot, UrlTree} from '@angular/router';
 import {filter, take} from 'rxjs/operators';
@@ -16,3 +17,4 @@ export class FilesLoadedGuard implements CanActivate {
     );
   }
 }
+*/

@@ -1,6 +1,7 @@
 import {Action} from '@ngrx/store';
-import {Library} from '@app/models/file';
+import {LibraryFile} from '@app/models/library-file';
 import {ValidationError} from '@app/models/validation-error';
+import {Library} from '@app/models/library';
 
 export enum LibrariesActionTypes {
   LoadLibraries = 'libraries/load',
@@ -12,6 +13,9 @@ export enum LibrariesActionTypes {
   RemoveLibrary = 'libraries/remove',
   RemoveLibrarySuccess = 'libraries/remove/success',
   RemoveLibraryError = 'libraries/remove/error',
+  ScanLibrary = 'libraries/scan',
+  ScanLibrarySuccess = 'libraries/scan/success',
+  ScanLibraryError = 'libraries/scan/error',
 }
 
 export class LoadLibraries implements Action {
@@ -58,6 +62,21 @@ export class RemoveLibraryError implements Action {
   constructor(public payload: ValidationError) {}
 }
 
+export class ScanLibrary implements Action {
+  readonly type = LibrariesActionTypes.ScanLibrary;
+  constructor(public payload: string) {}
+}
+
+export class ScanLibrarySuccess implements Action {
+  readonly type = LibrariesActionTypes.ScanLibrarySuccess;
+  constructor(public payload: LibraryFile[]) {}
+}
+
+export class ScanLibraryError implements Action {
+  readonly type = LibrariesActionTypes.ScanLibraryError;
+  constructor(public payload: string) {}
+}
+
 export type LibrariesActionsUnion =
   LoadLibraries |
   LoadLibrariesSuccess |
@@ -67,4 +86,7 @@ export type LibrariesActionsUnion =
   AddLibraryError |
   RemoveLibrary |
   RemoveLibrarySuccess |
-  RemoveLibraryError;
+  RemoveLibraryError |
+  ScanLibrary |
+  ScanLibrarySuccess |
+  ScanLibraryError;

@@ -1,10 +1,10 @@
 import {Injectable} from '@angular/core';
-import {Observable, zip} from 'rxjs';
+import {Observable} from 'rxjs';
 
-import {Folder, Library, LibraryFile} from '@app/models/file';
+import {Library, LibraryFile} from '@app/models';
 import {HttpClient} from '@angular/common/http';
 import {Store} from '@ngrx/store';
-import {getAllFiles, getFileById, getFilesLoaded, getFilesOfFolder, State} from '@app/reducers';
+import {getAllFiles, getFileById, getFileByPath, getFilesOfFolder, State} from '@app/reducers';
 import {FilesActionTypes, LoadFiles} from '@app/actions/files.actions';
 import {Actions} from '@ngrx/effects';
 import {ServiceHelper} from '@app/services/service-helper';
@@ -20,7 +20,7 @@ export class FilesService extends ServiceHelper {
     return this.store.select(getAllFiles);
   }
 
-  getFilesOfFolder(folder: Folder | Library): Observable<LibraryFile[]> {
+  getFilesOfFolder(folder: LibraryFile): Observable<LibraryFile[]> {
     return this.store.select(getFilesOfFolder, folder);
   }
 
@@ -28,17 +28,21 @@ export class FilesService extends ServiceHelper {
     return this.store.select(getFileById, id);
   }
 
-  getByIds(ids: string[]): Observable<LibraryFile[]> {
+  getByPath(path: string): Observable<LibraryFile> {
+    return this.store.select(getFileByPath, path);
+  }
+
+  /*getByIds(ids: string[]): Observable<LibraryFile[]> {
     return zip(...ids.map(id => this.store.select(getFileById, id)));
-  }
+  }*/
 
-  getLoaded(): Observable<boolean> {
+/*  getLoaded(): Observable<boolean> {
     return this.store.select(getFilesLoaded);
-  }
+  }*/
 
-  load(): Observable<LibraryFile[]> {
+  load(library: Library): Observable<LibraryFile[]> {
     return this.dispatchActionObservable(
-      new LoadFiles(),
+      new LoadFiles(library),
       FilesActionTypes.LoadFilesSuccess,
       FilesActionTypes.LoadFilesError
     );

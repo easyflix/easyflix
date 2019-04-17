@@ -6,10 +6,9 @@ import {playerAnimations} from '@app/animations';
 import {RouterOutlet} from '@angular/router';
 import {FilesService} from '@app/services/files.service';
 import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
-import {map} from 'rxjs/operators';
+import {map, mergeMap} from 'rxjs/operators';
 import {MediaTypesService} from '@app/services/media-types.service';
 import {LibrariesService} from '@app/services/libraries.service';
-import {and} from "@angular/router/src/utils/collection";
 
 @Component({
   selector: 'app-root',
@@ -40,7 +39,7 @@ export class AppComponent implements OnInit {
     this.showSidenav$ = this.core.getShowSidenav();
     this.sidenavMode$ = this.core.getSidenavMode();
     this.sidenavWidth$ = this.core.getSidenavWidth();
-    concat(
+    /*concat(
       this.libraries.load(),
       this.files.load(),
       this.mediaTypes.load()
@@ -48,9 +47,17 @@ export class AppComponent implements OnInit {
       () => {},
       error => console.log(error),
       () => console.log('complete')
+    );*/
+    concat(
+      this.libraries.load().pipe(
+        mergeMap(libraries => concat(...libraries.map(lib => this.files.load(lib))))
+      ),
+      this.mediaTypes.load()
+    ).subscribe(
+      () => {},
+      error => console.log(error),
+      () => console.log('complete')
     );
-    this.files.load();
-    this.mediaTypes.load();
   }
 
   openSidenav() {

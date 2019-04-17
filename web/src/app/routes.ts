@@ -10,7 +10,6 @@ import {MoviesComponent} from './components/movies/movies.component';
 import {ShowsComponent} from './components/shows/shows.component';
 import {VideoGridComponent} from './components/common/video-grid/video-grid.component';
 import {VideoDetailedListComponent} from './components/common/video-detailed-list/video-detailed-list.component';
-import {FilesLoadedGuard} from '@app/guards/files-loaded.guard';
 import {VideoResolverService} from '@app/guards/video-resolver.service';
 import {LibrariesLoadedGuard} from '@app/guards/libraries-loaded.guard';
 import {MediaTypesLoadedGuard} from '@app/guards/media-types-loaded.guard';
@@ -34,7 +33,7 @@ export const routes: Routes = [
   {
     path: ':id',
     component: VideoComponent,
-    canActivate: [FilesLoadedGuard],
+    // canActivate: [LibrariesLoadedGuard],
     resolve: {
       video: VideoResolverService
     },
@@ -45,7 +44,7 @@ export const routes: Routes = [
     path: 'library',
     component: LibraryComponent,
     outlet: navOutletName,
-    canActivate: [FilesLoadedGuard],
+    canActivate: [LibrariesLoadedGuard],
     data: { animation: 'library' }
   },
   { path: 'search', component: SearchComponent, outlet: navOutletName, data: { animation: 'search' } },

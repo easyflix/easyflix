@@ -3,10 +3,10 @@ import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import {Action} from '@ngrx/store';
 import {Actions, Effect, ofType} from '@ngrx/effects';
 import {Observable, of} from 'rxjs';
-import {catchError, map, mergeMap, switchMap, tap} from 'rxjs/operators';
+import {catchError, map, switchMap, tap} from 'rxjs/operators';
 
-import {FilesActionTypes, LoadFilesError, LoadFilesSuccess} from '@app/actions/files.actions';
-import {Library, LibraryFile, MediaType} from '@app/models/file';
+import {FilesActionTypes, LoadFiles, LoadFilesError, LoadFilesSuccess} from '@app/actions/files.actions';
+import {LibraryFile, Library, MediaType} from '@app/models';
 import {
   AddLibrary,
   AddLibraryError,
@@ -16,7 +16,7 @@ import {
   LoadLibrariesSuccess,
   RemoveLibrary,
   RemoveLibraryError,
-  RemoveLibrarySuccess
+  RemoveLibrarySuccess, ScanLibrary, ScanLibraryError, ScanLibrarySuccess
 } from '@app/actions/libraries.actions';
 import {
   AddMediaType,
@@ -55,9 +55,9 @@ export class AppEffects {
   loadFiles$: Observable<Action> =
     this.actions$.pipe(
       ofType(FilesActionTypes.LoadFiles),
-      switchMap(() =>
-        this.httpClient.get('http://localhost:8081/api/files').pipe(
-          map((files: LibraryFile[]) => new LoadFilesSuccess(files)),
+      switchMap((action: LoadFiles) =>
+        this.httpClient.get('http://localhost:8081/api/libraries/' + encodeURIComponent(action.payload.name)).pipe(
+          map((result: { library: Library, files: LibraryFile[] }) => new LoadFilesSuccess(result.files)),
           catchError((error: HttpErrorResponse) => of(new LoadFilesError(error.message)))
         )
       )
@@ -87,8 +87,8 @@ export class AppEffects {
       ofType(LibrariesActionTypes.AddLibrary),
       switchMap((action: AddLibrary) =>
         this.httpClient.post('http://localhost:8081/api/libraries', action.payload).pipe(
-          mergeMap((response: { library: Library, files: LibraryFile[] }) =>
-            of(new AddLibrarySuccess(response.library), new LoadFilesSuccess(response.files))
+          map((library: Library) =>
+            new AddLibrarySuccess(library) // , new LoadFilesSuccess(response.files))
           ),
           catchError((error: HttpErrorResponse) => of(new AddLibraryError(error.error)))
         )
@@ -104,8 +104,23 @@ export class AppEffects {
       ofType(LibrariesActionTypes.RemoveLibrary),
       switchMap((action: RemoveLibrary) =>
         this.httpClient.delete('http://localhost:8081/api/libraries/' + encodeURIComponent(action.payload)).pipe(
-          map((libraryName: string) => new RemoveLibrarySuccess(libraryName)),
+          map(() => new RemoveLibrarySuccess(action.payload)),
           catchError((error: HttpErrorResponse) => of(new RemoveLibraryError(error.error)))
+        )
+      )
+    );
+
+  /**
+   * Scan Library
+   */
+  @Effect()
+  scanLibrary$: Observable<Action> =
+    this.actions$.pipe(
+      ofType(LibrariesActionTypes.ScanLibrary),
+      switchMap((action: ScanLibrary) =>
+        this.httpClient.post('http://localhost:8081/api/libraries/' + encodeURIComponent(action.payload) + '/scan', null).pipe(
+          map((files: LibraryFile[]) => new ScanLibrarySuccess(files)),
+          catchError((error: HttpErrorResponse) => of(new ScanLibraryError(error.error)))
         )
       )
     );
@@ -149,7 +164,7 @@ export class AppEffects {
       ofType(MediaTypesActionTypes.RemoveMediaType),
       switchMap((action: RemoveMediaType) =>
         this.httpClient.delete('http://localhost:8081/api/media-types/' + encodeURIComponent(action.payload)).pipe(
-          map((mediaTypeName: string) => new RemoveMediaTypeSuccess(mediaTypeName)),
+          map(() => new RemoveMediaTypeSuccess(action.payload)),
           catchError((error: HttpErrorResponse) => of(new RemoveMediaTypeError(error.error)))
         )
       )

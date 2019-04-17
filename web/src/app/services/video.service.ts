@@ -13,7 +13,7 @@ import {
   SetVideoSource,
   SetVideoVolume
 } from '../actions/video.actions';
-import {Video} from '@app/models/file';
+import {LibraryFile} from '@app/models';
 
 @Injectable()
 export class VideoService {
@@ -28,7 +28,7 @@ export class VideoService {
     this.currentTime$ = this.currentTimeSubject.asObservable().pipe(publishReplay(1), refCount(), throttleTime(100));
   }
 
-  playVideo(video: Video) {
+  playVideo(video: LibraryFile) { // TODO
     this.router.navigate([{ outlets: { player: video.id } }], { queryParamsHandling: 'preserve' });
   }
 

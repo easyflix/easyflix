@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, Component, ElementRef, EventEmitter, OnInit, Vi
 import {Observable} from 'rxjs';
 
 import {FilesService} from '@app/services/files.service';
-import {Folder, Library, LibraryFile, Video} from '@app/models/file';
+import {LibraryFile} from '@app/models';
 import {VideoService} from '@app/services/video.service';
 import {AnimatableComponent} from '@app/components/library/library.component';
 
@@ -21,7 +21,7 @@ import {AnimatableComponent} from '@app/components/library/library.component';
       <mat-action-list dense class="files">
         <ng-template cdkVirtualFor let-file [cdkVirtualForOf]='files$ | async'>
           <mat-list-item tabindex='0'
-                         *ngIf="file.type === 'folder'"
+                         *ngIf="file.isDirectory === true"
                          (click)='next.emit(file)'
                          (keyup.space)='next.emit(file)'
                          (keyup.enter)='next.emit(file)'>
@@ -36,7 +36,7 @@ import {AnimatableComponent} from '@app/components/library/library.component';
             <mat-divider></mat-divider>
           </mat-list-item>
           <mat-list-item tabindex='0'
-                         *ngIf="file.type === 'video'"
+                         *ngIf="file.isDirectory === false"
                          (click)='playVideo(file)'>
             <mat-icon matListIcon class='material-icons-outlined'>
               movie
@@ -85,11 +85,11 @@ import {AnimatableComponent} from '@app/components/library/library.component';
 })
 export class FileListComponent implements OnInit, AnimatableComponent {
 
-  next: EventEmitter<Folder> = new EventEmitter();
+  next: EventEmitter<LibraryFile> = new EventEmitter();
   prev: EventEmitter<void> = new EventEmitter();
 
   files$: Observable<LibraryFile[]>;
-  currentFolder: Folder | Library;
+  currentFolder: LibraryFile;
 
   @ViewChild('back', { read: ElementRef })
   back: ElementRef;
@@ -106,7 +106,7 @@ export class FileListComponent implements OnInit, AnimatableComponent {
     this.files$ = this.filesService.getFilesOfFolder(this.currentFolder);
   }
 
-  playVideo(video: Video) {
+  playVideo(video: LibraryFile) {
     this.video.playVideo(video);
   }
 

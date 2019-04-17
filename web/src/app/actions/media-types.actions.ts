@@ -1,5 +1,5 @@
 import {Action} from '@ngrx/store';
-import {MediaType} from '@app/models/file';
+import {MediaType} from '@app/models';
 import {ValidationError} from '@app/models/validation-error';
 
 export enum MediaTypesActionTypes {

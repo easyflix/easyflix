@@ -1,7 +1,6 @@
 import {createEntityAdapter, EntityAdapter, EntityState} from '@ngrx/entity';
-import {MediaType} from '@app/models/file';
+import {MediaType} from '@app/models';
 import {MediaTypesActionsUnion, MediaTypesActionTypes} from '@app/actions/media-types.actions';
-import {ValidationError} from '@app/models/validation-error';
 
 /**
  * State
