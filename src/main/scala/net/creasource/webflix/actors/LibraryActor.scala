@@ -2,7 +2,7 @@ package net.creasource.webflix.actors
 
 import java.nio.file.Path
 
-import akka.actor.{Actor, Props}
+import akka.actor.{Actor, Props, Status}
 import akka.event.Logging
 import akka.http.scaladsl.server.directives.ContentTypeResolver
 import akka.stream.alpakka.file.DirectoryChange
@@ -20,9 +20,6 @@ object LibraryActor {
   case class GetFile(path: Path)
 
   case object Scan
-  sealed trait ScanResult
-  case class ScanSuccess(files: Seq[LibraryFile]) extends ScanResult
-  case class ScanFailure(cause: Throwable) extends ScanResult
 
   def props(library: Library)(implicit app: Application): Props = Props(new LibraryActor(library))
 
@@ -131,8 +128,8 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
         })
         .runWith(Sink.seq)
         .onComplete {
-          case Success(scannedFiles) => client ! ScanSuccess(scannedFiles)
-          case Failure(exception) => client ! ScanFailure(exception)
+          case Success(scannedFiles) => if (client != self) { client ! scannedFiles }
+          case Failure(exception) => if (client != self) { client ! Status.Failure(exception) }
         }
       context become scanning
 
@@ -144,7 +141,7 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
 
     case Scan =>
       if (sender() != self)
-        sender() ! ScanFailure(new RuntimeException("A scan is already in progress"))
+        sender() ! Status.Failure(new RuntimeException("A scan is already in progress")) // TODO custom exception
 
     case ScanComplete(path) if path == library.path =>
       logger.info(s"Library scan complete: $path")

@@ -2,11 +2,12 @@ package net.creasource.webflix.actors
 
 import akka.Done
 import akka.actor.SupervisorStrategy.{Restart, Stop}
-import akka.actor.{Actor, ActorInitializationException, ActorKilledException, ActorRef, DeathPactException, OneForOneStrategy, Props, SupervisorStrategy, Terminated}
+import akka.actor._
 import akka.event.Logging
 import net.creasource.Application
+import net.creasource.exceptions.NotFoundException
 import net.creasource.json.JsonSupport
-import net.creasource.webflix.{Library, LibraryFile}
+import net.creasource.webflix.Library
 import spray.json.RootJsonFormat
 
 import scala.util.{Failure, Success, Try}
@@ -46,18 +47,22 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
 
     case GetLibraries => sender() ! libraries.values.toSeq
 
-    case GetLibrary(name: String) => sender() ! libraries.values.toSeq.find(_.name == name)
+    case GetLibrary(name: String) =>
+      libraries.values.toSeq.find(_.name == name) match {
+        case Some(library) => sender() ! library
+        case _ => sender() ! Status.Failure(NotFoundException("No library with that name"))
+      }
 
     case GetLibraryFiles(name) =>
       libraries.find{ case (_, library) => library.name == name }.map(_._1) match {
         case Some(actorRef) => actorRef forward LibraryActor.GetFiles
-        case None => sender() ! Seq.empty[LibraryFile]
+        case None => sender() ! Status.Failure(NotFoundException("No library with that name"))
       }
 
     case ScanLibrary(name) =>
       libraries.find{ case (_, library) => library.name == name }.map(_._1) match {
         case Some(actorRef) => actorRef forward LibraryActor.Scan
-        case None => sender() ! LibraryActor.ScanFailure(new RuntimeException("No library with that name"))
+        case None => sender() ! Status.Failure(NotFoundException("No library with that name"))
       }
 
     case AddLibrary(library) =>
@@ -95,9 +100,9 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
 
     case Terminated(actorRef) => libraries -= actorRef
 
-    case RemoveLibrary(libraryName) =>
+    case RemoveLibrary(name) =>
       libraries
-        .find { case (_, library) => library.name == libraryName }
+        .find { case (_, library) => library.name == name }
         .map(_._1)
         .foreach(actorRef => context.stop(actorRef))
       sender() ! Done

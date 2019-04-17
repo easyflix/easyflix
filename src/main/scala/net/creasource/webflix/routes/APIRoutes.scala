@@ -35,8 +35,8 @@ object APIRoutes extends Directives with JsonSupport {
     respondWithHeaders(RawHeader("Access-Control-Allow-Origin", "*")) {
       concat(
         pathPrefix("libraries") {
+          optionRoute ~
           pathEndOrSingleSlash {
-            optionRoute ~
             get {
               onSuccess((app.libraries ? GetLibraries).mapTo[Seq[Library]])(r => complete(r))
             } ~
@@ -49,31 +49,46 @@ object APIRoutes extends Directives with JsonSupport {
               }
             }
           } ~
-          path(Segment) { name =>
-            optionRoute ~
-            get {
-              extractExecutionContext { implicit executor =>
-                completeOrRecoverWith {
-                  for {
-                    library <- (app.libraries ? GetLibrary(name)).map {
-                      case Some(library: Library) => library
-                      case None => throw NotFoundException("No library with that name")
+          pathPrefix(Segment) { name =>
+            pathEndOrSingleSlash {
+              get {
+                extractExecutionContext { implicit executor =>
+                  completeOrRecoverWith {
+                    for {
+                      library <- (app.libraries ? GetLibrary(name)).mapTo[Library]
+                      files <- (app.libraries ? GetLibraryFiles(library.name)).mapTo[Seq[LibraryFile]]
+                    } yield {
+                      StatusCodes.OK -> JsObject(
+                        "library" -> library.toJson,
+                        "files" -> files.toJson
+                      )
                     }
-                    files <- (app.libraries ? GetLibraryFiles(library.name)).mapTo[Seq[LibraryFile]]
-                  } yield {
-                    StatusCodes.OK -> JsObject(
-                      "library" -> library.toJson,
-                      "files" -> files.toJson
-                    )
+                  } {
+                    case NotFoundException(message) => complete(StatusCodes.NotFound -> message.toJson)
+                    case cause => complete(StatusCodes.InternalServerError -> cause.getMessage.toJson)
                   }
-                } {
-                  case NotFoundException(message) => complete(StatusCodes.NotFound -> message.toJson)
-                  case cause => complete(StatusCodes.InternalServerError -> cause.getMessage.toJson)
                 }
+              } ~
+              delete {
+                onSuccess((app.libraries ? RemoveLibrary(name)).mapTo[Done])(_ => complete(StatusCodes.Accepted, ""))
               }
             } ~
-            delete {
-              onSuccess((app.libraries ? RemoveLibrary(name)).mapTo[Done])(_ => complete(StatusCodes.Accepted, ""))
+            path("scan") {
+              post {
+                extractExecutionContext { implicit executor =>
+                  completeOrRecoverWith {
+                    for {
+                      library <- (app.libraries ? GetLibrary(name)).mapTo[Library]
+                      files <- (app.libraries ? ScanLibrary(library.name))(10.minutes).mapTo[Seq[LibraryFile]]
+                    } yield {
+                      StatusCodes.OK -> files
+                    }
+                  } {
+                    case NotFoundException(message) => complete(StatusCodes.NotFound, message.toJson)
+                    case exception: Exception => complete(StatusCodes.InternalServerError, exception.getMessage.toJson)
+                  }
+                }
+              }
             }
           }
         },

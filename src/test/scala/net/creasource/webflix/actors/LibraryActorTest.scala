@@ -1,5 +1,6 @@
 package net.creasource.webflix.actors
 
+import akka.actor.Status
 import net.creasource.util.{SimpleActorTest, WithLibrary}
 import net.creasource.webflix.{Library, LibraryFile}
 
@@ -17,13 +18,13 @@ class LibraryActorTest extends SimpleActorTest with WithLibrary {
       actor ! LibraryActor.Scan
 
       expectMsgPF() {
-        case LibraryActor.ScanSuccess(files) => files.length should be (libraryFiles.length + 1)
+        case files: Seq[_] => files.length should be (libraryFiles.length + 1)
       }
 
       actor ! LibraryActor.Scan
 
       expectMsgPF() {
-        case LibraryActor.ScanSuccess(files) => files.length should be (libraryFiles.length + 1)
+        case files: Seq[_] => files.length should be (libraryFiles.length + 1)
       }
 
     }
@@ -34,11 +35,11 @@ class LibraryActorTest extends SimpleActorTest with WithLibrary {
       actor ! LibraryActor.Scan
 
       expectMsgPF() {
-        case LibraryActor.ScanFailure(exception) => exception.getMessage should be ("A scan is already in progress")
+        case Status.Failure(exception) => exception.getMessage should be ("A scan is already in progress")
       }
 
       expectMsgPF() {
-        case LibraryActor.ScanSuccess(files) => files.length should be (libraryFiles.length + 1)
+        case files: Seq[_] => files.length should be (libraryFiles.length + 1)
       }
 
     }

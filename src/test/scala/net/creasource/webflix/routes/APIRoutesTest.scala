@@ -6,7 +6,7 @@ import akka.http.scaladsl.testkit._
 import net.creasource.Application
 import net.creasource.json.JsonSupport
 import net.creasource.util.WithLibrary
-import net.creasource.webflix.Library
+import net.creasource.webflix.{Library, LibraryFile}
 import net.creasource.webflix.actors.MediaTypesActor
 import net.creasource.webflix.actors.MediaTypesActor.AddMediaTypeError
 import org.scalatest.{Matchers, Suite, WordSpecLike}
@@ -70,6 +70,20 @@ class APIRoutesTest extends Suite
 
     "return a 404 for GETs on /library/unknown" in {
       Get(s"/libraries/unknown") ~> route ~> check {
+        status shouldEqual StatusCodes.NotFound
+        responseAs[JsValue] shouldEqual JsString("No library with that name")
+      }
+    }
+
+    "return files for POSTs on /library/{name}/scan" in {
+      Post(s"/libraries/${lib.name}/scan") ~> route ~> check {
+        status shouldEqual StatusCodes.OK
+        responseAs[Seq[LibraryFile]].length shouldEqual libraryFiles.length + 1
+      }
+    }
+
+    "return a 404 for POSTs on /library/unknown/scan" in {
+      Post(s"/libraries/unknown/scan") ~> route ~> check {
         status shouldEqual StatusCodes.NotFound
         responseAs[JsValue] shouldEqual JsString("No library with that name")
       }

@@ -1,7 +1,9 @@
 package net.creasource.webflix.actors
 
 import akka.Done
+import akka.actor.Status
 import akka.testkit.TestActorRef
+import net.creasource.exceptions.NotFoundException
 import net.creasource.util.{SimpleActorTest, WithLibrary}
 import net.creasource.webflix.Library
 
@@ -39,11 +41,11 @@ class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
 
       supervisor ! LibrarySupervisor.GetLibrary("name")
 
-      expectMsg(Some(Library.Local("name", libraryPath)))
+      expectMsg(Library.Local("name", libraryPath))
 
       supervisor ! LibrarySupervisor.GetLibrary("badName")
 
-      expectMsg(None)
+      expectMsg(Status.Failure(NotFoundException("No library with that name")))
 
     }
 
@@ -52,13 +54,13 @@ class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
       supervisor ! LibrarySupervisor.ScanLibrary("name")
 
       expectMsgPF() {
-        case LibraryActor.ScanSuccess(files) => files.length should be (libraryFiles.length + 1)
+        case files: Seq[_] => files.length should be (libraryFiles.length + 1)
       }
 
       supervisor ! LibrarySupervisor.ScanLibrary("badName")
 
       expectMsgPF() {
-        case LibraryActor.ScanFailure(cause) => cause.getMessage should be ("No library with that name")
+        case Status.Failure(NotFoundException(message)) => message should be ("No library with that name")
       }
 
     }
