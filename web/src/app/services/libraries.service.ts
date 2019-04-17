@@ -46,9 +46,9 @@ export class LibrariesService extends ServiceHelper {
     );
   }
 
-  remove(name: string): Observable<string> {
+  remove(library: Library): Observable<string> {
     return this.dispatchActionObservable(
-      new RemoveLibrary(name),
+      new RemoveLibrary(library),
       LibrariesActionTypes.RemoveLibrarySuccess,
       LibrariesActionTypes.RemoveLibraryError
     );

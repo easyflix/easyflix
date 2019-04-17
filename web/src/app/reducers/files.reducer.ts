@@ -47,14 +47,18 @@ export function reducer(
 ): State {
   switch (action.type) {
 
-    case FilesActionTypes.LoadFilesSuccess || LibrariesActionTypes.ScanLibrarySuccess: {
+    case FilesActionTypes.LoadFilesSuccess: {
+      return adapter.upsertMany(processLibraryFiles(action.payload), state);
+    }
+
+    case LibrariesActionTypes.ScanLibrarySuccess: {
       return adapter.upsertMany(processLibraryFiles(action.payload), state);
     }
 
     case LibrariesActionTypes.RemoveLibrarySuccess: {
-      const idsToRemove = (state.ids as string[]).filter(id => {
-        const entity = state.entities[id];
-        return entity.path.startsWith(action.payload + '/');
+      const idsToRemove = (state.ids as string[]).filter(path => {
+        const entity = state.entities[path];
+        return entity.path === action.payload.path || entity.path.startsWith(action.payload.path + '/');
       });
       return adapter.removeMany(idsToRemove, state);
     }

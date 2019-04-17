@@ -115,8 +115,8 @@ export class SettingsComponent implements OnInit {
     );
   }
 
-  removeLibrary(name: string) {
-    this.libraries.remove(name).subscribe(
+  removeLibrary(library: Library) {
+    this.libraries.remove(library).subscribe(
       () => {},
       error => console.log(error) // TODO handle error
     );

@@ -103,7 +103,7 @@ export class AppEffects {
     this.actions$.pipe(
       ofType(LibrariesActionTypes.RemoveLibrary),
       switchMap((action: RemoveLibrary) =>
-        this.httpClient.delete('http://localhost:8081/api/libraries/' + encodeURIComponent(action.payload)).pipe(
+        this.httpClient.delete('http://localhost:8081/api/libraries/' + encodeURIComponent(action.payload.name)).pipe(
           map(() => new RemoveLibrarySuccess(action.payload)),
           catchError((error: HttpErrorResponse) => of(new RemoveLibraryError(error.error)))
         )

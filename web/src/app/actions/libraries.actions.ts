@@ -49,12 +49,12 @@ export class AddLibraryError implements Action {
 
 export class RemoveLibrary implements Action {
   readonly type = LibrariesActionTypes.RemoveLibrary;
-  constructor(public payload: string) {}
+  constructor(public payload: Library) {}
 }
 
 export class RemoveLibrarySuccess implements Action {
   readonly type = LibrariesActionTypes.RemoveLibrarySuccess;
-  constructor(public payload: string) {}
+  constructor(public payload: Library) {}
 }
 
 export class RemoveLibraryError implements Action {

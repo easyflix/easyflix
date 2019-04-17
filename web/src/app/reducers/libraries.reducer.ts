@@ -39,7 +39,7 @@ export function reducer(
     }
 
     case LibrariesActionTypes.RemoveLibrarySuccess: {
-      return adapter.removeOne(action.payload, state);
+      return adapter.removeOne(action.payload.name, state);
     }
 
     case LibrariesActionTypes.ScanLibrary: {
