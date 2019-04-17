@@ -129,7 +129,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
     this.librariesComponent = this.librariesFactory.create(this.panels.viewContainerRef.injector);
     this.librariesSub =
       this.librariesComponent.instance.openLibrary.pipe(
-        mergeMap(library => this.files.getByPath(library.path).pipe(take(1)))
+        mergeMap(library => this.files.getByPath(library.name).pipe(take(1)))
       ).subscribe((folder: LibraryFile) => this.goTo(folder));
     this.panels.viewContainerRef.insert(this.librariesComponent.hostView, 0);
     this.librariesComponent.instance.afterAnimation();
