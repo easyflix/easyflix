@@ -79,7 +79,7 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
       } else if (libraries.values.toSeq.map(_.path).exists(path => path.startsWith(library.path) || library.path.startsWith(path))) {
         sender() ! valError("path", "noChildren")
       } else {
-        val actorName = library.name.replaceAll("""[^0-9a-zA-Z-_\.\*\$\+:@&=,!~';]""", "") + "-" + libraries.size
+        val actorName = libraries.size + "-" + library.name.replaceAll("""[^0-9a-zA-Z-_\.\*\$\+:@&=,!~';]""", "")
         Try(context.actorOf(LibraryActor.props(library), actorName)) match {
           case Success(actorRef) =>
             context.watch(actorRef)
