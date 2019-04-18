@@ -86,7 +86,7 @@ object APIRoutes extends Directives with JsonSupport {
                   completeOrRecoverWith {
                     for {
                       library <- (app.libraries ? GetLibrary(name)).mapTo[Library]
-                      files <- (app.libraries ? ScanLibrary(library.name))(10.minutes).mapTo[Seq[LibraryFile]]
+                      files <- (app.libraries ? ScanLibrary(library.name))(10.minutes).mapTo[Seq[LibraryFile with Id]]
                     } yield {
                       StatusCodes.OK -> files
                     }

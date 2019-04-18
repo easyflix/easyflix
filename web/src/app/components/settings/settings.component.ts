@@ -100,7 +100,7 @@ export class SettingsComponent implements OnInit {
       mergeMap(library => this.libraries.scan(library.name))
     ).subscribe(
       files => {
-        console.log('files scanned: ', files);
+        // TODO show a snackbar
         this.libraryNgForm.resetForm();
       },
       (error: ValidationError) => {
