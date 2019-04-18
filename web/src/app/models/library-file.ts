@@ -6,6 +6,7 @@ export interface LibraryFile {
   isDirectory: boolean;
   size: number;
   lastModified: number;
+  libraryName: string;
   numberOfVideos?: number;
 }
 

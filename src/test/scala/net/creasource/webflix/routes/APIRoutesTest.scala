@@ -6,20 +6,25 @@ import akka.http.scaladsl.testkit._
 import net.creasource.Application
 import net.creasource.json.JsonSupport
 import net.creasource.util.WithLibrary
-import net.creasource.webflix.{Library, LibraryFile}
 import net.creasource.webflix.actors.MediaTypesActor
 import net.creasource.webflix.actors.MediaTypesActor.AddMediaTypeError
-import org.scalatest.{Matchers, Suite, WordSpecLike}
+import net.creasource.webflix.{Library, LibraryFile}
+import org.scalatest.{Matchers, WordSpecLike}
 import spray.json._
 
-class APIRoutesTest extends Suite
-  with WordSpecLike
-  with Matchers
-  with WithLibrary
-  with ScalatestRouteTest
-  with JsonSupport {
+class APIRoutesTest
+  extends WordSpecLike
+    with Matchers
+    with WithLibrary
+    with ScalatestRouteTest
+    with JsonSupport {
 
   val application = Application()
+
+  override def afterAll(): Unit = {
+    application.shutdown()
+    super.afterAll()
+  }
 
   "API routes (libraries)" should {
 
@@ -142,11 +147,6 @@ class APIRoutesTest extends Suite
       }
     }
 
-  }
-
-  override def afterAll(): Unit = {
-    application.shutdown()
-    super.afterAll()
   }
 
 }

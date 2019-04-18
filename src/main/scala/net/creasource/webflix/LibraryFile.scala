@@ -27,7 +27,7 @@ object LibraryFile extends JsonSupport {
   object Id {
     implicit val writer: RootJsonWriter[LibraryFile with Id] = file => {
       val obj = LibraryFile.format.write(file).asJsObject
-      obj.copy(obj.fields.+("id" -> file.id.toJson))
+      obj.copy(obj.fields + ("id" -> file.id.toJson))
     }
     implicit val format: RootJsonFormat[LibraryFile with Id] = lift(writer)
   }

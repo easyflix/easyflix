@@ -70,23 +70,15 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
         case None => client ! Status.Failure(NotFoundException("No library with that name"))
       }
 
-    case GetFileById(id) =>
-      val client = sender()
-      paths.find { case (_, identifier) => identifier == id }.map(_._1) match {
-        case Some(path) =>
-          libraries.get(path.subpath(0, 1).toString).map(_._1) match {
-            case Some(actorRef) => actorRef forward LibraryActor.GetFile(path)
-            case None =>
-              logger.warning(s"Couldn't find the corresponding library if id ($id). Path is: $path")
-              client ! Status.Failure(NotFoundException("No file with that id"))
-              self ! Purge(Seq(path))
-          }
-        case _ => client ! Status.Failure(NotFoundException("No file with that id"))
-      }
-
     case ScanLibrary(name) =>
+      val client = sender()
       libraries.get(name).map(_._1) match {
-        case Some(actorRef) => actorRef forward LibraryActor.Scan
+        case Some(actorRef) =>
+          val filesFuture = (actorRef ? LibraryActor.Scan)(10.minute).mapTo[Seq[LibraryFile]]
+          filesFuture.onComplete {
+            case Success(files) => self ! ProcessFiles(files, client)
+            case Failure(exception) => client ! Status.Failure(exception)
+          }
         case None => sender() ! Status.Failure(NotFoundException("No library with that name"))
       }
 
@@ -132,6 +124,20 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
           paths --= paths.keys.filter(_.startsWith(library.name))
         }
       sender() ! Done
+
+    case GetFileById(id) =>
+      val client = sender()
+      paths.find { case (_, identifier) => identifier == id }.map(_._1) match {
+        case Some(path) =>
+          libraries.get(path.subpath(0, 1).toString).map(_._1) match {
+            case Some(actorRef) => actorRef forward LibraryActor.GetFile(path)
+            case None =>
+              logger.warning(s"Couldn't find the corresponding library if id ($id). Path is: $path")
+              client ! Status.Failure(NotFoundException("No file with that id"))
+              self ! Purge(Seq(path))
+          }
+        case _ => client ! Status.Failure(NotFoundException("No file with that id"))
+      }
 
     case ProcessFiles(files, requester) =>
       val withIds = files.map { file =>
