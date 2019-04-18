@@ -1,17 +1,19 @@
 package net.creasource.webflix
 
+import java.net.InetAddress
 import java.nio.file.{Path, Paths}
 
 import akka.NotUsed
 import akka.http.scaladsl.server.directives.ContentTypeResolver
 import akka.stream.alpakka.file.DirectoryChange
 import akka.stream.alpakka.file.scaladsl.{Directory, DirectoryChangesSource}
+import akka.stream.alpakka.ftp.scaladsl.Ftps
+import akka.stream.alpakka.ftp.{FtpCredentials, FtpsSettings}
 import akka.stream.scaladsl.Source
 import net.creasource.json.JsonSupport
 import spray.json._
 
-import scala.concurrent.duration._
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.{FiniteDuration, _}
 import scala.util.Try
 
 sealed trait Library {
@@ -19,6 +21,17 @@ sealed trait Library {
   val path: Path
   def scan()(implicit contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed] = scan(path)
   def scan(path: Path)(implicit contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed]
+  def relativizePath(path: Path): Path = {
+    val relativePath = this.path.relativize(path)
+    Paths.get(name).resolve(relativePath).normalize()
+  }
+  def resolvePath(relativePath: Path): Path = {
+    if (relativePath.isAbsolute) {
+      relativePath
+    } else {
+      this.path.resolve(Paths.get(name).relativize(relativePath))
+    }
+  }
 }
 
 object Library extends JsonSupport {
@@ -32,18 +45,6 @@ object Library extends JsonSupport {
   case class Local(name: String, path: Path, pollInterval: FiniteDuration = 1.second) extends Library with Library.Watchable {
 
     require(Try(Paths.get(name)).isSuccess, "Invalid library name: not a valid path")
-
-    def relativizePath(path: Path): Path = {
-      Paths.get(name).resolve(this.path.relativize(path))
-    }
-
-    def resolvePath(relativePath: Path): Path = {
-      if (relativePath.isAbsolute) {
-        relativePath
-      } else {
-        this.path.resolve(Paths.get(name).relativize(relativePath))
-      }
-    }
 
     override def scan(path: Path)(implicit contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed] = {
       if (path.isAbsolute & path != this.path) throw new IllegalArgumentException("Path must be the library path or a sub-folder relative path")
@@ -65,8 +66,27 @@ object Library extends JsonSupport {
     }
   }
 
-  case class FTP(name: String, path: Path) extends Library {
-    override def scan(path: Path)(implicit contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed] = ???
+  case class FTP(name: String, path: Path, hostname: String, port: Int, username: String, password: String) extends Library {
+
+    val ftpSettings: FtpsSettings = FtpsSettings
+      .create(InetAddress.getByName(hostname))
+      .withPort(port)
+      .withBinary(true)
+      .withCredentials(FtpCredentials.create(username, password))
+      .withPassiveMode(true)
+      // Debugging
+      /*.withConfigureConnection((ftpClient: FTPSClient) => {
+        ftpClient.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out), true))
+      })*/
+
+    override def scan(path: Path)(implicit contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed] =
+      Ftps.ls(path.toString, ftpSettings, _ => false).map(file => { // TODO list folders (https://github.com/akka/alpakka/issues/1657)
+        val filePath = Paths.get(file.path.replaceFirst("^/", ""))
+        Option(file.isDirectory || !file.isDirectory & contentTypeResolver(file.name).mediaType.isVideo).collect{
+          case true => LibraryFile(file.name, relativizePath(filePath), file.isDirectory, file.size, file.lastModified, name)
+        }
+      }).collect{ case option if option.isDefined => option.get }
+
   }
 
   case class S3(name: String, path: Path) extends Library {

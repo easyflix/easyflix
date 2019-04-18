@@ -105,7 +105,7 @@ class LibraryActorTest extends SimpleActorTest with WithLibrary {
 
     "watch its library recursively for file deletion" in {
 
-      uncreatedFiles.head.toFile.delete()
+      uncreatedFiles.head.toFile.createNewFile()
 
       Thread.sleep(pollInterval.toMillis * 2)
 
@@ -114,10 +114,10 @@ class LibraryActorTest extends SimpleActorTest with WithLibrary {
       expectMsgPF() {
         case files: Seq[_] =>
           files.length should be (libraryFiles.length + 2)
-          files.map(_.asInstanceOf[LibraryFile].name) should not contain uncreatedFiles.head.getFileName.toString
+          files.map(_.asInstanceOf[LibraryFile].name) should contain (uncreatedFiles.head.getFileName.toString)
       }
 
-      uncreatedFiles(1).toFile.delete()
+      uncreatedFiles.head.toFile.delete()
 
       Thread.sleep(pollInterval.toMillis * 2)
 
@@ -126,7 +126,7 @@ class LibraryActorTest extends SimpleActorTest with WithLibrary {
       expectMsgPF() {
         case files: Seq[_] =>
           files.length should be (libraryFiles.length + 1)
-          files.map(_.asInstanceOf[LibraryFile].name) should not contain uncreatedFiles(1).getFileName.toString
+          files.map(_.asInstanceOf[LibraryFile].name) should not contain uncreatedFiles.head.getFileName.toString
       }
 
     }

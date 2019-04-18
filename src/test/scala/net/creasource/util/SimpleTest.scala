@@ -12,6 +12,8 @@ abstract class SimpleTest
   implicit val application: Application = Application()
   implicit val materializer: ActorMaterializer = application.materializer
 
+  override def beforeAll(): Unit = super.beforeAll()
+
   override def afterAll() {
     application.shutdown()
     super.afterAll()

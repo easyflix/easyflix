@@ -5,14 +5,14 @@ import java.nio.file.Paths
 import akka.stream.KillSwitches
 import akka.stream.alpakka.file.DirectoryChange
 import akka.stream.scaladsl.{Keep, Sink}
-import net.creasource.util.{SimpleTest, WithLibrary}
+import net.creasource.util.{SimpleTest, WithFTPServer, WithLibrary}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class LibraryTest extends SimpleTest with WithLibrary {
+class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer {
 
-  "A LocalLibrary" should {
+  "A Local Library" should {
 
     val pollInterval = 100.milliseconds
 
@@ -38,7 +38,7 @@ class LibraryTest extends SimpleTest with WithLibrary {
       val future = lib.scan(folder).runWith(Sink.seq)
       val files = Await.result(future, 2.seconds)
 
-      files.length should be (2)
+      files.length should be (libraryFiles.map(_._1).count(path => path.startsWith(libraryFiles.head._1)))
 
       files.head.name should be (folder.getFileName.toString)
       files.head.isDirectory should be (true)
@@ -69,6 +69,8 @@ class LibraryTest extends SimpleTest with WithLibrary {
     }
 
     "watch root directory for file deletion" in {
+      uncreatedFiles.head.toFile.createNewFile()
+
       val lib = Library.Local("name", libraryPath, pollInterval)
       val (ks, future) = lib
         .watch()
@@ -123,6 +125,23 @@ class LibraryTest extends SimpleTest with WithLibrary {
       }
 
       assertThrows[java.lang.IllegalArgumentException](Library.Local(invalidName, Paths.get("")))
+
+    }
+
+  }
+
+  "A FTP Library" should {
+
+    "instantiate" in {
+
+      val lib = Library.FTP("Ftp library", Paths.get(""), "localhost", ftpPort, userName, userPass)
+
+      val f = lib.scan().runWith(Sink.seq)
+
+      val files = Await.result(f, 1.minute)
+
+      println(files.filter(_.isDirectory)) // Fails
+
 
     }
 
