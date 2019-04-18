@@ -1,6 +1,9 @@
 package net.creasource.webflix.actors
 
+import java.nio.file.Paths
+
 import akka.actor.Status
+import net.creasource.exceptions.NotFoundException
 import net.creasource.util.{SimpleActorTest, WithLibrary}
 import net.creasource.webflix.{Library, LibraryFile}
 
@@ -51,6 +54,24 @@ class LibraryActorTest extends SimpleActorTest with WithLibrary {
       expectMsgPF() {
         case files: Seq[_] => files.length should be (libraryFiles.length + 1)
       }
+
+    }
+
+    "retrieve a file by path" in {
+
+      actor ! LibraryActor.GetFiles
+
+      val files: Seq[_] = expectMsgPF() { case files: Seq[_] => files }
+
+      val path = files.head.asInstanceOf[LibraryFile].path
+
+      actor ! LibraryActor.GetFile(path)
+
+      expectMsg(files.head)
+
+      actor ! LibraryActor.GetFile(Paths.get("unknown"))
+
+      expectMsg(Status.Failure(NotFoundException("No file with that path")))
 
     }
 

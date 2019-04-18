@@ -12,6 +12,7 @@ import spray.json._
 
 import scala.concurrent.duration._
 import scala.concurrent.duration.FiniteDuration
+import scala.util.Try
 
 sealed trait Library {
   val name: String
@@ -29,6 +30,8 @@ object Library extends JsonSupport {
   }
 
   case class Local(name: String, path: Path, pollInterval: FiniteDuration = 1.second) extends Library with Library.Watchable {
+
+    require(Try(Paths.get(name)).isSuccess, "Invalid library name: not a valid path")
 
     def relativizePath(path: Path): Path = {
       Paths.get(name).resolve(this.path.relativize(path))

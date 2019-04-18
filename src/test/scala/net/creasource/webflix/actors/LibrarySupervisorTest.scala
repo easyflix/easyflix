@@ -5,13 +5,15 @@ import akka.actor.Status
 import akka.testkit.TestActorRef
 import net.creasource.exceptions.{NotFoundException, ValidationErrorException}
 import net.creasource.util.{SimpleActorTest, WithLibrary}
-import net.creasource.webflix.Library
+import net.creasource.webflix.{Library, LibraryFile}
+
+import scala.concurrent.Await
 
 class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
 
   "A LibrarySupervisor" should {
 
-    val supervisor = TestActorRef(LibrarySupervisor.props()) //system.actorOf(LibrarySupervisor.props())
+    val supervisor = TestActorRef[LibrarySupervisor](LibrarySupervisor.props()) //system.actorOf(LibrarySupervisor.props())
 
     "add a Library successfully" in {
 
@@ -21,11 +23,15 @@ class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
 
     }
 
-    "fail to add a library with a name already defined" in {
+    "fail to add a library with a name or path already defined" in {
 
       supervisor ! LibrarySupervisor.AddLibrary(Library.Local("name", libraryPath))
 
       expectMsg(Status.Failure(ValidationErrorException("name", "alreadyExists", None)))
+
+      supervisor ! LibrarySupervisor.AddLibrary(Library.Local("name2", libraryPath))
+
+      expectMsg(Status.Failure(ValidationErrorException("path", "alreadyExists", None)))
 
     }
 
@@ -73,6 +79,36 @@ class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
         case files: Seq[_] => files.length should be (libraryFiles.length + 1)
       }
 
+      supervisor ! LibrarySupervisor.GetLibraryFiles("badName")
+
+      expectMsg(Status.Failure(NotFoundException("No library with that name")))
+
+    }
+
+    "retrieve files by id" in {
+
+      import akka.pattern.ask
+      import scala.concurrent.duration._
+
+      val files = Await.result(
+        (supervisor ? LibrarySupervisor.GetLibraryFiles("name"))(2.seconds).mapTo[Seq[LibraryFile with LibraryFile.Id]],
+        2.seconds
+      )
+
+      files.length should be (libraryFiles.length + 1)
+
+      supervisor ! LibrarySupervisor.GetFileById(files.head.id)
+
+      expectMsg(files.head)
+
+      supervisor ! LibrarySupervisor.GetFileById(files.last.id)
+
+      expectMsg(files.last)
+
+      supervisor ! LibrarySupervisor.GetFileById("unknown")
+
+      expectMsg(Status.Failure(NotFoundException("No file with that id")))
+
     }
 
     "remove a library successfully" in {
@@ -85,15 +121,39 @@ class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
 
     "add a Library successfully regardless of special characters in name" in {
 
-      Thread.sleep(10)
+      Thread.sleep(20)
 
-      val lib = Library.Local("""nameéà@ç-.+*_8/\\'"#;,%$£&~^""", libraryPath)
+      val lib = Library.Local("""naméà@""", libraryPath)
 
       supervisor ! LibrarySupervisor.AddLibrary(lib)
 
       expectMsg(lib)
 
     }
+
+    /*"purge" in {
+
+      val r = """(?:[^\\/:*?"<>|\r\n]+\\)*""".r
+
+      """nameéà@ç-.+*_8/\\'"#;,%$£&~^""" match {
+        case r(_*) => println("true")
+        case _ => println("false")
+      }
+
+      supervisor.underlyingActor.paths.toSeq.length should be (0)
+
+      supervisor ! LibrarySupervisor.Purge
+
+      expectNoMessage()
+
+      supervisor ! LibrarySupervisor.ScanLibrary("""nameéà@ç-.+*_8/\\'"#;,%$£&~^""")
+      expectMsgPF() {
+        case files: Seq[_] => files.length should be (libraryFiles.length + 1)
+      }
+
+      supervisor.underlyingActor.paths.toSeq.length should be (libraryFiles.length + 1)
+
+    }*/
 
   }
 

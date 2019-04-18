@@ -111,6 +111,21 @@ class LibraryTest extends SimpleTest with WithLibrary {
       files.head should matchPattern { case (LibraryFile(`fileName`, _, false, _, _, "name"), DirectoryChange.Creation) => }
     }
 
+    "fail to create with an invalid name" in {
+
+      val regex = """^[^\\/:*?"<>|\r\n]+$""".r
+
+      val invalidName = "<invalid>"
+
+      invalidName match {
+        case regex(_*) => fail()
+        case _ =>
+      }
+
+      assertThrows[java.lang.IllegalArgumentException](Library.Local(invalidName, Paths.get("")))
+
+    }
+
   }
 
 }

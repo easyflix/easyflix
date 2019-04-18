@@ -22,7 +22,7 @@ import {ValidationError} from '@app/models/validation-error';
 export class SettingsComponent implements OnInit {
 
   libraryForm = this.fb.group({
-    name: ['', [Validators.required, Validators.pattern(/^[^:]+$/)]],
+    name: ['', [Validators.required, Validators.pattern(/^[^\\/:*?"<>|\r\n]+$/)]],
     path: ['', Validators.required]
   });
 
@@ -175,7 +175,7 @@ export class SettingsComponent implements OnInit {
       return 'A value is required';
     }
     if (control.hasError('pattern') && control === this.libraryForm.controls.name) {
-      return 'Invalid name (" : " is not allowed)';
+      return 'Invalid name (avoid special characters)';
     }
     if (control.hasError('pattern') && control === this.mediaTypeForm.controls.contentType) {
       return 'Content-Type must start with video/';

@@ -8,6 +8,7 @@ import akka.pattern.ask
 import net.creasource.Application
 import net.creasource.exceptions.{NotFoundException, ValidationErrorException}
 import net.creasource.json.JsonSupport
+import net.creasource.webflix.LibraryFile.Id
 import net.creasource.webflix.actors.LibrarySupervisor._
 import net.creasource.webflix.actors.MediaTypesActor._
 import net.creasource.webflix.{Library, LibraryFile}
@@ -62,7 +63,7 @@ object APIRoutes extends Directives with JsonSupport {
                   completeOrRecoverWith {
                     for {
                       library <- (app.libraries ? GetLibrary(name)).mapTo[Library]
-                      files <- (app.libraries ? GetLibraryFiles(library.name)).mapTo[Seq[LibraryFile]]
+                      files <- (app.libraries ? GetLibraryFiles(library.name)).mapTo[Seq[LibraryFile with Id]]
                     } yield {
                       StatusCodes.OK -> JsObject(
                         "library" -> library.toJson,

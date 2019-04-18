@@ -9,6 +9,7 @@ import akka.stream.alpakka.file.DirectoryChange
 import akka.stream.scaladsl.{Keep, Sink}
 import akka.stream.{KillSwitches, SharedKillSwitch, UniqueKillSwitch}
 import net.creasource.Application
+import net.creasource.exceptions.NotFoundException
 import net.creasource.webflix.events.ResolverUpdate
 import net.creasource.webflix.{Library, LibraryFile}
 
@@ -59,7 +60,11 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
 
     case GetFiles => sender() ! files.values.toSeq
 
-    case GetFile(path) => sender() ! files.get(path)
+    case GetFile(path) =>
+      files.get(path) match {
+        case Some(file) => sender() ! file
+        case _ => sender() ! Status.Failure(NotFoundException("No file with that path"))
+      }
 
     case file: LibraryFile => files += (file.path -> file)
 
