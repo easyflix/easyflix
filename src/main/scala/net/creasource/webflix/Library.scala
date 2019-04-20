@@ -10,15 +10,14 @@ import akka.stream.alpakka.file.scaladsl.{Directory, DirectoryChangesSource}
 import akka.stream.alpakka.ftp.scaladsl.Ftps
 import akka.stream.alpakka.ftp.{FtpCredentials, FtpsSettings}
 import akka.stream.scaladsl.Source
+import net.creasource.exceptions.ValidationException
 import net.creasource.json.JsonSupport
 import spray.json._
 
 import scala.concurrent.duration.{FiniteDuration, _}
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 sealed trait Library {
-  require(Try(Paths.get(name)).isSuccess, "Invalid library name: not a valid path")
-
   val name: String
   val path: Path
 
@@ -36,7 +35,9 @@ sealed trait Library {
       this.path.resolve(Paths.get(name).relativize(relativePath))
     }
   }
-//  def validate(): Try[Unit]
+  def validate(): Try[Unit] = {
+    Try(Paths.get(name)).map(_ => ()).recover{ case _: Exception => throw ValidationException("name", "pattern") }
+  }
 }
 
 object Library extends JsonSupport {
@@ -66,6 +67,18 @@ object Library extends JsonSupport {
           val file = p.toFile
           (LibraryFile(file.getName, relativizePath(p), file.isDirectory, file.length(), file.lastModified(), name), directoryChange)
       }
+    }
+
+    override def validate(): Try[Unit] = {
+      for {
+        _ <- super.validate()
+        _ <- if (name != "")              Success(()) else Failure(ValidationException("name", "required"))
+        _ <- if (path.toString != "")     Success(()) else Failure(ValidationException("path", "required"))
+        _ <- if (path.isAbsolute)         Success(()) else Failure(ValidationException("path", "notAbsolute"))
+        _ <- if (path.toFile.exists)      Success(()) else Failure(ValidationException("path", "doesNotExist"))
+        _ <- if (path.toFile.isDirectory) Success(()) else Failure(ValidationException("path", "notDirectory"))
+        _ <- if (path.toFile.canRead)     Success(()) else Failure(ValidationException("path", "notReadable"))
+      } yield ()
     }
   }
 

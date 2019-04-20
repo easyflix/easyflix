@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.{HttpHeader, MediaType, StatusCodes}
 import akka.http.scaladsl.server.{Directives, Route}
 import akka.pattern.ask
 import net.creasource.Application
-import net.creasource.exceptions.{NotFoundException, ValidationErrorException}
+import net.creasource.exceptions.{NotFoundException, ValidationException}
 import net.creasource.json.JsonSupport
 import net.creasource.webflix.LibraryFile.Id
 import net.creasource.webflix.actors.LibrarySupervisor._
@@ -45,7 +45,7 @@ object APIRoutes extends Directives with JsonSupport {
               entity(as[Library]) { library =>
                 extractExecutionContext { implicit executor =>
                   completeOrRecoverWith((app.libraries ? AddLibrary(library)).mapTo[Library]) {
-                    case ValidationErrorException(control, code, value) => complete(StatusCodes.BadRequest, JsObject(
+                    case ValidationException(control, code, value) => complete(StatusCodes.BadRequest, JsObject(
                       "control" -> control.toJson,
                       "code" -> code.toJson,
                       "value" -> value.toJson

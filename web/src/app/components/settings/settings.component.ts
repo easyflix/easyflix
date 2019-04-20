@@ -183,9 +183,6 @@ export class SettingsComponent implements OnInit {
     if (control.hasError('alreadyExists') && control === this.libraryForm.controls.name) {
       return 'A library with that name already exists';
     }
-    if (control.hasError('alreadyExists') && control === this.libraryForm.controls.path) {
-      return 'A library with that path already exists';
-    }
     if (control.hasError('alreadyExists') && control === this.mediaTypeForm.controls.contentType) {
       return 'A rule with that Content-Type already exists';
     }
@@ -200,9 +197,6 @@ export class SettingsComponent implements OnInit {
     }
     if (control.hasError('notReadable')) {
       return 'This path is not readable';
-    }
-    if (control.hasError('noChildren')) {
-      return 'A library cannot contain another';
     }
     if (control.hasError('notAbsolute')) {
       return 'This path is not an absolute path';

@@ -9,7 +9,7 @@ import akka.event.Logging
 import akka.pattern.ask
 import me.nimavat.shortid.ShortId
 import net.creasource.Application
-import net.creasource.exceptions.{NotFoundException, ValidationErrorException}
+import net.creasource.exceptions.{NotFoundException, ValidationException}
 import net.creasource.json.JsonSupport
 import net.creasource.webflix.{Library, LibraryFile}
 
@@ -83,44 +83,20 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
       }
 
     case AddLibrary(library) =>
-      val ok: Boolean = library match {
-        case Library.Local(name, path, _) =>
-          if (library.name == "") {
-            sender() ! valError("name", "required"); false
-          } else if (library.name.contains(":")) {
-            sender() ! valError("name", "pattern"); false
-          } else if (libraries.keys.exists(_ == library.name)) {
-            sender() ! valError("name", "alreadyExists"); false
-          } else if (library.path.toString == "") {
-            sender() ! valError("path", "required"); false
-          } else if (!library.path.isAbsolute) {
-            sender() ! valError("path", "notAbsolute"); false
-          } else if (!library.path.toFile.exists) {
-            sender() ! valError("path", "doesNotExist"); false
-          } else if (!library.path.toFile.isDirectory) {
-            sender() ! valError("path", "notDirectory"); false
-          } else if (!library.path.toFile.canRead) {
-            sender() ! valError("path", "notReadable"); false
-          }  else if (libraries.values.map(_._2.path).exists(_ == library.path)) {
-            sender() ! valError("path", "alreadyExists"); false
-          } else if (libraries.values.map(_._2.path).exists(path => path.startsWith(library.path) || library.path.startsWith(path))) {
-            sender() ! valError("path", "noChildren"); false
-          } else {
-            true
-          }
-        case Library.FTP(name, path, hostname, port, username, password, passive) => true
-      }
 
-      if (ok) {
-        val actorName = libraries.size + "-" + library.name.replaceAll("""[^0-9a-zA-Z-_\.\*\$\+:@&=,!~';]""", "")
-        Try(context.actorOf(LibraryActor.props(library), actorName)) match {
-          case Success(actorRef) =>
-            context.watch(actorRef)
-            libraries += (library.name -> (actorRef -> library))
-            sender() ! library
-          case Failure(cause) =>
-            sender() ! valError("other", "failure", Some(cause.getMessage))
-        }
+      val validateAndCreate = for {
+        _ <- library.validate()
+        _ <- if (libraries.keys.exists(_ == library.name)) Failure(ValidationException("name", "alreadyExists")) else Success(())
+        actorName = libraries.size + "-" + library.name.replaceAll("""[^0-9a-zA-Z-_.*$+:@&=,!~';]""", "")
+        _ <- Try(context.actorOf(LibraryActor.props(library), actorName)) map { actorRef =>
+          libraries += (library.name -> (actorRef -> library))
+          context.watch(actorRef)
+        } recover { case e => throw ValidationException("other", "failure", Some(e.getMessage)) }
+      } yield ()
+
+      validateAndCreate match {
+        case Success(_) => sender() ! library
+        case Failure(e) => sender() ! Status.Failure(e)
       }
 
     case RemoveLibrary(name) =>
@@ -180,7 +156,7 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
   }
 
   def valError(control: String, code: String, value: Option[String] = None) =
-    Status.Failure(ValidationErrorException(control, code, value))
+    Status.Failure(ValidationException(control, code, value))
 
   override def supervisorStrategy: SupervisorStrategy = OneForOneStrategy() {
     case _: ActorInitializationException => Stop
