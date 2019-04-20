@@ -17,10 +17,14 @@ import scala.concurrent.duration.{FiniteDuration, _}
 import scala.util.Try
 
 sealed trait Library {
+  require(Try(Paths.get(name)).isSuccess, "Invalid library name: not a valid path")
+
   val name: String
   val path: Path
+
   def scan()(implicit contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed] = scan(path)
   def scan(path: Path)(implicit contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed]
+
   def relativizePath(path: Path): Path = {
     val relativePath = this.path.relativize(path)
     Paths.get(name).resolve(relativePath).normalize()
@@ -32,6 +36,7 @@ sealed trait Library {
       this.path.resolve(Paths.get(name).relativize(relativePath))
     }
   }
+//  def validate(): Try[Unit]
 }
 
 object Library extends JsonSupport {
@@ -43,8 +48,6 @@ object Library extends JsonSupport {
   }
 
   case class Local(name: String, path: Path, pollInterval: FiniteDuration = 1.second) extends Library with Library.Watchable {
-
-    require(Try(Paths.get(name)).isSuccess, "Invalid library name: not a valid path")
 
     override def scan(path: Path)(implicit contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed] = {
       if (path.isAbsolute & path != this.path) throw new IllegalArgumentException("Path must be the library path or a sub-folder relative path")
@@ -66,7 +69,7 @@ object Library extends JsonSupport {
     }
   }
 
-  case class FTP(name: String, path: Path, hostname: String, port: Int, username: String, password: String) extends Library {
+  case class FTP(name: String, path: Path, hostname: String, port: Int, username: String, password: String, passive: Boolean) extends Library {
 
     val ftpSettings: FtpsSettings = FtpsSettings
       .create(InetAddress.getByName(hostname))
@@ -109,9 +112,7 @@ object Library extends JsonSupport {
   }
 
   object FTP {
-    implicit val reader: RootJsonReader[FTP] = ???
-    implicit val writer: RootJsonWriter[FTP] = ???
-    implicit val format: RootJsonFormat[FTP] = rootJsonFormat(reader, writer)
+    implicit val format: RootJsonFormat[FTP] = jsonFormat7(FTP.apply)
   }
 
   object S3 {

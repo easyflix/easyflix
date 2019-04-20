@@ -50,3 +50,4 @@ Thumbs.db
 
 /data
 /config
+/src/test/resources/ftp/users.properties

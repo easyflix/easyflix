@@ -83,27 +83,35 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
       }
 
     case AddLibrary(library) =>
-      if (library.name == "") {
-        sender() ! valError("name", "required")
-      } else if (library.name.contains(":")) {
-        sender() ! valError("name", "pattern")
-      } else if (libraries.keys.exists(_ == library.name)) {
-        sender() ! valError("name", "alreadyExists")
-      } else if (library.path.toString == "") {
-        sender() ! valError("path", "required")
-      } else if (!library.path.isAbsolute) {
-        sender() ! valError("path", "notAbsolute")
-      } else if (!library.path.toFile.exists) {
-        sender() ! valError("path", "doesNotExist")
-      } else if (!library.path.toFile.isDirectory) {
-        sender() ! valError("path", "notDirectory")
-      } else if (!library.path.toFile.canRead) {
-        sender() ! valError("path", "notReadable")
-      }  else if (libraries.values.map(_._2.path).exists(_ == library.path)) {
-        sender() ! valError("path", "alreadyExists")
-      } else if (libraries.values.map(_._2.path).exists(path => path.startsWith(library.path) || library.path.startsWith(path))) {
-        sender() ! valError("path", "noChildren")
-      } else {
+      val ok: Boolean = library match {
+        case Library.Local(name, path, _) =>
+          if (library.name == "") {
+            sender() ! valError("name", "required"); false
+          } else if (library.name.contains(":")) {
+            sender() ! valError("name", "pattern"); false
+          } else if (libraries.keys.exists(_ == library.name)) {
+            sender() ! valError("name", "alreadyExists"); false
+          } else if (library.path.toString == "") {
+            sender() ! valError("path", "required"); false
+          } else if (!library.path.isAbsolute) {
+            sender() ! valError("path", "notAbsolute"); false
+          } else if (!library.path.toFile.exists) {
+            sender() ! valError("path", "doesNotExist"); false
+          } else if (!library.path.toFile.isDirectory) {
+            sender() ! valError("path", "notDirectory"); false
+          } else if (!library.path.toFile.canRead) {
+            sender() ! valError("path", "notReadable"); false
+          }  else if (libraries.values.map(_._2.path).exists(_ == library.path)) {
+            sender() ! valError("path", "alreadyExists"); false
+          } else if (libraries.values.map(_._2.path).exists(path => path.startsWith(library.path) || library.path.startsWith(path))) {
+            sender() ! valError("path", "noChildren"); false
+          } else {
+            true
+          }
+        case Library.FTP(name, path, hostname, port, username, password, passive) => true
+      }
+
+      if (ok) {
         val actorName = libraries.size + "-" + library.name.replaceAll("""[^0-9a-zA-Z-_\.\*\$\+:@&=,!~';]""", "")
         Try(context.actorOf(LibraryActor.props(library), actorName)) match {
           case Success(actorRef) =>

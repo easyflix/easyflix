@@ -1,12 +1,13 @@
 package net.creasource.webflix.routes
 
-import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.{Range, RangeUnits}
+import akka.http.scaladsl.model.{HttpEntity, HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.server.directives.{ContentTypeResolver, FileAndResourceDirectives}
 import akka.http.scaladsl.server.directives.RouteDirectives.complete
+import akka.http.scaladsl.server.directives.{ContentTypeResolver, FileAndResourceDirectives, RangeDirectives}
 import akka.pattern.ask
+import akka.stream.alpakka.ftp.scaladsl.Ftps
 import net.creasource.Application
 import net.creasource.exceptions.NotFoundException
 import net.creasource.webflix.actors.LibrarySupervisor.{GetFileById, GetLibrary}
@@ -29,12 +30,21 @@ object VideosRoutes extends FileAndResourceDirectives {
           library <- (app.libraries ? GetLibrary(file.libraryName)).mapTo[Library]
           ctr <- (app.mediaTypesActor ? GetContentTypeResolver).mapTo[ContentTypeResolver]
         } yield {
+          val path = library.resolvePath(file.path)
           library match {
-            case lib: Library.Local =>
-              val path = lib.resolvePath(file.path)
+            case _: Library.Local =>
               optionalHeaderValueByType[Range](()) {
                 case Some(Range(RangeUnits.Bytes, Seq(range))) => getFromFileWithRange(path.toFile, range)(ctr)
                 case _ => getFromFile(path.toFile)(ctr)
+              }
+            case lib: Library.FTP =>
+              val entity =
+                if (file.size > 0)
+                  HttpEntity.Default(ctr(path.getFileName.toString), file.size, Ftps.fromPath(path.toString, lib.ftpSettings))
+                else
+                  HttpEntity.empty(ctr(path.getFileName.toString))
+              RangeDirectives.withRangeSupport {
+                complete(HttpResponse(StatusCodes.OK, entity = entity))
               }
             case _ => ???
           }

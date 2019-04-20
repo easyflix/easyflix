@@ -11,6 +11,11 @@ export interface LocalLibrary extends Library {
 
 export interface FTPLibrary extends Library {
   type: 'ftp';
+  hostname: string;
+  port: number;
+  username: string;
+  password: string;
+  passive: boolean;
 }
 
 export interface S3Library extends Library {

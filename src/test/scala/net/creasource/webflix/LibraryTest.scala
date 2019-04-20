@@ -134,7 +134,7 @@ class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer {
 
     "instantiate" in {
 
-      val lib = Library.FTP("Ftp library", Paths.get(""), "localhost", ftpPort, userName, userPass)
+      val lib = Library.FTP("Ftp-library", Paths.get(""), "localhost", ftpPort, userName, userPass, passive = true)
 
       val f = lib.scan().runWith(Sink.seq)
 

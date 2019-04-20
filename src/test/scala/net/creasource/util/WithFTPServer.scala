@@ -20,14 +20,18 @@ trait WithFTPServer extends BeforeAndAfterAll { self: Suite with WithLibrary =>
   val userName = "userName"
   val userPass = "userPass"
 
+  private val userProps = new File("src/test/resources/ftp/users.properties")
+
   override def beforeAll(): Unit = {
     super.beforeAll()
+    userProps.createNewFile()
     server = createServer()
     server.start()
   }
   
   override def afterAll(): Unit = {
     Try(server.stop())
+    userProps.delete()
     super.afterAll()
   }
 
@@ -54,7 +58,7 @@ trait WithFTPServer extends BeforeAndAfterAll { self: Suite with WithLibrary =>
 
   def createUsers(): UserManager = {
     val userManagerFactory: PropertiesUserManagerFactory = new PropertiesUserManagerFactory()
-    userManagerFactory.setFile(new File("src/test/resources/ftp/users.properties"))
+    userManagerFactory.setFile(userProps)
     userManagerFactory.setPasswordEncryptor(new SaltedPasswordEncryptor())
 
     val user: BaseUser = new BaseUser()
