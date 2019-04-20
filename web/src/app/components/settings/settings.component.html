@@ -3,7 +3,35 @@
 </header>
 <mat-divider></mat-divider>
 <section class="settings">
-  <h3>Themes</h3>
+
+  <nav mat-tab-nav-bar mat-stretch-tabs [disableRipple]="true">
+    <a mat-tab-link
+       [routerLink]="['./']"
+       routerLinkActive #rla0="routerLinkActive"
+       [active]="rla0.isActive"
+       [routerLinkActiveOptions]="{ exact: true }"
+       queryParamsHandling="preserve">
+      Local
+    </a>
+    <a mat-tab-link
+       [routerLink]="['global']"
+       routerLinkActive #rla1="routerLinkActive"
+       [active]="rla1.isActive"
+       queryParamsHandling="preserve">
+      Global
+    </a>
+    <a mat-tab-link
+       [routerLink]="['libraries']"
+       routerLinkActive #rla2="routerLinkActive"
+       [active]="rla2.isActive"
+       queryParamsHandling="preserve">
+      Libraries
+    </a>
+  </nav>
+
+  <router-outlet></router-outlet>
+
+  <!--<h3>Themes</h3>
   <section class="themes">
     <ng-container *ngFor="let theme of allThemes">
       <button mat-icon-button class="theme" [style]="getThemeStyle(theme)" (click)="changeTheme(theme)">
@@ -105,5 +133,5 @@
       <mat-progress-spinner mode="indeterminate" diameter="25"></mat-progress-spinner>
     </div>
   </form>
-  <p class="form-error" *ngIf="mediaTypeForm.hasError('failure')">{{ mediaTypeForm.getError('failure') }}</p>
+  <p class="form-error" *ngIf="mediaTypeForm.hasError('failure')">{{ mediaTypeForm.getError('failure') }}</p>-->
 </section>

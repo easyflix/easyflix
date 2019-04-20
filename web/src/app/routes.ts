@@ -13,6 +13,9 @@ import {VideoDetailedListComponent} from './components/common/video-detailed-lis
 import {VideoResolverService} from '@app/guards/video-resolver.service';
 import {LibrariesLoadedGuard} from '@app/guards/libraries-loaded.guard';
 import {MediaTypesLoadedGuard} from '@app/guards/media-types-loaded.guard';
+import {GlobalComponent} from '@app/components/settings/global/global.component';
+import {LibrariesComponent} from '@app/components/settings/libraries/libraries.component';
+import {LocalComponent} from '@app/components/settings/local/local.component';
 
 const navOutletName = 'nav';
 
@@ -54,7 +57,21 @@ export const routes: Routes = [
     component: SettingsComponent,
     outlet: navOutletName,
     canActivate: [LibrariesLoadedGuard, MediaTypesLoadedGuard],
-    data: { animation: 'settings' }
+    data: { animation: 'settings' },
+    children: [
+      {
+        path: '',
+        component: LocalComponent
+      },
+      {
+        path: 'global',
+        component: GlobalComponent
+      },
+      {
+        path: 'libraries',
+        component: LibrariesComponent
+      }
+    ]
   },
   { path: 'about', component: AboutComponent, outlet: navOutletName, data: { animation: 'about' } },
 ];

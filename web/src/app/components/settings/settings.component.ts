@@ -1,17 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
-import {MatButton} from '@angular/material';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {MatTabNav} from '@angular/material';
 import {CoreService} from '@app/services/core.service';
-import {Observable} from 'rxjs';
-import {map, mergeMap} from 'rxjs/operators';
-import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
+import {Observable, Subscription} from 'rxjs';
+import {SidenavWidthType} from '@app/reducers/core.reducer';
 import {FilesService} from '@app/services/files.service';
-import {Library, MediaType} from '@app/models';
-import {AbstractControl, FormBuilder, FormGroup, FormGroupDirective, Validators} from '@angular/forms';
+import {FormBuilder} from '@angular/forms';
 import {MediaTypesService} from '@app/services/media-types.service';
 import {LibrariesService} from '@app/services/libraries.service';
-import {Theme, ThemesUtils} from '@app/utils/themes.utils';
 import {DomSanitizer} from '@angular/platform-browser';
-import {ValidationError} from '@app/models/validation-error';
 
 @Component({
   selector: 'app-settings',
@@ -19,9 +15,9 @@ import {ValidationError} from '@app/models/validation-error';
   styleUrls: ['./settings.component.sass'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent implements OnInit, OnDestroy {
 
-  libraryForm = this.fb.group({
+/*  libraryForm = this.fb.group({
     name: ['', [Validators.required, Validators.pattern(/^[^\\/:*?"<>|\r\n]+$/)]],
     path: ['', Validators.required]
   });
@@ -29,27 +25,27 @@ export class SettingsComponent implements OnInit {
   mediaTypeForm = this.fb.group({
     contentType: ['', [Validators.required, Validators.pattern(/^video\/.+$/)]],
     extensions: ['', Validators.required]
-  });
+  });*/
 
-  @ViewChild('closeButton') closeButton: MatButton;
+  // @ViewChild('closeButton') closeButton: MatButton;
 
   // Required because we have to call resetForm() (https://github.com/angular/material2/issues/4190)
-  @ViewChild('libraryNgForm', { read: FormGroupDirective }) libraryNgForm;
-  @ViewChild('mediaTypeNgForm', { read: FormGroupDirective }) mediaTypeNgForm;
+/*  @ViewChild('libraryNgForm', { read: FormGroupDirective }) libraryNgForm;
+  @ViewChild('mediaTypeNgForm', { read: FormGroupDirective }) mediaTypeNgForm;*/
 
-  sidenavMode$: Observable<SidenavModeType>;
+  @ViewChild(MatTabNav) navBar: MatTabNav;
+
   sidenavWidth$: Observable<SidenavWidthType>;
 
-  libraries$: Observable<Library[]>;
+/*  libraries$: Observable<Library[]>;
   addingLibrary = false;
 
   mediaTypes$: Observable<MediaType[]>;
-  addingMediaType = false;
+  addingMediaType = false;*/
 
-  allThemes: Theme[] = ThemesUtils.allThemes;
-  theme$: Observable<Theme>;
+  subscriptions: Subscription[] = [];
 
-  static setControlErrors(error: ValidationError, form: FormGroup) {
+  /*static setControlErrors(error: ValidationError, form: FormGroup) {
     const formError = {};
     formError[error.code] = error.value || true;
     const control = form.controls[error.control];
@@ -58,7 +54,7 @@ export class SettingsComponent implements OnInit {
     } else {
       form.setErrors(formError);
     }
-  }
+  }*/
 
   constructor(
     private core: CoreService,
@@ -69,32 +65,27 @@ export class SettingsComponent implements OnInit {
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef
   ) {
-    this.sidenavMode$ = core.getSidenavMode();
     this.sidenavWidth$ = core.getSidenavWidth();
-    this.libraries$ = libraries.getAll().pipe(
+/*    this.libraries$ = libraries.getAll().pipe(
       map(libs => libs.sort((a, b) => a.path.localeCompare(b.path)))
     );
-    this.mediaTypes$ = mediaTypes.getAll();
-    this.theme$ = core.getTheme();
+    this.mediaTypes$ = mediaTypes.getAll();*/
   }
 
-  ngOnInit() {}
-
-  focus(): void {
-    this.closeButton._elementRef.nativeElement.focus();
+  ngOnInit() {
+    this.subscriptions.push(
+      this.sidenavWidth$.subscribe(
+        () => this.navBar._alignInkBar()
+      )
+    );
+    setTimeout(() => this.navBar.updateActiveLink(null));
   }
 
-  setSidenavMode(mode: SidenavModeType) {
-    this.core.setSidenavMode(mode);
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
-  setSidenavSize(size: SidenavWidthType) {
-    this.core.setSidenavSize(size);
-    setTimeout(() => this.core.closeSidenav());
-    setTimeout(() => this.core.openSidenav());
-  }
-
-  addLibrary() {
+  /*addLibrary() {
     this.addingLibrary = true;
     this.libraries.add({ type: 'local', name: this.libraryForm.value.name, path: this.libraryForm.value.path }).pipe(
       mergeMap(library => this.libraries.scan(library.name))
@@ -157,19 +148,6 @@ export class SettingsComponent implements OnInit {
     );
   }
 
-  changeTheme(theme: Theme) {
-    this.core.changeTheme(theme);
-  }
-
-  getThemeStyle(theme: Theme) {
-    const style = `
-      background-color: ${theme.background};
-      color: ${theme.accent};
-      border: 3px solid ${theme.primary}
-    `;
-    return this.sanitizer.bypassSecurityTrustStyle(style);
-  }
-
   getErrorMessage(control: AbstractControl): string {
     if (control.hasError('required')) {
       return 'A value is required';
@@ -203,6 +181,6 @@ export class SettingsComponent implements OnInit {
     }
     console.warn('Unhandled error', control.errors);
     return '';
-  }
+  }*/
 
 }
