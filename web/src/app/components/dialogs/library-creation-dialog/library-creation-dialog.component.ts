@@ -56,7 +56,8 @@ export class LibraryCreationDialogComponent implements OnInit {
       port: ['', Validators.required],
       username: ['', Validators.required],
       password: ['', Validators.required],
-      passive: [true, Validators.required]
+      passive: [true, Validators.required],
+      conType: ['ftps', Validators.required]
     });
     this.s3FormGroup = this.fb.group({
       name: ['', Validators.required]
@@ -123,7 +124,8 @@ export class LibraryCreationDialogComponent implements OnInit {
         port: this.ftpFormGroup.value.port,
         username: this.ftpFormGroup.value.username,
         password: this.ftpFormGroup.value.password,
-        passive: this.ftpFormGroup.value.passive
+        passive: this.ftpFormGroup.value.passive,
+        conType: this.ftpFormGroup.value.conType
       };
     } else {
       library = {type: 's3', name: '', path: ''};
@@ -138,6 +140,7 @@ export class LibraryCreationDialogComponent implements OnInit {
           files => this.scanningResult = files.length,
           error => {
             this.scanningError = error;
+            console.log(error);
             this.scanning = false;
             this.cdr.markForCheck();
           },

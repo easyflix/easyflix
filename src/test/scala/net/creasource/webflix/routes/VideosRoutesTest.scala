@@ -42,7 +42,7 @@ class VideosRoutesTest
     implicit val timeout: Timeout = 2.seconds
     val fileF = for {
       _ <- application.libraries ? AddLibrary(Local("local", libraryPath))
-      _ <- application.libraries ? AddLibrary(FTP("ftp", Paths.get(""), "localhost", ftpPort, userName, userPass, passive = false))
+      _ <- application.libraries ? AddLibrary(FTP("ftp", Paths.get(""), "localhost", ftpPort, userName, userPass, passive = false, FTP.Types.FTPS))
       files <- (application.libraries ? ScanLibrary("local")).mapTo[Seq[LibraryFile with Id]]
       files2 <- (application.libraries ? ScanLibrary("ftp")).mapTo[Seq[LibraryFile with Id]]
     } yield {

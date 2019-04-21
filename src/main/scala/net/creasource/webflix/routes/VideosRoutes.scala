@@ -40,7 +40,7 @@ object VideosRoutes extends FileAndResourceDirectives {
             case lib: Library.FTP =>
               val entity =
                 if (file.size > 0)
-                  HttpEntity.Default(ctr(path.getFileName.toString), file.size, Ftps.fromPath(path.toString, lib.ftpSettings))
+                  HttpEntity.Default(ctr(path.getFileName.toString), file.size, lib.fromPath(path))
                 else
                   HttpEntity.empty(ctr(path.getFileName.toString))
               RangeDirectives.withRangeSupport {

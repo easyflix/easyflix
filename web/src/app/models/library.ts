@@ -15,6 +15,7 @@ export interface FTPLibrary extends LibraryI {
   username: string;
   password: string;
   passive: boolean;
+  conType: 'ftp' | 'ftps';
 }
 
 export interface S3Library extends LibraryI {

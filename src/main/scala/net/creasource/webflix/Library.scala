@@ -5,15 +5,19 @@ import java.nio.file.{Path, Paths}
 
 import akka.NotUsed
 import akka.http.scaladsl.server.directives.ContentTypeResolver
+import akka.stream.IOResult
 import akka.stream.alpakka.file.DirectoryChange
 import akka.stream.alpakka.file.scaladsl.{Directory, DirectoryChangesSource}
-import akka.stream.alpakka.ftp.scaladsl.Ftps
-import akka.stream.alpakka.ftp.{FtpCredentials, FtpsSettings}
+import akka.stream.alpakka.ftp.scaladsl.{Ftp, Ftps}
+import akka.stream.alpakka.ftp.{FtpCredentials, FtpSettings, FtpsSettings}
 import akka.stream.scaladsl.Source
+import akka.util.ByteString
 import net.creasource.exceptions.ValidationException
 import net.creasource.json.JsonSupport
+import net.creasource.webflix.Library.FTP.Types
 import spray.json._
 
+import scala.concurrent.Future
 import scala.concurrent.duration.{FiniteDuration, _}
 import scala.util.{Failure, Success, Try}
 
@@ -82,29 +86,42 @@ object Library extends JsonSupport {
     }
   }
 
-  case class FTP(name: String, path: Path, hostname: String, port: Int, username: String, password: String, passive: Boolean) extends Library {
+  case class FTP(name: String, path: Path, hostname: String, port: Int, username: String, password: String, passive: Boolean, conType: FTP.Types.Value) extends Library {
 
-    lazy val ftpSettings: FtpsSettings = FtpsSettings
+    private lazy val ftpSettings = FtpSettings
       .create(InetAddress.getByName(hostname))
       .withPort(port)
       .withBinary(true)
       .withCredentials(FtpCredentials.create(username, password))
-      .withPassiveMode(true)
-      // Debugging
-      /*.withConfigureConnection((ftpClient: FTPSClient) => {
-        ftpClient.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out), true))
-      })*/
+      .withPassiveMode(passive)
+
+    private lazy val ftpsSettings = FtpsSettings
+      .create(InetAddress.getByName(hostname))
+      .withPort(port)
+      .withBinary(true)
+      .withCredentials(FtpCredentials.create(username, password))
+      .withPassiveMode(passive)
 
     override def scan()(implicit contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed] =
       Source.single(LibraryFile(name, relativizePath(path), isDirectory = true, 0L, 0L, name)).concat(scan(path))
 
-    override def scan(path: Path)(implicit contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed] =
-      Ftps.ls(path.toString, ftpSettings).map(file => { // TODO list folders (https://github.com/akka/alpakka/issues/1657)
+    override def scan(path: Path)(implicit contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed] = {
+      val source = conType match {
+        case Types.FTP => Ftp.ls(path.toString, ftpSettings)
+        case Types.FTPS => Ftps.ls(path.toString, ftpsSettings)
+      }
+      source.map(file => { // TODO list folders (https://github.com/akka/alpakka/issues/1657)
         val filePath = Paths.get(file.path.replaceFirst("^/", ""))
         Option(file.isDirectory || !file.isDirectory & contentTypeResolver(file.name).mediaType.isVideo).collect{
           case true => LibraryFile(file.name, relativizePath(filePath), file.isDirectory, file.size, file.lastModified, name)
         }
       }).collect{ case option if option.isDefined => option.get }
+    }
+
+    def fromPath(path: Path): Source[ByteString, Future[IOResult]] = conType match {
+      case Types.FTP => Ftp.fromPath(path.toString, ftpSettings)
+      case Types.FTPS => Ftps.fromPath(path.toString, ftpsSettings)
+    }
 
     override def validate(): Try[Unit] =
       for {
@@ -138,7 +155,16 @@ object Library extends JsonSupport {
   }
 
   object FTP {
-    implicit val format: RootJsonFormat[FTP] = jsonFormat(FTP.apply, "name", "path", "hostname", "port", "username", "password", "passive")
+    implicit val format: RootJsonFormat[FTP] = jsonFormat(FTP.apply, "name", "path", "hostname", "port", "username", "password", "passive", "conType")
+
+    object Types extends Enumeration {
+      val FTP: Types.Value = Value("ftp")
+      val FTPS: Types.Value = Value("ftps")
+
+      implicit val reader: RootJsonReader[Types.Value] = js => Types.withName(js.convertTo[String])
+      implicit val writer: RootJsonWriter[Types.Value] = value => value.toString.toJson
+      implicit val format: RootJsonFormat[Types.Value] = rootJsonFormat(reader, writer)
+    }
   }
 
   object S3 {

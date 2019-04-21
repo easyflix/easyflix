@@ -67,6 +67,13 @@
             <mat-hint>Display name of the library</mat-hint>
             <mat-error *ngIf="ftpFormGroup.controls.name.invalid">{{ getErrorMessage(ftpFormGroup.controls.name) }}</mat-error>
           </mat-form-field>
+          <div class="options">
+            <mat-radio-group aria-label="Select an option" formControlName="conType">
+              <mat-radio-button value="ftps">FTP over TLS</mat-radio-button>
+              <mat-radio-button value="ftp">Plain FTP</mat-radio-button>
+            </mat-radio-group>
+            <mat-checkbox formControlName=passive>Passive mode</mat-checkbox>
+          </div>
           <mat-form-field  floatLabel="auto" appearance="standard">
             <mat-label>Hostname</mat-label>
             <input matInput formControlName="hostname" required>
@@ -75,7 +82,7 @@
           </mat-form-field>
           <mat-form-field floatLabel="auto" appearance="standard">
             <mat-label>Port</mat-label>
-            <input matInput formControlName="port" required type="number">
+            <input matInput formControlName="port" required type="number" min="0">
             <mat-hint>Port to connect to</mat-hint>
             <mat-error *ngIf="ftpFormGroup.controls.port.invalid">{{ getErrorMessage(ftpFormGroup.controls.port) }}</mat-error>
           </mat-form-field>
@@ -97,7 +104,10 @@
             <mat-hint>The folder to scan on the server, if different from /</mat-hint>
             <mat-error *ngIf="ftpFormGroup.controls.path.invalid">{{ getErrorMessage(ftpFormGroup.controls.path) }}</mat-error>
           </mat-form-field>
-          <mat-checkbox formControlName=passive>Passive mode</mat-checkbox>
+          <p class="warning" *ngIf="ftpFormGroup.controls.conType.value === 'ftp'">
+            <mat-icon color="warn">warning</mat-icon>
+            Warning: Plain FTP is insecure. If possible choose FTP over TLS.
+          </p>
         </div>
         <div class="button-wrapper">
           <button mat-button mat-raised-button matStepperPrevious (click)="stepper.reset(); currentFormGroup = undefined">Back</button>
@@ -121,7 +131,7 @@
         <h3>Library "{{ currentLibrary.name }}" added successfully!</h3>
         <div class="wrapper" *ngIf="scanning">
           <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
-          <p>/home/tgambet/some_movie.mkv</p>
+          <p></p>
         </div>
         <div class="wrapper" *ngIf="!scanning">
           <p>Scanning successful: found {{scanningResult}} videos.</p>
