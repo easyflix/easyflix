@@ -20,6 +20,7 @@ import {VideoDetailedListComponent} from './common/video-detailed-list/video-det
 import {GlobalComponent} from './settings/global/global.component';
 import {LibrariesComponent} from './settings/libraries/libraries.component';
 import {LocalComponent} from '@app/components/settings/local/local.component';
+import {LibraryCreationDialogComponent} from '@app/components/dialogs/library-creation-dialog/library-creation-dialog.component';
 
 const COMPONENTS = [
   FileListComponent,
@@ -41,7 +42,8 @@ const COMPONENTS = [
   VideoDetailedListComponent,
   GlobalComponent,
   LocalComponent,
-  LibrariesComponent
+  LibrariesComponent,
+  LibraryCreationDialogComponent
 ];
 
 @NgModule({
@@ -50,7 +52,8 @@ const COMPONENTS = [
   exports: COMPONENTS,
   entryComponents: [
     LibraryListComponent,
-    FileListComponent
+    FileListComponent,
+    LibraryCreationDialogComponent
   ]
 })
 export class ComponentsModule {}

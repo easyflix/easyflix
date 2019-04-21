@@ -15,16 +15,18 @@ import {
   MatProgressBarModule,
   MatProgressSpinnerModule,
   MatRadioModule,
+  MatRippleModule,
   MatSelectModule,
   MatSidenavModule,
   MatSliderModule,
   MatSlideToggleModule,
   MatSnackBarModule,
   MatSortModule,
+  MatStepperModule,
   MatTableModule,
   MatTabsModule,
   MatToolbarModule,
-  MatTooltipModule,
+  MatTooltipModule
 } from '@angular/material';
 import {A11yModule} from '@angular/cdk/a11y';
 import {ScrollingModule} from '@angular/cdk/scrolling';
@@ -54,6 +56,8 @@ const MATERIAL_MODULES = [
   MatTabsModule,
   MatToolbarModule,
   MatTooltipModule,
+  MatStepperModule,
+  MatRippleModule,
   A11yModule,
   ScrollingModule
 ];

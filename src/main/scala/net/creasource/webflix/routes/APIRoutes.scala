@@ -83,16 +83,18 @@ object APIRoutes extends Directives with JsonSupport {
             path("scan") {
               post {
                 extractExecutionContext { implicit executor =>
-                  completeOrRecoverWith {
-                    for {
-                      library <- (app.libraries ? GetLibrary(name)).mapTo[Library]
-                      files <- (app.libraries ? ScanLibrary(library.name))(10.minutes).mapTo[Seq[LibraryFile with Id]]
-                    } yield {
-                      StatusCodes.OK -> files
+                  withoutRequestTimeout {
+                    completeOrRecoverWith {
+                      for {
+                        library <- (app.libraries ? GetLibrary(name)).mapTo[Library]
+                        files <- (app.libraries ? ScanLibrary(library.name)) (10.minutes).mapTo[Seq[LibraryFile with Id]]
+                      } yield {
+                        StatusCodes.OK -> files
+                      }
+                    } {
+                      case NotFoundException(message) => complete(StatusCodes.NotFound, message.toJson)
+                      case exception: Exception => complete(StatusCodes.InternalServerError, exception.getMessage.toJson)
                     }
-                  } {
-                    case NotFoundException(message) => complete(StatusCodes.NotFound, message.toJson)
-                    case exception: Exception => complete(StatusCodes.InternalServerError, exception.getMessage.toJson)
                   }
                 }
               }

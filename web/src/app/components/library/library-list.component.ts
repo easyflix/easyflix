@@ -3,6 +3,8 @@ import {Observable} from 'rxjs';
 import {Library} from '@app/models';
 import {AnimatableComponent} from '@app/components/library/library.component';
 import {LibrariesService} from '@app/services/libraries.service';
+import {MatDialog} from '@angular/material';
+import {LibraryCreationDialogComponent} from '@app/components/dialogs/library-creation-dialog/library-creation-dialog.component';
 
 @Component({
   selector: 'app-libraries-view',
@@ -27,7 +29,8 @@ import {LibrariesService} from '@app/services/libraries.service';
       </ng-template>
       <mat-list-item tabindex="0"
                      (keyup.arrowdown)="focusNext($event)"
-                     (keyup.arrowup)="focusPrev($event)">
+                     (keyup.arrowup)="focusPrev($event)"
+                     (click)="openLibraryCreationDialog()">
         <mat-icon matListIcon>
           library_add
         </mat-icon>
@@ -64,11 +67,15 @@ export class LibraryListComponent implements OnInit, AnimatableComponent {
   @ViewChild('matList', { read: ElementRef })
   matList: ElementRef;
 
-  constructor(private libraries: LibrariesService) {
+  constructor(
+    private libraries: LibrariesService,
+    public dialog: MatDialog
+  ) {
     this.libraries$ = this.libraries.getAll();
   }
 
   ngOnInit() {
+    // setTimeout(() => this.openLibraryCreationDialog());
   }
 
   beforeAnimation() {}
@@ -98,5 +105,17 @@ export class LibraryListComponent implements OnInit, AnimatableComponent {
       last.focus();
     }
   }
+
+  openLibraryCreationDialog() {
+    const dialogRef =
+      this.dialog.open(
+        LibraryCreationDialogComponent,
+        { minWidth: '500px', width: '80%', maxWidth: '1000px' }
+      );
+
+    // dialogRef.afterClosed().subscribe(() => {});
+  }
+
+
 
 }

@@ -9,6 +9,7 @@ import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
 import {map, mergeMap} from 'rxjs/operators';
 import {MediaTypesService} from '@app/services/media-types.service';
 import {LibrariesService} from '@app/services/libraries.service';
+import {ThemesUtils} from '@app/utils/themes.utils';
 
 @Component({
   selector: 'app-root',
@@ -58,6 +59,7 @@ export class AppComponent implements OnInit {
       error => console.log(error),
       () => console.log('complete')
     );
+    this.core.changeTheme(ThemesUtils.allThemes[0]);
   }
 
   openSidenav() {

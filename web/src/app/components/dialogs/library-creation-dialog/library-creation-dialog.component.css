@@ -1,0 +1,101 @@
+h2[mat-dialog-title] {
+  position: relative;
+}
+
+h2[mat-dialog-title] button {
+  position: absolute;
+  right: 0;
+}
+
+h3 {
+  margin: 1rem 0 0.5rem 0;
+}
+
+.cancel {
+  margin-top: 1.5rem;
+}
+
+.library-type-selection {
+  display: flex;
+  flex-direction: row;
+  padding-top: 24px;
+}
+
+.library-type {
+  padding: 1rem;
+  border: 1px solid;
+  line-height: 1.6;
+  cursor: pointer;
+  text-align: center;
+  border-radius: 4px;
+}
+
+.library-type:not(:last-child) {
+  margin-right: 1rem;
+}
+
+.library-type h3 {
+  margin: 0;
+}
+
+.library-type p {
+  margin: 1rem 0;
+  text-align: left;
+}
+
+button {
+  text-transform: uppercase;
+  margin-right: 1rem;
+}
+
+.requirements {
+  font-size: 14px;
+  font-weight: 300;
+}
+
+form.local .field-container {
+  display: flex;
+  align-items: center;
+}
+
+form.local mat-form-field {
+  flex-grow: 1;
+  margin-right: 1rem;
+}
+
+.button-wrapper {
+  margin-top: 1rem;
+  height: 36px;
+  display: flex;
+  align-items: center;
+}
+
+form.ftp .field-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+form.ftp mat-form-field {
+  flex-basis: calc(50% - 1rem);
+}
+
+form.ftp mat-form-field:nth-child(2n) {
+  margin-right: 1rem;
+}
+
+form.ftp mat-form-field:first-child {
+  margin-right: 5rem;
+}
+
+.scan .wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 250px;
+}
+
+.scan .wrapper p {
+  font-size: 14px;
+}

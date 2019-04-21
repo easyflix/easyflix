@@ -1,0 +1,138 @@
+<h2 mat-dialog-title>
+  Add a new library
+  <button mat-icon-button (click)="closeDialog()">
+    <mat-icon>close</mat-icon>
+  </button>
+</h2>
+<mat-dialog-content>
+  <mat-horizontal-stepper [linear]="true" #stepper>
+
+    <mat-step label="Choose a library type" [completed]="currentFormGroup !== undefined" [editable]="false">
+      <div class="library-type-selection">
+        <div class="library-type mat-elevation-z4" matRipple (click)="currentFormGroup = localFormGroup; callNext()">
+          <h3>Local</h3>
+          <p>A local library is a library that resides on the server local hard drive.</p>
+          <p class="requirements">Requires: a path to a folder on the hard drive</p>
+          <!--<button mat-button mat-stroked-button color="primary">Choose</button>-->
+        </div>
+        <div class="library-type mat-elevation-z4" matRipple (click)="currentFormGroup = ftpFormGroup; callNext()">
+          <h3>FTP</h3>
+          <p>An FTP library is a library that resides on a distant FTP server.</p>
+          <p class="requirements">Requires: hostname, port and credentials</p>
+          <!--<button mat-button  color="primary">Choose</button>-->
+        </div>
+        <div class="library-type mat-elevation-z4" matRipple (click)="currentFormGroup = s3FormGroup; callNext()">
+          <h3>S3</h3>
+          <p>An S3 library is a library that is hosted by Amazon S3 service.</p>
+          <p class="requirements">Requires: bucket details</p>
+          <!--<button mat-button mat-stroked-button color="primary">Choose</button>-->
+        </div>
+      </div>
+      <button class="cancel" mat-button mat-raised-button mat-dialog-close>Cancel</button>
+    </mat-step>
+
+    <mat-step [completed]="currentLibrary !== undefined" label="Configure" [editable]="false">
+      <form (ngSubmit)="addLibrary()" [formGroup]="localFormGroup" *ngIf="localFormGroup == currentFormGroup" class="local" autocomplete="off">
+        <h3>Add a local library</h3>
+        <div class="field-container">
+          <mat-form-field class="name" floatLabel="auto" appearance="standard">
+            <mat-label>Name</mat-label>
+            <input matInput spellcheck="false" formControlName="name" required />
+            <mat-hint>Display name of the library</mat-hint>
+            <mat-error *ngIf="localFormGroup.controls.name.invalid">{{ getErrorMessage(localFormGroup.controls.name) }}</mat-error>
+          </mat-form-field>
+          <mat-form-field class="path" floatLabel="auto" appearance="standard">
+            <mat-label>Path</mat-label>
+            <input matInput spellcheck="false" formControlName="path" required />
+            <mat-error *ngIf="localFormGroup.controls.path.invalid">{{ getErrorMessage(localFormGroup.controls.path) }}</mat-error>
+            <mat-hint>Path must exist, be absolute and readable</mat-hint>
+          </mat-form-field>
+        </div>
+        <div class="button-wrapper">
+          <button mat-button mat-raised-button matStepperPrevious (click)="stepper.reset(); currentFormGroup = undefined">Back</button>
+          <button type="submit" mat-button mat-raised-button *ngIf="!addingLibrary">Submit</button>
+          <mat-progress-spinner mode="indeterminate" diameter="25" *ngIf="addingLibrary"></mat-progress-spinner>
+        </div>
+          <!--<div>
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-button matStepperNext>Next</button>
+        </div>-->
+      </form>
+      <form (ngSubmit)="addLibrary()" [formGroup]="ftpFormGroup" *ngIf="ftpFormGroup == currentFormGroup" class="ftp" autocomplete="off">
+        <h3>Add an FTP library</h3>
+        <div class="field-container">
+          <mat-form-field  floatLabel="auto" appearance="standard">
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name" required>
+            <mat-hint>Display name of the library</mat-hint>
+            <mat-error *ngIf="ftpFormGroup.controls.name.invalid">{{ getErrorMessage(ftpFormGroup.controls.name) }}</mat-error>
+          </mat-form-field>
+          <mat-form-field  floatLabel="auto" appearance="standard">
+            <mat-label>Hostname</mat-label>
+            <input matInput formControlName="hostname" required>
+            <mat-hint>Hostname of the server</mat-hint>
+            <mat-error *ngIf="ftpFormGroup.controls.hostname.invalid">{{ getErrorMessage(ftpFormGroup.controls.hostname) }}</mat-error>
+          </mat-form-field>
+          <mat-form-field floatLabel="auto" appearance="standard">
+            <mat-label>Port</mat-label>
+            <input matInput formControlName="port" required type="number">
+            <mat-hint>Port to connect to</mat-hint>
+            <mat-error *ngIf="ftpFormGroup.controls.port.invalid">{{ getErrorMessage(ftpFormGroup.controls.port) }}</mat-error>
+          </mat-form-field>
+          <mat-form-field floatLabel="auto" appearance="standard">
+            <mat-label>Username</mat-label>
+            <input matInput formControlName="username" required>
+            <mat-hint>Your username</mat-hint>
+            <mat-error *ngIf="ftpFormGroup.controls.username.invalid">{{ getErrorMessage(ftpFormGroup.controls.username) }}</mat-error>
+          </mat-form-field>
+          <mat-form-field floatLabel="auto" appearance="standard">
+            <mat-label>Password</mat-label>
+            <input matInput formControlName=password required type="password">
+            <mat-hint>Your password</mat-hint>
+            <mat-error *ngIf="ftpFormGroup.controls.password.invalid">{{ getErrorMessage(ftpFormGroup.controls.password) }}</mat-error>
+          </mat-form-field>
+          <mat-form-field floatLabel="auto" appearance="standard">
+            <mat-label>Root folder</mat-label>
+            <input matInput formControlName="path">
+            <mat-hint>The folder to scan on the server, if different from /</mat-hint>
+            <mat-error *ngIf="ftpFormGroup.controls.path.invalid">{{ getErrorMessage(ftpFormGroup.controls.path) }}</mat-error>
+          </mat-form-field>
+          <mat-checkbox formControlName=passive>Passive mode</mat-checkbox>
+        </div>
+        <div class="button-wrapper">
+          <button mat-button mat-raised-button matStepperPrevious (click)="stepper.reset(); currentFormGroup = undefined">Back</button>
+          <button type="submit" mat-button mat-raised-button *ngIf="!addingLibrary">Submit</button>
+          <mat-progress-spinner mode="indeterminate" diameter="25" *ngIf="addingLibrary"></mat-progress-spinner>
+        </div>
+      </form>
+      <form [formGroup]="s3FormGroup" *ngIf="s3FormGroup == currentFormGroup">
+        <mat-form-field>
+          <input matInput placeholder="Address3" formControlName="name" required>
+        </mat-form-field>
+        <div>
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-button matStepperNext>Next</button>
+        </div>
+      </form>
+    </mat-step>
+
+    <mat-step label="Scan">
+      <div class="scan" *ngIf="currentLibrary !== undefined">
+        <h3>Library "{{ currentLibrary.name }}" added successfully!</h3>
+        <div class="wrapper" *ngIf="scanning">
+          <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+          <p>/home/tgambet/some_movie.mkv</p>
+        </div>
+        <div class="wrapper" *ngIf="!scanning">
+          <p>Scanning successful: found {{scanningResult}} videos.</p>
+          <button mat-button mat-dialog-close>Close</button>
+        </div>
+      </div>
+    </mat-step>
+
+  </mat-horizontal-stepper>
+
+</mat-dialog-content>
+<!--<mat-dialog-actions>
+  <button mat-button mat-dialog-close>Cancel</button>
+</mat-dialog-actions>-->

@@ -84,7 +84,7 @@ object Library extends JsonSupport {
 
   case class FTP(name: String, path: Path, hostname: String, port: Int, username: String, password: String, passive: Boolean) extends Library {
 
-    val ftpSettings: FtpsSettings = FtpsSettings
+    lazy val ftpSettings: FtpsSettings = FtpsSettings
       .create(InetAddress.getByName(hostname))
       .withPort(port)
       .withBinary(true)
@@ -95,14 +95,27 @@ object Library extends JsonSupport {
         ftpClient.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out), true))
       })*/
 
+    override def scan()(implicit contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed] =
+      Source.single(LibraryFile(name, relativizePath(path), isDirectory = true, 0L, 0L, name)).concat(scan(path))
+
     override def scan(path: Path)(implicit contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed] =
-      Ftps.ls(path.toString, ftpSettings, _ => false).map(file => { // TODO list folders (https://github.com/akka/alpakka/issues/1657)
+      Ftps.ls(path.toString, ftpSettings).map(file => { // TODO list folders (https://github.com/akka/alpakka/issues/1657)
         val filePath = Paths.get(file.path.replaceFirst("^/", ""))
         Option(file.isDirectory || !file.isDirectory & contentTypeResolver(file.name).mediaType.isVideo).collect{
           case true => LibraryFile(file.name, relativizePath(filePath), file.isDirectory, file.size, file.lastModified, name)
         }
       }).collect{ case option if option.isDefined => option.get }
 
+    override def validate(): Try[Unit] =
+      for {
+        _ <- super.validate()
+        _ <- Try(InetAddress.getByName(hostname)).map(_ => ()).recover{ case _: Exception => throw ValidationException("hostname", "invalid") }
+        _ <- if (name != "")          Success(()) else Failure(ValidationException("name", "required"))
+        _ <- if (hostname != "")      Success(()) else Failure(ValidationException("hostname", "required"))
+//        _ <- if (path.toString != "") Success(()) else Failure(ValidationException("path", "required"))
+        _ <- if (username != "")      Success(()) else Failure(ValidationException("username", "required"))
+        _ <- if (password != "")      Success(()) else Failure(ValidationException("password", "required"))
+      } yield ()
   }
 
   case class S3(name: String, path: Path) extends Library {
@@ -125,7 +138,7 @@ object Library extends JsonSupport {
   }
 
   object FTP {
-    implicit val format: RootJsonFormat[FTP] = jsonFormat7(FTP.apply)
+    implicit val format: RootJsonFormat[FTP] = jsonFormat(FTP.apply, "name", "path", "hostname", "port", "username", "password", "passive")
   }
 
   object S3 {

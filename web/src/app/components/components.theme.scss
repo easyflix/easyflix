@@ -32,7 +32,7 @@
   app-main {
     a {
       color: mat-color($foreground, text);
-      border-color: mat-color($foreground, disabled-text) !important;
+      border-color: mat-color($foreground, divider) !important;
     }
   }
 
@@ -47,5 +47,15 @@
       color: mat-color($foreground, text) !important;
     }
   }
+
+  app-library-creation-dialog {
+    .library-type {
+      border-color: mat-color($foreground, divider) !important;
+    }
+    .library-type:hover {
+      background-color: mat-color($background, hover);
+    }
+  }
+
 
 }
