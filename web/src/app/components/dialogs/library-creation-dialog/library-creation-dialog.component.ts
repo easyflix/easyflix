@@ -137,7 +137,7 @@ export class LibraryCreationDialogComponent implements OnInit {
         this.scanning = true;
         this.callNext();
         this.libraries.scan(library.name).subscribe(
-          files => this.scanningResult = files.length,
+          files => this.scanningResult = files.filter(f => !f.isDirectory).length,
           error => {
             this.scanningError = error;
             console.log(error);
