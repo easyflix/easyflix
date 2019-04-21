@@ -23,7 +23,7 @@ h3 {
 
 .library-type {
   padding: 1rem;
-  border: 1px solid;
+  /*border: 1px solid;*/
   line-height: 1.6;
   cursor: pointer;
   text-align: center;
@@ -43,7 +43,7 @@ h3 {
   text-align: left;
 }
 
-button {
+button:not(.close) {
   text-transform: uppercase;
   margin-right: 1rem;
 }
