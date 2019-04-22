@@ -10,6 +10,7 @@ import {map, mergeMap} from 'rxjs/operators';
 import {MediaTypesService} from '@app/services/media-types.service';
 import {LibrariesService} from '@app/services/libraries.service';
 import {ThemesUtils} from '@app/utils/themes.utils';
+import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 
 @Component({
   selector: 'app-root',
@@ -32,7 +33,8 @@ export class AppComponent implements OnInit {
     private core: CoreService,
     private files: FilesService,
     private libraries: LibrariesService,
-    private mediaTypes: MediaTypesService
+    private mediaTypes: MediaTypesService,
+    private socketClient: HttpSocketClientService
   ) { }
 
   ngOnInit() {
@@ -60,6 +62,11 @@ export class AppComponent implements OnInit {
       () => console.log('complete')
     );
     this.core.changeTheme(ThemesUtils.allThemes[0]);
+
+    /**
+     * Socket
+     */
+    this.socketClient.getSocket().subscribe();
   }
 
   openSidenav() {

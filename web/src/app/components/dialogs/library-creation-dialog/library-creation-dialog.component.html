@@ -128,14 +128,18 @@
 
     <mat-step label="Scan">
       <div class="scan" *ngIf="currentLibrary !== undefined">
-        <h3>Library "{{ currentLibrary.name }}" added successfully!</h3>
+        <!--<h3>Scanning library "{{ currentLibrary.name }}"</h3>-->
         <div class="wrapper" *ngIf="scanning">
           <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
-          <p></p>
+          <p class="file">{{ incomingFiles$ | async }}</p>
         </div>
-        <div class="wrapper" *ngIf="!scanning">
+        <div class="wrapper" *ngIf="!scanning && !scanningError">
           <p>Scanning successful: found {{scanningResult}} videos.</p>
-          <button mat-button mat-dialog-close>Close</button>
+          <button mat-button mat-raised-button mat-dialog-close>Close</button>
+        </div>
+        <div class="wrapper" *ngIf="!scanning && scanningError">
+          <p>Scan error: {{scanningError}}</p>
+          <button mat-button mat-raised-button mat-dialog-close>Close</button>
         </div>
       </div>
     </mat-step>

@@ -117,6 +117,18 @@ form.ftp .warning mat-icon {
   height: 250px;
 }
 
-.scan .wrapper p {
+.scan p {
   font-size: 14px;
+}
+
+.scan .file {
+  max-width: 80%;
+  overflow-x: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-top: 2rem;
+}
+
+.scan button {
+  margin-top: 2rem;
 }

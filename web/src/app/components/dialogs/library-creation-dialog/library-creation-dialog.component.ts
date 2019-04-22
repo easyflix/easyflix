@@ -1,14 +1,19 @@
-import {ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
 import {MatDialogRef, MatHorizontalStepper} from '@angular/material';
 import {AbstractControl, FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {LibrariesService} from '@app/services/libraries.service';
 import {Library} from '@app/models';
 import {ValidationError} from '@app/models/validation-error';
+import {HttpSocketClientService} from '@app/services/http-socket-client.service';
+import {filter} from 'rxjs/internal/operators/filter';
+import {map} from 'rxjs/operators';
+import {Observable} from 'rxjs';
 
 @Component({
   selector: 'app-library-creation-dialog',
   templateUrl: './library-creation-dialog.component.html',
-  styleUrls: ['./library-creation-dialog.component.css']
+  styleUrls: ['./library-creation-dialog.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LibraryCreationDialogComponent implements OnInit {
 
@@ -25,6 +30,7 @@ export class LibraryCreationDialogComponent implements OnInit {
   scanning = false;
   scanningResult: number;
   scanningError: string;
+  incomingFiles$: Observable<string>;
 
   static setControlErrors(error: ValidationError, form: FormGroup) {
     const formError = {};
@@ -41,7 +47,8 @@ export class LibraryCreationDialogComponent implements OnInit {
     private dialogRef: MatDialogRef<LibraryCreationDialogComponent>,
     private fb: FormBuilder,
     private libraries: LibrariesService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private socketClient: HttpSocketClientService
   ) { }
 
   ngOnInit() {
@@ -132,10 +139,15 @@ export class LibraryCreationDialogComponent implements OnInit {
     }
 
     this.libraries.add(library).subscribe(
-      () => {
-        this.currentLibrary = library;
+      lib => {
+        this.currentLibrary = lib;
         this.scanning = true;
         this.callNext();
+        this.incomingFiles$ = this.socketClient.getSocket().pipe(
+          filter(message => message.method === 'FileAdded'),
+          filter(message => message.entity.libraryName === library.name),
+          map(message => message.entity.path)
+        );
         this.libraries.scan(library.name).subscribe(
           files => this.scanningResult = files.filter(f => !f.isDirectory).length,
           error => {

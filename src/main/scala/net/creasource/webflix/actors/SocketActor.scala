@@ -9,6 +9,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import net.creasource.Application
 import net.creasource.json.{JsonMessage, JsonSupport}
+import net.creasource.webflix.events.FileAdded
 import spray.json._
 
 import scala.collection.immutable.Seq
@@ -33,13 +34,13 @@ class SocketActor(xhrRoutes: Route)(implicit materializer: ActorMaterializer, ap
 
   private val client = context.parent
 
-  client ! JsonMessage("Connected", 0, JsNull).toJson
-
-//  app.libraryActor ! Register
-
   val askTimeout: akka.util.Timeout = 2.seconds
 
+  app.bus.subscribe(self, classOf[FileAdded])
+
   override def receive: Receive = {
+
+    case FileAdded(file) => client ! JsonMessage("FileAdded", 0, file.toJson).toJson
 
     case value: JsValue =>
       handleMessages.applyOrElse(value, (v: JsValue) => logger.warning("Unhandled client Json message:\n{}", v.prettyPrint))
