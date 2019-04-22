@@ -6,11 +6,11 @@ import akka.stream.KillSwitches
 import akka.stream.alpakka.file.DirectoryChange
 import akka.stream.scaladsl.{Keep, Sink}
 import net.creasource.util.{SimpleTest, WithFTPServer, WithLibrary}
+import org.scalatest.time.{Seconds, Span}
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer {
+class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer  {
 
   "A Local Library" should {
 
@@ -18,8 +18,7 @@ class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer {
 
     "scan root directory recursively" in {
       val lib = Library.Local("name", libraryPath)
-      val future = lib.scan().runWith(Sink.seq)
-      val files = Await.result(future, 2.seconds)
+      val files = lib.scan().runWith(Sink.seq).futureValue
 
       files.length should be (libraryFiles.length + 1)
 
@@ -35,8 +34,7 @@ class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer {
     "scan a sub directory" in {
       val lib = Library.Local("name", libraryPath)
       val folder = lib.relativizePath(libraryFiles.head._1)// Paths.get(lib.name).resolve(libraryPath.relativize(libraryFiles.head._1))
-      val future = lib.scan(folder).runWith(Sink.seq)
-      val files = Await.result(future, 2.seconds)
+      val files = lib.scan(folder).runWith(Sink.seq).futureValue
 
       files.length should be (libraryFiles.map(_._1).count(path => path.startsWith(libraryFiles.head._1)))
 
@@ -62,7 +60,7 @@ class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer {
 
       ks.shutdown()
 
-      val files = Await.result(future, 1.second)
+      val files = future.futureValue
 
       files.length should be (1)
       files.head should matchPattern { case (LibraryFile(`fileName`, _, false, _, _, "name"), DirectoryChange.Creation) => }
@@ -85,7 +83,7 @@ class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer {
 
       ks.shutdown()
 
-      val files = Await.result(future, 1.second)
+      val files = future.futureValue
 
       files.length should be (2) // Modification and Deletion
       files.last should matchPattern { case (LibraryFile(`fileName`, _, false, _, _, "name"), DirectoryChange.Deletion) => }
@@ -107,7 +105,7 @@ class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer {
 
       ks.shutdown()
 
-      val files = Await.result(future, 1.second)
+      val files = future.futureValue
 
       files.length should be (1)
       files.head should matchPattern { case (LibraryFile(`fileName`, _, false, _, _, "name"), DirectoryChange.Creation) => }
@@ -136,9 +134,7 @@ class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer {
 
       val lib = Library.FTP("Ftp-library", Paths.get(""), "localhost", ftpPort, userName, userPass, passive = true, Library.FTP.Types.FTPS)
 
-      val f = lib.scan().runWith(Sink.seq)
-
-      val files = Await.result(f, 1.minute)
+      val files = lib.scan().runWith(Sink.seq).futureValue(timeout(Span(10, Seconds)))
 
       println(files.filter(_.isDirectory)) // Fails
 

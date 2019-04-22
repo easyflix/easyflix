@@ -12,9 +12,9 @@ import net.creasource.webflix.Library.{FTP, Local}
 import net.creasource.webflix.LibraryFile
 import net.creasource.webflix.LibraryFile.Id
 import net.creasource.webflix.actors.LibrarySupervisor.{AddLibrary, ScanLibrary}
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{Matchers, WordSpecLike}
-
-import scala.concurrent.Await
 
 class VideosRoutesTest
   extends WordSpecLike
@@ -22,7 +22,8 @@ class VideosRoutesTest
     with WithLibrary
     with ScalatestRouteTest
     with JsonSupport
-    with WithFTPServer {
+    with WithFTPServer
+    with ScalaFutures {
 
   val application = Application()
   var testFile: LibraryFile with Id = _
@@ -39,8 +40,8 @@ class VideosRoutesTest
     import akka.pattern.ask
 
     import scala.concurrent.duration._
-    implicit val timeout: Timeout = 2.seconds
-    val fileF = for {
+    implicit val askTimeout: Timeout = 2.seconds
+    val (testFile, testFolder, ftpFile) = (for {
       _ <- application.libraries ? AddLibrary(Local("local", libraryPath))
       _ <- application.libraries ? AddLibrary(FTP("ftp", Paths.get(""), "localhost", ftpPort, userName, userPass, passive = false, FTP.Types.FTPS))
       files <- (application.libraries ? ScanLibrary("local")).mapTo[Seq[LibraryFile with Id]]
@@ -51,8 +52,7 @@ class VideosRoutesTest
         files.find(file => file.isDirectory).get,
         files2.find(file => !file.isDirectory).get
       )
-    }
-    val (testFile, testFolder, ftpFile) = Await.result(fileF, 2.seconds)
+    }).futureValue(timeout(Span(5, Seconds)))
     this.testFile = testFile
     this.testFolder = testFolder
     this.ftpFile = ftpFile

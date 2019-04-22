@@ -7,8 +7,6 @@ import net.creasource.exceptions.{NotFoundException, ValidationException}
 import net.creasource.util.{SimpleActorTest, WithLibrary}
 import net.creasource.webflix.{Library, LibraryFile}
 
-import scala.concurrent.Await
-
 class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
 
   "A LibrarySupervisor" should {
@@ -84,12 +82,12 @@ class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
     "retrieve files by id" in {
 
       import akka.pattern.ask
+
       import scala.concurrent.duration._
 
-      val files = Await.result(
-        (supervisor ? LibrarySupervisor.GetLibraryFiles("name"))(2.seconds).mapTo[Seq[LibraryFile with LibraryFile.Id]],
-        2.seconds
-      )
+      val files = (supervisor ? LibrarySupervisor.GetLibraryFiles("name"))(2.seconds)
+        .mapTo[Seq[LibraryFile with LibraryFile.Id]]
+        .futureValue
 
       files.length should be (libraryFiles.length + 1)
 
