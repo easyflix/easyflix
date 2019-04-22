@@ -110,7 +110,7 @@ export class LibraryListComponent implements OnInit, AnimatableComponent {
     const dialogRef =
       this.dialog.open(
         LibraryCreationDialogComponent,
-        { minWidth: '500px', width: '80%', maxWidth: '1000px' }
+        { minWidth: '500px', width: '80%', maxWidth: '1000px', disableClose: true }
       );
 
     // dialogRef.afterClosed().subscribe(() => {});
