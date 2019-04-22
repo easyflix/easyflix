@@ -119,8 +119,8 @@ object Library extends JsonSupport {
     }
 
     def fromPath(path: Path): Source[ByteString, Future[IOResult]] = conType match {
-      case Types.FTP => Ftp.fromPath(path.toString, ftpSettings)
-      case Types.FTPS => Ftps.fromPath(path.toString, ftpsSettings)
+      case Types.FTP => Ftp.fromPath(path.toString.replaceAll("""\\""", "/"), ftpSettings)
+      case Types.FTPS => Ftps.fromPath(path.toString.replaceAll("""\\""", "/"), ftpsSettings)
     }
 
     override def validate(): Try[Unit] =
