@@ -5,6 +5,7 @@ import {LibraryFile} from '@app/models';
 import {map, switchMap, take, tap} from 'rxjs/operators';
 import {ActivatedRoute, Router} from '@angular/router';
 import {VideoService} from '@app/services/video.service';
+import {FilesUtils} from '@app/utils/files.utils';
 
 @Component({
   selector: 'app-search',
@@ -75,6 +76,10 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
 
   playVideo(video: LibraryFile) {
     this.video.playVideo(video);
+  }
+
+  getParentPath(file: LibraryFile): string {
+    return FilesUtils.getParentPath(file);
   }
 
 }

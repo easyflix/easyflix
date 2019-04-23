@@ -26,7 +26,7 @@
           movie
         </mat-icon>
         <h3 matLine [innerHTML]="file.name | sgSearchTerms:searchTerms"></h3>
-        <span matLine class="subtext" [innerHTML]="file.path | sgSearchTerms:searchTerms"></span>
+        <span matLine class="subtext" [innerHTML]="getParentPath(file) | sgSearchTerms:searchTerms"></span>
         <mat-divider></mat-divider>
       </mat-list-item>
     </ng-template>

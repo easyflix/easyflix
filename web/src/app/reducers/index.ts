@@ -9,6 +9,7 @@ import * as fromLibraries from './libraries.reducer';
 import * as fromMediaTypes from './media-types.reducer';
 
 import {Library, LibraryFile, MediaType} from '@app/models';
+import {FilesUtils} from '@app/utils/files.utils';
 
 export interface State {
   core: fromCore.State;
@@ -92,13 +93,9 @@ export const {
 export const getFilesOfFolder = createSelector(
   getAllFiles,
   (files: LibraryFile[], folder: LibraryFile) => {
-    function getParentPath(file: LibraryFile) {
-      const segments = file.path.split('/');
-      return segments.slice(0, segments.length - 1).join('/');
-    }
     return files.filter(file =>
       // file is a direct child of folder
-      getParentPath(file) === folder.path &&
+      FilesUtils.getParentPath(file) === folder.path &&
       // file is not a directory or is non empty)
       (!file.isDirectory || files.filter(f => !f.isDirectory && f.path.startsWith(file.path + '/')).length > 0)
     );
