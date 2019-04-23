@@ -30,7 +30,11 @@ import {AnimatableComponent} from '@app/components/library/library.component';
             </mat-icon>
             <h3 matLine>{{ file.name }}</h3>
             <span matLine class="subtext" i18n>
-              {file.numberOfVideos, plural, =0 {No video} =1 {1 video} other {{{file.numberOfVideos}} videos}}
+              {getFolderCount(file) | async, plural,
+                =0 {No video}
+                =1 {1 video}
+                other {{{getFolderCount(file) | async}} videos}
+              }
             </span>
             <mat-icon>chevron_right</mat-icon>
             <mat-divider></mat-divider>
@@ -98,12 +102,12 @@ export class FileListComponent implements OnInit, AnimatableComponent {
   scrollable: ElementRef;
 
   constructor(
-    private filesService: FilesService,
+    private files: FilesService,
     private video: VideoService
   ) {}
 
   ngOnInit() {
-    this.files$ = this.filesService.getFilesOfFolder(this.currentFolder);
+    this.files$ = this.files.getFilesOfFolder(this.currentFolder);
   }
 
   playVideo(video: LibraryFile) {
@@ -139,5 +143,9 @@ export class FileListComponent implements OnInit, AnimatableComponent {
       case 'folder': return this.currentFolder.parent + this.currentFolder.name;
     }
   }*/
+
+  getFolderCount(folder: LibraryFile): Observable<number> {
+    return this.files.getFolderCount(folder);
+  }
 
 }

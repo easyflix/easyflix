@@ -182,7 +182,8 @@ export class LibraryComponent implements OnInit, OnDestroy {
     toRef.instance.prev.subscribe(() => this.goBack());
     toRef.instance.next.subscribe(f => this.goTo(f));
     this.components.push(toRef);
-    this.breadcrumbs.push(folder.name);
+    this.breadcrumbs.push(folder.path);
+    // this.currentFolderPath = folder.path;
     this.breadcrumbsIds.push(folder.id);
     if (navigate) { this.navigate(); }
     this.animate(fromRef, toRef, true, animationTime);
@@ -221,7 +222,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
 
   getCurrentPath(): string {
     if (this.breadcrumbs.length === 0) { return ''; }
-    return this.breadcrumbs.reduce((a, b) => `${a}/${b}`);
+    return this.breadcrumbs[this.breadcrumbs.length - 1]; // reduce((a, b) => `${a}/${b}`);
   }
 
 }

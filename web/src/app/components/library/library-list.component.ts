@@ -5,6 +5,7 @@ import {AnimatableComponent} from '@app/components/library/library.component';
 import {LibrariesService} from '@app/services/libraries.service';
 import {MatDialog} from '@angular/material';
 import {LibraryCreationDialogComponent} from '@app/components/dialogs/library-creation-dialog/library-creation-dialog.component';
+import {FilesService} from '@app/services/files.service';
 
 @Component({
   selector: 'app-libraries-view',
@@ -22,7 +23,13 @@ import {LibraryCreationDialogComponent} from '@app/components/dialogs/library-cr
             video_library
           </mat-icon>
           <h3 matLine>{{ library.name }}</h3>
-          <p matLine></p>
+          <p matLine class="subtext">
+            {getLibraryVideoCount(library) | async, plural,
+              =0 {No video}
+              =1 {1 video}
+              other {{{getLibraryVideoCount(library) | async}} videos}
+            }
+          </p>
           <mat-icon>chevron_right</mat-icon>
           <mat-divider></mat-divider>
         </mat-list-item>
@@ -55,6 +62,10 @@ import {LibraryCreationDialogComponent} from '@app/components/dialogs/library-cr
     mat-list-item {
       cursor: pointer;
     }
+    .subtext {
+      margin-top: 0.25rem !important;
+      font-size: 11px !important;
+    }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -69,7 +80,8 @@ export class LibraryListComponent implements OnInit, AnimatableComponent {
 
   constructor(
     private libraries: LibrariesService,
-    public dialog: MatDialog
+    private files: FilesService,
+    private dialog: MatDialog
   ) {
     this.libraries$ = this.libraries.getAll();
   }
@@ -116,6 +128,8 @@ export class LibraryListComponent implements OnInit, AnimatableComponent {
     // dialogRef.afterClosed().subscribe(() => {});
   }
 
-
+  getLibraryVideoCount(library: Library): Observable<number> {
+    return this.files.getLibraryCount(library);
+  }
 
 }

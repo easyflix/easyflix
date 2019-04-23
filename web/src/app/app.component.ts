@@ -59,7 +59,7 @@ export class AppComponent implements OnInit {
     ).subscribe(
       () => {},
       error => console.log(error),
-      () => console.log('complete')
+      () => {}
     );
     this.core.changeTheme(ThemesUtils.allThemes[0]);
 

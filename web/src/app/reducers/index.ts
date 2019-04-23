@@ -96,7 +96,12 @@ export const getFilesOfFolder = createSelector(
       const segments = file.path.split('/');
       return segments.slice(0, segments.length - 1).join('/');
     }
-    return files.filter(file => getParentPath(file) === folder.path);
+    return files.filter(file =>
+      // file is a direct child of folder
+      getParentPath(file) === folder.path &&
+      // file is not a directory or is non empty)
+      (!file.isDirectory || files.filter(f => !f.isDirectory && f.path.startsWith(file.path + '/')).length > 0)
+    );
   }
 );
 
@@ -108,6 +113,16 @@ export const getFileById = createSelector(
 export const getFileByPath = createSelector(
   getAllFilesEntities,
   (entities: Dictionary<LibraryFile>, path: string) => entities[path]
+);
+
+export const getLibraryCount = createSelector(
+  getAllFiles,
+  (files: LibraryFile[], library: Library) => files.filter(file => file.libraryName === library.name && !file.isDirectory).length
+);
+
+export const getFolderCount = createSelector(
+  getAllFiles,
+  (files: LibraryFile[], folder: LibraryFile) => files.filter(file => file.path.startsWith(folder.path + '/') && !file.isDirectory).length
 );
 
 /*export const getFilesLoaded = createSelector(
