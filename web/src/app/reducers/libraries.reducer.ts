@@ -1,4 +1,4 @@
-import {createEntityAdapter, EntityAdapter, EntityState, Update} from '@ngrx/entity';
+import {createEntityAdapter, EntityAdapter, EntityState} from '@ngrx/entity';
 import {Library} from '@app/models';
 import {LibrariesActionsUnion, LibrariesActionTypes} from '@app/actions/libraries.actions';
 
@@ -43,7 +43,15 @@ export function reducer(
     }
 
     case LibrariesActionTypes.ScanLibrary: {
-      return adapter.updateOne({ id: action.payload, changes: { scanning: true } }, state);
+      return adapter.updateOne({ id: action.payload.name, changes: { scanning: true } }, state);
+    }
+
+    case LibrariesActionTypes.ScanLibrarySuccess: {
+      return adapter.updateOne({ id: action.library.name, changes: { scanning: false } }, state);
+    }
+
+    case LibrariesActionTypes.ScanLibraryError: {
+      return adapter.updateOne({ id: action.library.name, changes: { scanning: false } }, state);
     }
 
     default: return state;

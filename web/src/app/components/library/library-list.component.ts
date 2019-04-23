@@ -1,16 +1,87 @@
 import {ChangeDetectionStrategy, Component, ElementRef, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
 import {Library} from '@app/models';
 import {AnimatableComponent} from '@app/components/library/library.component';
 import {LibrariesService} from '@app/services/libraries.service';
 import {MatDialog} from '@angular/material';
 import {LibraryCreationDialogComponent} from '@app/components/dialogs/library-creation-dialog/library-creation-dialog.component';
 import {FilesService} from '@app/services/files.service';
+import {FTPLibrary, LocalLibrary, S3Library} from '@app/models/library';
 
 @Component({
   selector: 'app-libraries-view',
   template: `
-    <mat-action-list dense #matList>
+    <mat-action-list>
+      <h3 matSubheader *ngIf="(localLibraries$ | async).length > 0">Local</h3>
+      <mat-divider *ngIf="(localLibraries$ | async).length > 0"></mat-divider>
+      <mat-list-item tabindex="0" *ngFor="let library of localLibraries$ | async" (click)="openLibrary.emit(library)">
+        <mat-icon matListIcon>video_library</mat-icon>
+        <h4 matLine>{{ library.name }}</h4>
+        <p matLine class="subtext">{{ library.path }}</p>
+        <mat-progress-bar mode="determinate" value="40" color="accent" class="mat-elevation-z4"></mat-progress-bar>
+        <p class="videos">
+          {getLibraryVideoCount(library) | async, plural,
+            =0 {No video}
+            =1 {1 video}
+            other {{{getLibraryVideoCount(library) | async}} videos}}
+        </p>
+        <button mat-mini-fab color="primary" *ngIf="!library.scanning" (click)="scanLibrary(library); $event.stopPropagation()">
+          <mat-icon>refresh</mat-icon>
+        </button>
+        <mat-spinner diameter="40" *ngIf="library.scanning"></mat-spinner>
+        <button mat-mini-fab color="warn" (click)="removeLibrary(library); $event.stopPropagation()">
+          <mat-icon>close</mat-icon>
+        </button>
+        <mat-divider></mat-divider>
+      </mat-list-item>
+
+      <h3 matSubheader *ngIf="(ftpLibraries$ | async).length > 0">FTP</h3>
+      <mat-divider *ngIf="(ftpLibraries$ | async).length > 0"></mat-divider>
+      <mat-list-item tabindex="0" *ngFor="let library of ftpLibraries$ | async" (click)="openLibrary.emit(library)">
+        <mat-icon matListIcon>video_library</mat-icon>
+        <h4 matLine>{{ library.name }}</h4>
+        <p matLine class="subtext">{{library.username}}@{{library.hostname}}:{{library.port}}{{library.path}}</p>
+        <p class="videos">
+          {getLibraryVideoCount(library) | async, plural,
+            =0 {No video}
+            =1 {1 video}
+            other {{{getLibraryVideoCount(library) | async}} videos}}
+        </p>
+        <button mat-mini-fab color="primary" *ngIf="!library.scanning" (click)="scanLibrary(library); $event.stopPropagation()">
+          <mat-icon>refresh</mat-icon>
+        </button>
+        <mat-spinner diameter="40" *ngIf="library.scanning"></mat-spinner>
+        <button mat-mini-fab color="warn" (click)="removeLibrary(library); $event.stopPropagation()">
+          <mat-icon>close</mat-icon>
+        </button>
+        <mat-divider></mat-divider>
+      </mat-list-item>
+
+      <!--<h3 matSubheader>S3</h3>
+      <mat-divider></mat-divider>
+      <mat-list-item>
+        <mat-icon matListIcon>video_library</mat-icon>
+        <h4 matLine>Note</h4>
+        <p matLine class="subtext"> Date </p>
+        <button mat-mini-fab color="primary">
+          <mat-icon>refresh</mat-icon>
+        </button>
+        <button mat-mini-fab color="warn">
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-list-item>
+      <mat-divider></mat-divider>-->
+    </mat-action-list>
+
+    <p class="add">
+      <button mat-button mat-raised-button color="primary" (click)="openLibraryCreationDialog()">
+        <mat-icon>library_add</mat-icon>
+        Add a library
+      </button>
+    </p>
+
+    <!--<mat-action-list dense #matList>
       <ng-template ngFor let-library [ngForOf]="libraries$ | async">
         <mat-list-item tabindex="0"
                        (click)="openLibrary.emit(library)"
@@ -45,7 +116,7 @@ import {FilesService} from '@app/services/files.service';
         <p matLine></p>
         <mat-divider></mat-divider>
       </mat-list-item>
-    </mat-action-list>
+    </mat-action-list>-->
   `,
   styles: [`
     :host {
@@ -55,23 +126,54 @@ import {FilesService} from '@app/services/files.service';
       flex-direction: column;
     }
     mat-action-list {
-      padding: 0 !important;
-      flex-grow: 1;
-      overflow-y: auto
+      margin: 0.5rem 0 0 0;
+      padding: 0;
+    }
+    mat-action-list button {
+      margin-left: 1rem;
+    }
+    h3 {
+      padding: 1rem 1.25rem;
     }
     mat-list-item {
-      cursor: pointer;
+      font-size: 14px !important;
+    }
+    mat-progress-bar {
+      margin: 0 1rem 0 0;
+      height: 12px;
+    }
+    mat-spinner {
+      min-width: 40px;
+      margin-left: 1rem;
     }
     .subtext {
       margin-top: 0.25rem !important;
       font-size: 11px !important;
+      color: rgba(255,255,255,0.7); /* TODO extract to theme */
+    }
+    .videos {
+      white-space: nowrap;
+      min-width: 70px;
+      text-align: right;
+    }
+    .add {
+      text-align: left;
+      padding: 0 1rem;
+    }
+    .add button {
+      padding-left: 0.5rem;
+    }
+    .add mat-icon {
+      margin-right: 0.25rem;
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LibraryListComponent implements OnInit, AnimatableComponent {
 
-  libraries$: Observable<Library[]>;
+  localLibraries$: Observable<LocalLibrary[]>;
+  ftpLibraries$: Observable<FTPLibrary[]>;
+  s3Libraries$: Observable<S3Library[]>;
 
   openLibrary: EventEmitter<Library> = new EventEmitter();
 
@@ -83,10 +185,20 @@ export class LibraryListComponent implements OnInit, AnimatableComponent {
     private files: FilesService,
     private dialog: MatDialog
   ) {
-    this.libraries$ = this.libraries.getAll();
+
   }
 
   ngOnInit() {
+
+    this.localLibraries$ = this.libraries.getAll().pipe(
+      map(libs => libs.filter(lib => lib.type === 'local') as LocalLibrary[])
+    );
+    this.ftpLibraries$ = this.libraries.getAll().pipe(
+      map(libs => libs.filter(lib => lib.type === 'ftp') as FTPLibrary[])
+    );
+    this.s3Libraries$ = this.libraries.getAll().pipe(
+      map(libs => libs.filter(lib => lib.type === 's3') as S3Library[])
+    );
     // setTimeout(() => this.openLibraryCreationDialog());
   }
 
@@ -130,6 +242,14 @@ export class LibraryListComponent implements OnInit, AnimatableComponent {
 
   getLibraryVideoCount(library: Library): Observable<number> {
     return this.files.getLibraryCount(library);
+  }
+
+  scanLibrary(library: Library) {
+    this.libraries.scan(library).subscribe();
+  }
+
+  removeLibrary(library: Library) {
+    this.libraries.remove(library).subscribe(); // TODO confirm dialog
   }
 
 }

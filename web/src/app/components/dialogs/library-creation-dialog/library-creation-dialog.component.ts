@@ -148,7 +148,7 @@ export class LibraryCreationDialogComponent implements OnInit {
           filter(message => message.entity.libraryName === lib.name),
           map(message => message.entity.path)
         );
-        this.libraries.scan(library.name).subscribe(
+        this.libraries.scan(library).subscribe(
           files => this.scanningResult = files.filter(f => !f.isDirectory).length,
           error => {
             this.scanningError = error;

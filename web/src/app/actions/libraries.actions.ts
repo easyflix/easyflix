@@ -64,17 +64,17 @@ export class RemoveLibraryError implements Action {
 
 export class ScanLibrary implements Action {
   readonly type = LibrariesActionTypes.ScanLibrary;
-  constructor(public payload: string) {}
+  constructor(public payload: Library) {}
 }
 
 export class ScanLibrarySuccess implements Action {
   readonly type = LibrariesActionTypes.ScanLibrarySuccess;
-  constructor(public payload: LibraryFile[]) {}
+  constructor(public payload: LibraryFile[], public library: Library) {}
 }
 
 export class ScanLibraryError implements Action {
   readonly type = LibrariesActionTypes.ScanLibraryError;
-  constructor(public payload: string) {}
+  constructor(public payload: string, public library: Library) {}
 }
 
 export type LibrariesActionsUnion =

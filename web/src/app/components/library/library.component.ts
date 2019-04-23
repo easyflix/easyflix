@@ -45,6 +45,7 @@ export interface AnimatableComponent {
     }
     header {
       height: 59px;
+      min-height: 59px;
       display: flex;
       align-items: center;
       padding: 0 1.25rem;

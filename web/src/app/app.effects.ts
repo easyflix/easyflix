@@ -118,9 +118,9 @@ export class AppEffects {
     this.actions$.pipe(
       ofType(LibrariesActionTypes.ScanLibrary),
       switchMap((action: ScanLibrary) =>
-        this.httpClient.post('http://localhost:8081/api/libraries/' + encodeURIComponent(action.payload) + '/scan', null).pipe(
-          map((files: LibraryFile[]) => new ScanLibrarySuccess(files)),
-          catchError((error: HttpErrorResponse) => of(new ScanLibraryError(error.error)))
+        this.httpClient.post('http://localhost:8081/api/libraries/' + encodeURIComponent(action.payload.name) + '/scan', null).pipe(
+          map((files: LibraryFile[]) => new ScanLibrarySuccess(files, action.payload)),
+          catchError((error: HttpErrorResponse) => of(new ScanLibraryError(error.error, action.payload)))
         )
       )
     );

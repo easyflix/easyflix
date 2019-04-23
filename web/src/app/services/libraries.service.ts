@@ -54,9 +54,9 @@ export class LibrariesService extends ServiceHelper {
     );
   }
 
-  scan(name: string): Observable<LibraryFile[]> {
+  scan(library: Library): Observable<LibraryFile[]> {
     return this.dispatchActionObservable(
-      new ScanLibrary(name),
+      new ScanLibrary(library),
       LibrariesActionTypes.ScanLibrarySuccess,
       LibrariesActionTypes.ScanLibraryError
     );

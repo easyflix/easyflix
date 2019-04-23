@@ -1,6 +1,7 @@
 import {NgModule} from '@angular/core';
 import {BreakpointObserver} from '@angular/cdk/layout';
 import {
+  MatBadgeModule,
   MatButtonModule,
   MatCheckboxModule,
   MatChipsModule,
@@ -58,6 +59,7 @@ const MATERIAL_MODULES = [
   MatTooltipModule,
   MatStepperModule,
   MatRippleModule,
+  MatBadgeModule,
   A11yModule,
   ScrollingModule
 ];
