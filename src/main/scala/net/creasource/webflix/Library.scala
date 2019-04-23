@@ -155,7 +155,29 @@ object Library extends JsonSupport {
   }
 
   object FTP {
-    implicit val format: RootJsonFormat[FTP] = jsonFormat(FTP.apply, "name", "path", "hostname", "port", "username", "password", "passive", "conType")
+    implicit val writer: RootJsonWriter[FTP] = ftp => JsObject(
+      "type" -> "ftp".toJson,
+      "name" -> ftp.name.toJson,
+      "path" -> ftp.path.toJson,
+      "hostname" -> ftp.hostname.toJson,
+      "port" -> ftp.port.toJson,
+      "username" -> ftp.username.toJson,
+      "passive" -> ftp.passive.toJson,
+      "conType" -> ftp.conType.toJson,
+    )
+    implicit val reader: RootJsonReader[FTP] = js => {
+      val obj = js.asJsObject
+      val name = obj.fields("name").convertTo[String]
+      val path = obj.fields("path").convertTo[Path]
+      val hostname = obj.fields("hostname").convertTo[String]
+      val port = obj.fields("port").convertTo[Int]
+      val username = obj.fields("username").convertTo[String]
+      val password = obj.fields("password").convertTo[String]
+      val passive = obj.fields("passive").convertTo[Boolean]
+      val conType = obj.fields("conType").convertTo[Types.Value]
+      FTP(name, path, hostname, port, username, password, passive, conType)
+    }
+    implicit val format: RootJsonFormat[FTP] = rootJsonFormat(reader, writer)
 
     object Types extends Enumeration {
       val FTP: Types.Value = Value("ftp")

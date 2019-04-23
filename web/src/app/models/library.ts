@@ -13,7 +13,7 @@ export interface FTPLibrary extends LibraryI {
   hostname: string;
   port: number;
   username: string;
-  password: string;
+  password?: string;
   passive: boolean;
   conType: 'ftp' | 'ftps';
 }
