@@ -132,8 +132,10 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
 
     case UpdateLibrary(lib) =>
       val updated = lib.copy(totalSpace = lib.path.toFile.getTotalSpace, freeSpace = lib.path.toFile.getFreeSpace)
-      app.bus.publish(LibraryUpdate(updated))
-      context become ready(updated)
+      if (updated != library) {
+        app.bus.publish(LibraryUpdate(updated))
+        context become ready(updated)
+      }
 
     case Scan =>
       val client = sender()
