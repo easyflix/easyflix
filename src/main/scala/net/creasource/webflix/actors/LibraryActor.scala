@@ -43,6 +43,7 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
 
   implicit val contentTypeResolver: ContentTypeResolver = MediaTypesActor.defaultContentTypeResolver
 
+  case object LibraryScanComplete
   case class ScanComplete(path: Path)
 
   case class WatchComplete(path: Path)
@@ -123,6 +124,8 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
 
     case WatchComplete(folder) => logger.info(s"Stopped watching: $folder")
 
+    case ScanComplete(folder) => logger.info(s"Scan complete: $folder")
+
   }
 
   def ready(library: Library): Receive = common(library) orElse {
@@ -136,7 +139,7 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
       val client = sender()
       library.scan()
         .via(killSwitch.flow)
-        .alsoTo(Sink.actorRef(self, ScanComplete(library.path)))
+        .alsoTo(Sink.actorRef(self, LibraryScanComplete))
         .alsoTo(Sink.foreach {
           case file if file.isDirectory & library.isInstanceOf[Library.Watchable] & foldersKillSwitches.get(file.path).isEmpty =>
             logger.info(s"Watching: ${file.path}")
@@ -156,8 +159,6 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
         }
       context become scanning(library)
 
-    case ScanComplete(folder) => logger.info(s"Scan complete: $folder")
-
   }
 
   def scanning(library: Library): Receive = common(library) orElse {
@@ -168,11 +169,9 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
       if (sender() != self)
         sender() ! Status.Failure(new RuntimeException("A scan is already in progress")) // TODO custom exception
 
-    case ScanComplete(path) if path == library.path =>
-      logger.info(s"Library scan complete: $path")
+    case LibraryScanComplete =>
+      logger.info(s"Library scan complete: ${library.name}")
       context become ready(library)
-
-    case ScanComplete(folder) => logger.info(s"Scan complete: $folder")
 
   }
 
