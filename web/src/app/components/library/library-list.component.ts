@@ -4,7 +4,7 @@ import {map} from 'rxjs/operators';
 import {Library} from '@app/models';
 import {AnimatableComponent} from '@app/components/library/library.component';
 import {LibrariesService} from '@app/services/libraries.service';
-import {MatDialog} from '@angular/material';
+import {MatDialog, MatSnackBar} from '@angular/material';
 import {LibraryCreationDialogComponent} from '@app/components/dialogs/library-creation-dialog/library-creation-dialog.component';
 import {FilesService} from '@app/services/files.service';
 import {FTPLibrary, LocalLibrary, S3Library} from '@app/models/library';
@@ -191,7 +191,8 @@ export class LibraryListComponent implements OnInit, AnimatableComponent {
   constructor(
     private libraries: LibrariesService,
     private files: FilesService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private snack: MatSnackBar
   ) {
 
   }
@@ -253,7 +254,13 @@ export class LibraryListComponent implements OnInit, AnimatableComponent {
   }
 
   scanLibrary(library: Library) {
-    this.libraries.scan(library).subscribe();
+    this.libraries.scan(library).subscribe(
+      files => this.snack.open(
+        'Scan complete. Found ' + files.filter(f => !f.isDirectory).length + ' videos.',
+        'OK',
+        { duration: 4000 }
+      )
+    );
   }
 
   removeLibrary(library: Library) {
