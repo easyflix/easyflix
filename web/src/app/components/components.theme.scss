@@ -42,6 +42,12 @@
     }
   }
 
+  app-libraries-view {
+    .subtext {
+      color: mat-color($foreground, secondary-text);
+    }
+  }
+
   app-settings {
     input[disabled] {
       color: mat-color($foreground, text) !important;
