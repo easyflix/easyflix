@@ -39,8 +39,8 @@ sealed trait Library {
       this.path.resolve(Paths.get(name).relativize(relativePath))
     }
   }
-  def validate(): Try[Unit] = {
-    Try(Paths.get(name)).map(_ => ()).recover{ case _: Exception => throw ValidationException("name", "pattern") }
+  def validate(): Try[Library] = {
+    Try(Paths.get(name)).map(_ => this).recover{ case _: Exception => throw ValidationException("name", "pattern") }
   }
 }
 
@@ -52,7 +52,7 @@ object Library extends JsonSupport {
     def watch(path: Path)(implicit contentTypeResolver: ContentTypeResolver): Source[(LibraryFile, DirectoryChange), NotUsed]
   }
 
-  case class Local(name: String, path: Path, pollInterval: FiniteDuration = 1.second) extends Library with Library.Watchable {
+  case class Local(name: String, path: Path, totalSpace: Long = 1, freeSpace: Long = 1, pollInterval: FiniteDuration = 1.second) extends Library with Library.Watchable {
 
     override def scan(path: Path)(implicit contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed] = {
       if (path.isAbsolute & path != this.path) throw new IllegalArgumentException("Path must be the library path or a sub-folder relative path")
@@ -73,7 +73,7 @@ object Library extends JsonSupport {
       }
     }
 
-    override def validate(): Try[Unit] = {
+    override def validate(): Try[Library] = {
       for {
         _ <- super.validate()
         _ <- if (name != "")              Success(()) else Failure(ValidationException("name", "required"))
@@ -82,7 +82,7 @@ object Library extends JsonSupport {
         _ <- if (path.toFile.exists)      Success(()) else Failure(ValidationException("path", "doesNotExist"))
         _ <- if (path.toFile.isDirectory) Success(()) else Failure(ValidationException("path", "notDirectory"))
         _ <- if (path.toFile.canRead)     Success(()) else Failure(ValidationException("path", "notReadable"))
-      } yield ()
+      } yield this.copy(totalSpace = path.toFile.getTotalSpace, freeSpace = path.toFile.getFreeSpace)
     }
   }
 
@@ -123,7 +123,7 @@ object Library extends JsonSupport {
       case Types.FTPS => Ftps.fromPath(path.toString.replaceAll("""\\""", "/"), ftpsSettings)
     }
 
-    override def validate(): Try[Unit] =
+    override def validate(): Try[Library] =
       for {
         _ <- super.validate()
         _ <- Try(InetAddress.getByName(hostname)).map(_ => ()).recover{ case _: Exception => throw ValidationException("hostname", "invalid") }
@@ -132,7 +132,7 @@ object Library extends JsonSupport {
 //        _ <- if (path.toString != "") Success(()) else Failure(ValidationException("path", "required"))
         _ <- if (username != "")      Success(()) else Failure(ValidationException("username", "required"))
         _ <- if (password != "")      Success(()) else Failure(ValidationException("password", "required"))
-      } yield ()
+      } yield this
   }
 
   case class S3(name: String, path: Path) extends Library {
@@ -149,7 +149,9 @@ object Library extends JsonSupport {
     implicit val writer: RootJsonWriter[Local] = local => JsObject(
       "type" -> "local".toJson,
       "name" -> local.name.toJson,
-      "path" -> local.path.toJson
+      "path" -> local.path.toJson,
+      "totalSpace" -> local.totalSpace.toJson,
+      "freeSpace" -> local.freeSpace.toJson
     )
     implicit val format: RootJsonFormat[Local] = rootJsonFormat(reader, writer)
   }

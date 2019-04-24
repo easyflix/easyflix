@@ -85,17 +85,17 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
     case AddLibrary(library) =>
 
       val validateAndCreate = for {
-        _ <- library.validate()
+        library <- library.validate()
         _ <- if (libraries.keys.exists(_ == library.name)) Failure(ValidationException("name", "alreadyExists")) else Success(())
         actorName = libraries.size + "-" + library.name.replaceAll("""[^0-9a-zA-Z-_.*$+:@&=,!~';]""", "")
         _ <- Try(context.actorOf(LibraryActor.props(library), actorName)) map { actorRef =>
           libraries += (library.name -> (actorRef -> library))
           context.watch(actorRef)
         } recover { case e => throw ValidationException("other", "failure", Some(e.getMessage)) }
-      } yield ()
+      } yield library
 
       validateAndCreate match {
-        case Success(_) => sender() ! library
+        case Success(lib) => sender() ! lib
         case Failure(e) => sender() ! Status.Failure(e)
       }
 
@@ -144,7 +144,7 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
       val f1: Iterable[Future[(Path, Try[LibraryFile])]] = paths.map{ case (path, _) =>
         (libraries(path.subpath(0, 1).toString)._1 ? LibraryActor.GetFile(path))(2.seconds)
           .mapTo[LibraryFile]
-          .map(f => (path, Success(f)))
+          .map[(Path, Try[LibraryFile])](f => (path, Success(f)))
           .recover{ case x => (path, Failure(x)) }
       }
       // Collect the failed future and get the corresponding id

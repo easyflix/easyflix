@@ -6,6 +6,8 @@ interface LibraryI {
 
 export interface LocalLibrary extends LibraryI {
   type: 'local';
+  totalSpace?: number;
+  freeSpace?: number;
 }
 
 export interface FTPLibrary extends LibraryI {

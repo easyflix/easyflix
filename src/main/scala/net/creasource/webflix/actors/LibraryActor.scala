@@ -10,9 +10,10 @@ import akka.stream.scaladsl.{Keep, Sink}
 import akka.stream.{KillSwitches, SharedKillSwitch, UniqueKillSwitch}
 import net.creasource.Application
 import net.creasource.exceptions.NotFoundException
-import net.creasource.webflix.events.{FileAdded, ResolverUpdate}
+import net.creasource.webflix.events.{FileAdded, LibraryUpdate}
 import net.creasource.webflix.{Library, LibraryFile}
 
+import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 object LibraryActor {
@@ -46,17 +47,24 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
 
   case class WatchComplete(path: Path)
 
-  app.bus.subscribe(self, classOf[ResolverUpdate])
+  case class UpdateLibrary(library: Library.Local)
 
-  def common: Receive = {
+//  app.bus.subscribe(self, classOf[ResolverUpdate])
 
-    case ResolverUpdate(ctr) =>
-      logger.info("Received a content type resolver update. Rescanning.")
-      contentTypeResolver = ctr
-      files.values.foreach {
-        case LibraryFile(name, path, false, _, _, _) if !ctr(name).mediaType.isVideo => files -= path // TODO submit to event stream
-      }
-      self ! Scan
+  library match {
+    case lib: Library.Local => app.system.scheduler.schedule(1.minutes, 1.minutes, self, UpdateLibrary(lib))
+    case _ =>
+  }
+
+  def common(library: Library): Receive = {
+
+//    case ResolverUpdate(ctr) =>
+//      logger.info("Received a content type resolver update. Rescanning.")
+//      contentTypeResolver = ctr
+//      files.values.foreach {
+//        case LibraryFile(name, path, false, _, _, _) if !ctr(name).mediaType.isVideo => files -= path // TODO submit to event stream
+//      }
+//      self ! Scan
 
     case GetFiles => sender() ! files.values.toSeq
 
@@ -117,7 +125,12 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
 
   }
 
-  def ready: Receive = common orElse {
+  def ready(library: Library): Receive = common(library) orElse {
+
+    case UpdateLibrary(lib) =>
+      val updated = lib.copy(totalSpace = lib.path.toFile.getTotalSpace, freeSpace = lib.path.toFile.getFreeSpace)
+      app.bus.publish(LibraryUpdate(updated))
+      context become ready(updated)
 
     case Scan =>
       val client = sender()
@@ -141,13 +154,15 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
           case Success(scannedFiles) => if (client != self) { client ! scannedFiles }
           case Failure(exception) => if (client != self) { client ! Status.Failure(exception) }
         }
-      context become scanning
+      context become scanning(library)
 
     case ScanComplete(folder) => logger.info(s"Scan complete: $folder")
 
   }
 
-  def scanning: Receive = common orElse {
+  def scanning(library: Library): Receive = common(library) orElse {
+
+    case UpdateLibrary(_) => // ignore
 
     case Scan =>
       if (sender() != self)
@@ -155,13 +170,13 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
 
     case ScanComplete(path) if path == library.path =>
       logger.info(s"Library scan complete: $path")
-      context become ready
+      context become ready(library)
 
     case ScanComplete(folder) => logger.info(s"Scan complete: $folder")
 
   }
 
-  override def receive: Receive = ready
+  override def receive: Receive = ready(library)
 
   override def postStop(): Unit = {
     killSwitch.shutdown()

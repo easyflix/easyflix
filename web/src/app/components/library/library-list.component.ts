@@ -19,7 +19,11 @@ import {FTPLibrary, LocalLibrary, S3Library} from '@app/models/library';
         <mat-icon matListIcon>video_library</mat-icon>
         <h4 matLine>{{ library.name }}</h4>
         <p matLine class="subtext">{{ library.path }}</p>
-        <mat-progress-bar mode="determinate" value="40" color="accent" class="mat-elevation-z4"></mat-progress-bar>
+        <mat-progress-bar mode="determinate"
+                          [value]="getSpace(library)"
+                          [color]="getSpace(library) > 95 ? 'warn' : 'accent'"
+                          class="mat-elevation-z4">
+        </mat-progress-bar>
         <p class="videos">
           {getLibraryVideoCount(library) | async, plural,
             =0 {No video}
@@ -250,6 +254,10 @@ export class LibraryListComponent implements OnInit, AnimatableComponent {
 
   removeLibrary(library: Library) {
     this.libraries.remove(library).subscribe(); // TODO confirm dialog
+  }
+
+  getSpace(library: LocalLibrary): number {
+    return (library.totalSpace - library.freeSpace) / library.totalSpace * 100;
   }
 
 }

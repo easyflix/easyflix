@@ -16,6 +16,7 @@ export enum LibrariesActionTypes {
   ScanLibrary = 'libraries/scan',
   ScanLibrarySuccess = 'libraries/scan/success',
   ScanLibraryError = 'libraries/scan/error',
+  LibraryUpdate = 'libraries/update',
 }
 
 export class LoadLibraries implements Action {
@@ -77,6 +78,11 @@ export class ScanLibraryError implements Action {
   constructor(public payload: string, public library: Library) {}
 }
 
+export class LibraryUpdate implements Action {
+  readonly type = LibrariesActionTypes.LibraryUpdate;
+  constructor(public payload: Library) {}
+}
+
 export type LibrariesActionsUnion =
   LoadLibraries |
   LoadLibrariesSuccess |
@@ -89,4 +95,5 @@ export type LibrariesActionsUnion =
   RemoveLibraryError |
   ScanLibrary |
   ScanLibrarySuccess |
-  ScanLibraryError;
+  ScanLibraryError |
+  LibraryUpdate;

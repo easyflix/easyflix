@@ -54,6 +54,10 @@ export function reducer(
       return adapter.updateOne({ id: action.library.name, changes: { scanning: false } }, state);
     }
 
+    case LibrariesActionTypes.LibraryUpdate: {
+      return adapter.upsertOne(action.payload, state);
+    }
+
     default: return state;
   }
 }
