@@ -126,7 +126,7 @@ export class LibraryCreationDialogComponent implements OnInit {
       library = {
         type: 'ftp',
         name: this.ftpFormGroup.value.name,
-        path: this.ftpFormGroup.value.path,
+        path: this.ftpFormGroup.value.path.replace(/^\//, ''), // TODO check this server-side ?
         hostname: this.ftpFormGroup.value.hostname,
         port: this.ftpFormGroup.value.port,
         username: this.ftpFormGroup.value.username,
