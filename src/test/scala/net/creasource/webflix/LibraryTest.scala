@@ -46,7 +46,7 @@ class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer  {
     }
 
     "watch root directory for file creation" in {
-      val lib = Library.Local("name", libraryPath, pollInterval)
+      val lib = Library.Local("name", libraryPath, pollInterval = pollInterval)
       val (ks, future) = lib
         .watch()
         .viaMat(KillSwitches.single)(Keep.right)
@@ -69,7 +69,7 @@ class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer  {
     "watch root directory for file deletion" in {
       uncreatedFiles.head.toFile.createNewFile()
 
-      val lib = Library.Local("name", libraryPath, pollInterval)
+      val lib = Library.Local("name", libraryPath, pollInterval = pollInterval)
       val (ks, future) = lib
         .watch()
         .viaMat(KillSwitches.single)(Keep.right)
@@ -90,7 +90,7 @@ class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer  {
     }
 
     "watch a sub directory" in {
-      val lib = Library.Local("name", libraryPath, pollInterval)
+      val lib = Library.Local("name", libraryPath, pollInterval = pollInterval)
       val folder = lib.relativizePath(libraryFiles.head._1)
       val (ks, future) = lib
         .watch(folder) // folder1
