@@ -41,7 +41,7 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
 
   var foldersKillSwitches: Map[Path, UniqueKillSwitch] = Map.empty
 
-  implicit var contentTypeResolver: ContentTypeResolver = ContentTypeResolver.Default
+  implicit val contentTypeResolver: ContentTypeResolver = MediaTypesActor.defaultContentTypeResolver
 
   case class ScanComplete(path: Path)
 

@@ -31,6 +31,19 @@ object MediaTypesActor extends JsonSupport {
 
   def props()(implicit app: Application): Props = Props(new MediaTypesActor)
 
+  def getContentTypeResolver(customMediaTypes: Seq[MediaType.Binary]): ContentTypeResolver = (fileName: String) =>  {
+    val lastDotIx = fileName.lastIndexOf('.')
+    if (lastDotIx >= 0) {
+      val extension = fileName.substring(lastDotIx + 1)
+      customMediaTypes.find(mediaType => mediaType.fileExtensions.contains(extension)) match {
+        case Some(mediaType) => ContentType(mediaType)
+        case None => ContentTypeResolver.Default(fileName)
+      }
+    } else ContentTypeResolver.Default(fileName)
+  }
+
+  val defaultContentTypeResolver: ContentTypeResolver = getContentTypeResolver(Seq(`video/x-mastroka`))
+
 }
 
 class MediaTypesActor()(implicit val app: Application) extends Actor {
@@ -69,17 +82,6 @@ class MediaTypesActor()(implicit val app: Application) extends Actor {
 
     case GetContentTypeResolver => sender() ! contentTypeResolver
 
-  }
-
-  def getContentTypeResolver(customMediaTypes: Seq[MediaType.Binary]): ContentTypeResolver = (fileName: String) =>  {
-    val lastDotIx = fileName.lastIndexOf('.')
-    if (lastDotIx >= 0) {
-      val extension = fileName.substring(lastDotIx + 1)
-      customMediaTypes.find(mediaType => mediaType.fileExtensions.contains(extension)) match {
-        case Some(mediaType) => ContentType(mediaType)
-        case None => ContentTypeResolver.Default(fileName)
-      }
-    } else ContentTypeResolver.Default(fileName)
   }
 
 }
