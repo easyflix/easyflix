@@ -15,7 +15,7 @@ export const adapter: EntityAdapter<LibraryFile> = createEntityAdapter<LibraryFi
     if (a.isDirectory === false && b.isDirectory === true) {
       return 1;
     }
-    return a.name.localeCompare(b.name);
+    return a.path.localeCompare(b.path);
   },
 });
 
