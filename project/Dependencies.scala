@@ -20,7 +20,7 @@ object Dependencies {
   lazy val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
   lazy val alpakkaFile = "com.lightbend.akka" %% "akka-stream-alpakka-file" % "1.0.0"
-  lazy val alpakkaFtp = "com.lightbend.akka" %% "akka-stream-alpakka-ftp" % "1.0.0"
+  lazy val alpakkaFtp = "com.lightbend.akka" %% "akka-stream-alpakka-ftp" % "1.0.0+27-55e8cb9d"
 
   lazy val shortId = "me.nimavat" % "shortid" % "1.0.1.RC1"
 }

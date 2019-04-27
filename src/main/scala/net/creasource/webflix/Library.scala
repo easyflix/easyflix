@@ -107,10 +107,10 @@ object Library extends JsonSupport {
 
     override def scan(path: Path)(implicit contentTypeResolver: ContentTypeResolver): Source[LibraryFile, NotUsed] = {
       val source = conType match {
-        case Types.FTP => Ftp.ls(path.toString, ftpSettings)
-        case Types.FTPS => Ftps.ls(path.toString, ftpsSettings)
+        case Types.FTP => Ftp.ls(path.toString, ftpSettings, _ => true, emitTraversedDirectories = true)
+        case Types.FTPS => Ftps.ls(path.toString, ftpsSettings, _ => true, emitTraversedDirectories = true)
       }
-      source.map(file => { // TODO list folders (https://github.com/akka/alpakka/issues/1657)
+      source.map(file => {
         val filePath = Paths.get(file.path.replaceFirst("^/", ""))
         Option(file.isDirectory || !file.isDirectory & contentTypeResolver(file.name).mediaType.isVideo).collect{
           case true => LibraryFile(file.name, relativizePath(filePath), file.isDirectory, file.size, file.lastModified, name)
