@@ -132,3 +132,17 @@ form.ftp .warning mat-icon {
 .scan button {
   margin-top: 2rem;
 }
+
+form.s3 .field-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+form.s3 mat-form-field {
+  flex-basis: calc(50% - 1rem);
+}
+
+form.s3 mat-form-field:nth-child(2n+1) {
+  margin-right: 1rem;
+}

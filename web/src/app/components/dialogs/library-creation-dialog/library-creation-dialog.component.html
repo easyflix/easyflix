@@ -32,7 +32,7 @@
     </mat-step>
 
     <mat-step [completed]="currentLibrary !== undefined" label="Configure" [editable]="false">
-      <form (ngSubmit)="addLibrary()" [formGroup]="localFormGroup" *ngIf="localFormGroup == currentFormGroup" class="local" autocomplete="off">
+      <form (ngSubmit)="addLibrary()" [formGroup]="localFormGroup" *ngIf="localFormGroup == currentFormGroup" class="local">
         <h3>Add a local library</h3>
         <div class="field-container">
           <mat-form-field class="name" floatLabel="auto" appearance="standard">
@@ -53,15 +53,11 @@
           <button type="submit" mat-button mat-raised-button *ngIf="!addingLibrary">Submit</button>
           <mat-progress-spinner mode="indeterminate" diameter="25" *ngIf="addingLibrary"></mat-progress-spinner>
         </div>
-          <!--<div>
-          <button mat-button matStepperPrevious>Back</button>
-          <button mat-button matStepperNext>Next</button>
-        </div>-->
       </form>
-      <form (ngSubmit)="addLibrary()" [formGroup]="ftpFormGroup" *ngIf="ftpFormGroup == currentFormGroup" class="ftp" autocomplete="off">
+      <form (ngSubmit)="addLibrary()" [formGroup]="ftpFormGroup" *ngIf="ftpFormGroup == currentFormGroup" class="ftp">
         <h3>Add an FTP library</h3>
         <div class="field-container">
-          <mat-form-field  floatLabel="auto" appearance="standard">
+          <mat-form-field floatLabel="auto" appearance="standard">
             <mat-label>Name</mat-label>
             <input matInput formControlName="name" required>
             <mat-hint>Display name of the library</mat-hint>
@@ -74,7 +70,7 @@
             </mat-radio-group>
             <mat-checkbox formControlName=passive>Passive mode</mat-checkbox>
           </div>
-          <mat-form-field  floatLabel="auto" appearance="standard">
+          <mat-form-field floatLabel="auto" appearance="standard">
             <mat-label>Hostname</mat-label>
             <input matInput formControlName="hostname" required>
             <mat-hint>Hostname of the server</mat-hint>
@@ -115,13 +111,50 @@
           <mat-progress-spinner mode="indeterminate" diameter="25" *ngIf="addingLibrary"></mat-progress-spinner>
         </div>
       </form>
-      <form [formGroup]="s3FormGroup" *ngIf="s3FormGroup == currentFormGroup">
-        <mat-form-field>
-          <input matInput placeholder="Address3" formControlName="name" required>
-        </mat-form-field>
-        <div>
-          <button mat-button matStepperPrevious>Back</button>
-          <button mat-button matStepperNext>Next</button>
+      <form class="s3" (ngSubmit)="addLibrary()" [formGroup]="s3FormGroup" *ngIf="s3FormGroup == currentFormGroup">
+        <h3>Add an S3 library</h3>
+        <div class="field-container">
+          <mat-form-field floatLabel="auto" appearance="standard">
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name" required>
+            <mat-hint>Display name of the library</mat-hint>
+            <mat-error *ngIf="s3FormGroup.controls.name.invalid">{{ getErrorMessage(s3FormGroup.controls.name) }}</mat-error>
+          </mat-form-field>
+          <mat-form-field appearance="standard">
+            <mat-label>Region</mat-label>
+            <mat-select formControlName="region">
+              <mat-option *ngFor="let region of s3Regions" [value]="region.key">{{region.region}}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field floatLabel="auto" appearance="standard">
+            <mat-label>Bucket</mat-label>
+            <input matInput formControlName="bucket" required>
+            <mat-hint>The bucket name</mat-hint>
+            <mat-error *ngIf="s3FormGroup.controls.bucket.invalid">{{ getErrorMessage(s3FormGroup.controls.bucket) }}</mat-error>
+          </mat-form-field>
+          <mat-form-field floatLabel="auto" appearance="standard">
+            <mat-label>Path</mat-label>
+            <input matInput formControlName="path">
+            <mat-hint>The bucket key prefix to use</mat-hint>
+            <mat-error *ngIf="s3FormGroup.controls.path.invalid">{{ getErrorMessage(s3FormGroup.controls.path) }}</mat-error>
+          </mat-form-field>
+          <mat-form-field floatLabel="auto" appearance="standard">
+            <mat-label>Access Id</mat-label>
+            <input matInput formControlName="accessId" required>
+            <mat-hint>Your access Id</mat-hint>
+            <mat-error *ngIf="s3FormGroup.controls.accessId.invalid">{{ getErrorMessage(s3FormGroup.controls.accessId) }}</mat-error>
+          </mat-form-field>
+          <mat-form-field floatLabel="auto" appearance="standard">
+            <mat-label>Access Secret</mat-label>
+            <input matInput formControlName="accessSecret" required type="password">
+            <mat-hint>Your access secret</mat-hint>
+            <mat-error *ngIf="s3FormGroup.controls.accessSecret.invalid">{{ getErrorMessage(s3FormGroup.controls.accessSecret) }}</mat-error>
+          </mat-form-field>
+        </div>
+        <div class="button-wrapper">
+          <button mat-button mat-raised-button matStepperPrevious (click)="stepper.reset(); currentFormGroup = undefined">Back</button>
+          <button type="submit" mat-button mat-raised-button *ngIf="!addingLibrary">Submit</button>
+          <mat-progress-spinner mode="indeterminate" diameter="25" *ngIf="addingLibrary"></mat-progress-spinner>
         </div>
       </form>
     </mat-step>
@@ -146,6 +179,3 @@
 
   </mat-horizontal-stepper>
 </mat-dialog-content>
-<!--<mat-dialog-actions>
-  <button mat-button mat-dialog-close>Cancel</button>
-</mat-dialog-actions>-->

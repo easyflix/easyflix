@@ -17,6 +17,27 @@ import {Observable} from 'rxjs';
 })
 export class LibraryCreationDialogComponent implements OnInit {
 
+  s3Regions = [
+    { key: 'us-east-1', region: 'US East (N. Virginia)'},
+    { key: 'us-east-2', region: 'US East (Ohio)'},
+    { key: 'us-west-1', region: 'US West (N. California)'},
+    { key: 'us-west-2', region: 'US West (Oregon)'},
+    { key: 'eu-west-1', region: 'EU (Ireland)'},
+    { key: 'eu-west-2', region: 'EU (London)'},
+    { key: 'eu-west-3', region: 'EU (Paris)'},
+    { key: 'eu-central-1', region: 'EU (Frankfurt)'},
+    { key: 'eu-north-1', region: 'EU (Stockholm)'},
+    { key: 'ap-south-1', region: 'Asia Pacific (Mumbai)'},
+    { key: 'ap-southeast-1', region: 'Asia Pacific (Singapore)'},
+    { key: 'ap-southeast-2', region: 'Asia Pacific (Sydney)'},
+    { key: 'ap-northeast-1', region: 'Asia Pacific (Tokyo)'},
+    { key: 'ap-northeast-2', region: 'Asia Pacific (Seoul)'},
+    { key: 'sa-east-1', region: 'South America (Sao Paulo)'},
+    { key: 'cn-north-1', region: 'China (Beijing)'},
+    { key: 'cn-northwest-1', region: 'China (Ningxia)'},
+    { key: 'ca-central-1', region: 'Canada (Central)'}
+  ];
+
   @ViewChild(MatHorizontalStepper) stepper: MatHorizontalStepper;
 
   localFormGroup: FormGroup;
@@ -67,7 +88,12 @@ export class LibraryCreationDialogComponent implements OnInit {
       conType: ['ftps', Validators.required]
     });
     this.s3FormGroup = this.fb.group({
-      name: ['', Validators.required]
+      name: ['', Validators.required],
+      path: [''],
+      bucket: ['', Validators.required],
+      accessId: ['', Validators.required],
+      accessSecret: ['', Validators.required],
+      region: ['', Validators.required]
     });
   }
 
@@ -135,7 +161,15 @@ export class LibraryCreationDialogComponent implements OnInit {
         conType: this.ftpFormGroup.value.conType
       };
     } else {
-      library = {type: 's3', name: '', path: ''};
+      library = {
+        type: 's3',
+        name: this.s3FormGroup.value.name,
+        path: this.s3FormGroup.value.path,
+        bucket: this.s3FormGroup.value.bucket,
+        accessId: this.s3FormGroup.value.accessId,
+        accessSecret: this.s3FormGroup.value.accessSecret,
+        region: this.s3FormGroup.value.region
+      };
     }
 
     this.libraries.add(library).subscribe(

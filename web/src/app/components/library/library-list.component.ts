@@ -67,6 +67,30 @@ import {FTPLibrary, LocalLibrary, S3Library} from '@app/models/library';
         </mat-list-item>
       </ng-container>
 
+      <ng-container *ngIf="(s3Libraries$ | async).length > 0">
+        <h3 matSubheader>S3</h3>
+        <mat-divider></mat-divider>
+        <mat-list-item tabindex="0" *ngFor="let library of s3Libraries$ | async" (click)="openLibrary.emit(library)">
+          <mat-icon matListIcon>video_library</mat-icon>
+          <h4 matLine>{{ library.name }}</h4>
+          <p matLine class="subtext">{{library.bucket}}@{{library.region}}/{{library.path}}</p>
+          <p class="videos" *ngIf="getLibraryVideoCount(library)  | async; let count">
+            {count, plural,
+              =0 {No video}
+              =1 {1 video}
+              other {{{count}} videos}}
+          </p>
+          <button mat-mini-fab color="primary" *ngIf="!library.scanning" (click)="scanLibrary(library); $event.stopPropagation()">
+            <mat-icon>refresh</mat-icon>
+          </button>
+          <mat-spinner diameter="40" *ngIf="library.scanning"></mat-spinner>
+          <button mat-mini-fab color="warn" (click)="removeLibrary(library); $event.stopPropagation()">
+            <mat-icon>close</mat-icon>
+          </button>
+          <mat-divider></mat-divider>
+        </mat-list-item>
+      </ng-container>
+
       <!--<h3 matSubheader>S3</h3>
       <mat-divider></mat-divider>
       <mat-list-item>

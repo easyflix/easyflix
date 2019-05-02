@@ -22,6 +22,10 @@ export interface FTPLibrary extends LibraryI {
 
 export interface S3Library extends LibraryI {
   type: 's3';
+  bucket: string;
+  accessId: string;
+  accessSecret: string;
+  region: string;
 }
 
 export type Library = LocalLibrary | FTPLibrary | S3Library;
