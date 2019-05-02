@@ -4,7 +4,6 @@ import java.nio.file.Path
 
 import akka.actor.{Actor, Props, Status}
 import akka.event.Logging
-import akka.http.scaladsl.server.directives.ContentTypeResolver
 import akka.stream.alpakka.file.DirectoryChange
 import akka.stream.scaladsl.{Keep, Sink}
 import akka.stream.{KillSwitches, SharedKillSwitch, UniqueKillSwitch}
@@ -40,8 +39,6 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
   val killSwitch: SharedKillSwitch = KillSwitches.shared(library.name)
 
   var foldersKillSwitches: Map[Path, UniqueKillSwitch] = Map.empty
-
-  implicit val contentTypeResolver: ContentTypeResolver = MediaTypesActor.defaultContentTypeResolver
 
   case object LibraryScanComplete
   case class ScanComplete(path: Path)

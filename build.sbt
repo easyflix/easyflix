@@ -21,6 +21,7 @@ lazy val root = (project in file("."))
     libraryDependencies += shortId,
     libraryDependencies += alpakkaFile,
     libraryDependencies += alpakkaFtp,
+    libraryDependencies += alpakkaS3,
 
     libraryDependencies += scalaTest % Test,
     libraryDependencies += akkaTestkit % Test,

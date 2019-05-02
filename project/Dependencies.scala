@@ -2,7 +2,8 @@ import sbt._
 
 object Dependencies {
   lazy val akkaHttpVersion = "10.1.8"
-  lazy val akkaVersion    = "2.5.21"
+  lazy val akkaVersion     = "2.5.22"
+  lazy val alpakkaVersion  = "1.0.0+27-55e8cb9d"
 
   // Tests
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5"
@@ -19,8 +20,9 @@ object Dependencies {
   lazy val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % akkaVersion
   lazy val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-  lazy val alpakkaFile = "com.lightbend.akka" %% "akka-stream-alpakka-file" % "1.0.0"
-  lazy val alpakkaFtp = "com.lightbend.akka" %% "akka-stream-alpakka-ftp" % "1.0.0+27-55e8cb9d"
+  lazy val alpakkaFile = "com.lightbend.akka" %% "akka-stream-alpakka-file" % alpakkaVersion
+  lazy val alpakkaFtp = "com.lightbend.akka" %% "akka-stream-alpakka-ftp" % alpakkaVersion
+  lazy val alpakkaS3 = "com.lightbend.akka" %% "akka-stream-alpakka-s3" % alpakkaVersion
 
   lazy val shortId = "me.nimavat" % "shortid" % "1.0.1.RC1"
 }

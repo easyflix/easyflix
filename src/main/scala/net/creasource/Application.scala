@@ -1,6 +1,7 @@
 package net.creasource
 
 import akka.actor.{ActorRef, ActorSystem}
+import akka.http.scaladsl.server.directives.ContentTypeResolver
 import akka.stream.ActorMaterializer
 import com.typesafe.config.{Config, ConfigFactory}
 import net.creasource.webflix.actors.{LibrarySupervisor, MediaTypesActor}
@@ -29,6 +30,8 @@ class Application {
   val bus: ApplicationBus = new ApplicationBus
   val libraries: ActorRef = system.actorOf(LibrarySupervisor.props()(this), "libraries")
   val mediaTypesActor: ActorRef = system.actorOf(MediaTypesActor.props()(this), "media-types")
+
+  implicit val contentTypeResolver: ContentTypeResolver = MediaTypesActor.defaultContentTypeResolver
 
   def shutdown() {
     system.log.info("Shutting down Akka materializer and system.")
