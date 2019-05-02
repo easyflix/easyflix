@@ -3,14 +3,14 @@ import {ActivatedRouteSnapshot, Resolve, Router, RouterStateSnapshot} from '@ang
 import {EMPTY, Observable, of} from 'rxjs';
 import {LibraryFile} from '@app/models';
 import {FilesService} from '@app/services/files.service';
-import {mergeMap, take} from 'rxjs/operators';
-
+import {catchError, map, mergeMap, take} from 'rxjs/operators';
+import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class VideoResolverService implements Resolve<LibraryFile> {
-  constructor(private files: FilesService, private router: Router) {}
+  constructor(private files: FilesService, private router: Router, private socketClient: HttpSocketClientService) {}
 
   resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<LibraryFile> | Observable<never> {
     const id = route.paramMap.get('id');
@@ -18,10 +18,13 @@ export class VideoResolverService implements Resolve<LibraryFile> {
       take(1),
       mergeMap((video: LibraryFile) => {
         if (video === undefined) {
-          this.router.navigateByUrl('/home(nav:library)');
-          return EMPTY;
+          return this.socketClient.get('/api/videos/' + encodeURIComponent(id)).pipe(
+            map((file: LibraryFile) => { file.id = id; return file; }),
+            catchError(() => { this.router.navigateByUrl('/home(nav:library)'); return EMPTY; })
+          );
+        } else {
+          return of(video);
         }
-        return of(video);
       })
     );
   }
