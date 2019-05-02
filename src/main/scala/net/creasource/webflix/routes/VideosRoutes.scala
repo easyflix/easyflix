@@ -22,7 +22,9 @@ object VideosRoutes extends FileAndResourceDirectives {
 
   implicit val askTimeout: akka.util.Timeout = 2.seconds
 
-  def routes(app: Application): Route =
+  def routes(app: Application): Route = pathPrefix("videos") { Route.seal(subs(app)) }
+
+  private def subs(app: Application): Route =
     path(Segment) { id =>
       extractExecutionContext { implicit executor =>
         val f1: Future[Route] = for {

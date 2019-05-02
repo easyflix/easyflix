@@ -32,9 +32,18 @@ object APIRoutes extends Directives with JsonSupport {
       }
     }
 
-  def routes(app: Application): Route =
+  def routes(app: Application): Route = pathPrefix("api") { Route.seal(subs(app)) }
+
+  private def subs(app: Application): Route =
     respondWithHeaders(RawHeader("Access-Control-Allow-Origin", "*")) {
       concat(
+        pathPrefix("videos") {
+          path(Segment) { id =>
+            completeOrRecoverWith((app.libraries ? GetFileById(id)).mapTo[LibraryFile]) {
+              case NotFoundException(_) => complete(StatusCodes.NotFound)
+            }
+          }
+        },
         pathPrefix("libraries") {
           optionRoute ~
           pathEndOrSingleSlash {
