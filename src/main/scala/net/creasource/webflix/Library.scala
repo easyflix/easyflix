@@ -4,12 +4,13 @@ import java.net.InetAddress
 import java.nio.file.{Path, Paths}
 
 import akka.NotUsed
+import akka.http.scaladsl.model.headers.ByteRange
 import akka.stream.IOResult
 import akka.stream.alpakka.file.DirectoryChange
 import akka.stream.alpakka.file.scaladsl.{Directory, DirectoryChangesSource}
 import akka.stream.alpakka.ftp.scaladsl.{Ftp, Ftps}
 import akka.stream.alpakka.ftp.{FtpCredentials, FtpSettings, FtpsSettings}
-import akka.stream.alpakka.s3.{S3Attributes, S3Ext}
+import akka.stream.alpakka.s3.{ObjectMetadata, S3Attributes, S3Ext}
 import akka.stream.alpakka.s3.scaladsl.{S3 => AS3}
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
@@ -173,6 +174,17 @@ object Library extends JsonSupport {
       .withS3RegionProvider(new AwsRegionProvider {
         override def getRegion: String = region.getName
       })
+
+    def download(
+        path: Path,
+        range: Option[ByteRange]
+    )(implicit app: Application): Source[Option[(Source[ByteString, NotUsed], ObjectMetadata)], NotUsed] = {
+      AS3.download(bucket, path.toString.replaceAll("""\\""", "/"), range)
+          .withAttributes(S3Attributes.settings(settings))
+    }
+
+    override def scan()(implicit app: Application): Source[LibraryFile, NotUsed] =
+      Source.single(LibraryFile(name, relativizePath(path), isDirectory = true, 0L, 0L, name)).concat(scan(path))
 
     override def scan(path: Path)(implicit app: Application): Source[LibraryFile, NotUsed] = {
       AS3.listBucket(bucket, Some(path.toString)).withAttributes(S3Attributes.settings(settings)).map { content =>
