@@ -27,6 +27,9 @@
     .accent {
       color: mat-color($accent);
     }
+    .subtext {
+      color: mat-color($foreground, secondary-text);
+    }
   }
 
   app-main {
