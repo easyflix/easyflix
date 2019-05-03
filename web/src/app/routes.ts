@@ -12,7 +12,6 @@ import {VideoGridComponent} from './components/common/video-grid/video-grid.comp
 import {VideoDetailedListComponent} from './components/common/video-detailed-list/video-detailed-list.component';
 import {VideoResolverService} from '@app/guards/video-resolver.service';
 import {LibrariesLoadedGuard} from '@app/guards/libraries-loaded.guard';
-import {MediaTypesLoadedGuard} from '@app/guards/media-types-loaded.guard';
 import {GlobalComponent} from '@app/components/settings/global/global.component';
 import {LibrariesComponent} from '@app/components/settings/libraries/libraries.component';
 import {LocalComponent} from '@app/components/settings/local/local.component';
@@ -56,7 +55,7 @@ export const routes: Routes = [
     path: 'settings',
     component: SettingsComponent,
     outlet: navOutletName,
-    canActivate: [LibrariesLoadedGuard, MediaTypesLoadedGuard],
+    canActivate: [LibrariesLoadedGuard],
     data: { animation: 'settings' },
     children: [
       {

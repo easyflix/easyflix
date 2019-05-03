@@ -5,7 +5,6 @@ import {Observable, Subscription} from 'rxjs';
 import {SidenavWidthType} from '@app/reducers/core.reducer';
 import {FilesService} from '@app/services/files.service';
 import {FormBuilder} from '@angular/forms';
-import {MediaTypesService} from '@app/services/media-types.service';
 import {LibrariesService} from '@app/services/libraries.service';
 import {DomSanitizer} from '@angular/platform-browser';
 
@@ -60,7 +59,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private core: CoreService,
     private files: FilesService,
     private libraries: LibrariesService,
-    private mediaTypes: MediaTypesService,
     private sanitizer: DomSanitizer,
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef

@@ -18,17 +18,6 @@ import {
   RemoveLibraryError,
   RemoveLibrarySuccess, ScanLibrary, ScanLibraryError, ScanLibrarySuccess
 } from '@app/actions/libraries.actions';
-import {
-  AddMediaType,
-  AddMediaTypeError,
-  AddMediaTypeSuccess,
-  LoadMediaTypesError,
-  LoadMediaTypesSuccess,
-  MediaTypesActionTypes,
-  RemoveMediaType,
-  RemoveMediaTypeError,
-  RemoveMediaTypeSuccess
-} from '@app/actions/media-types.actions';
 import {ChangeTheme, CoreActionTypes} from '@app/actions/core.actions';
 import {OverlayContainer} from '@angular/cdk/overlay';
 
@@ -121,51 +110,6 @@ export class AppEffects {
         this.httpClient.post('http://localhost:8081/api/libraries/' + encodeURIComponent(action.payload.name) + '/scan', null).pipe(
           map((files: LibraryFile[]) => new ScanLibrarySuccess(files, action.payload)),
           catchError((error: HttpErrorResponse) => of(new ScanLibraryError(error.error, action.payload)))
-        )
-      )
-    );
-
-  /**
-   * Load media types
-   */
-  @Effect()
-  loadMediaTypes$: Observable<Action> =
-    this.actions$.pipe(
-      ofType(MediaTypesActionTypes.LoadMediaTypes),
-      switchMap(() =>
-        this.httpClient.get('http://localhost:8081/api/media-types').pipe(
-          map((mts: MediaType[]) => new LoadMediaTypesSuccess(mts)),
-          catchError((error: HttpErrorResponse) => of(new LoadMediaTypesError(error.message)))
-        )
-      )
-    );
-
-  /**
-   * Add MediaType
-   */
-  @Effect()
-  addMediaType$: Observable<Action> =
-    this.actions$.pipe(
-      ofType(MediaTypesActionTypes.AddMediaType),
-      switchMap((action: AddMediaType) =>
-        this.httpClient.post('http://localhost:8081/api/media-types', action.payload).pipe(
-          map((mediaType: MediaType) => new AddMediaTypeSuccess(mediaType)),
-          catchError((error: HttpErrorResponse) => of(new AddMediaTypeError(error.error)))
-        )
-      )
-    );
-
-  /**
-   * Remove MediaType
-   */
-  @Effect()
-  removeMediaType$: Observable<Action> =
-    this.actions$.pipe(
-      ofType(MediaTypesActionTypes.RemoveMediaType),
-      switchMap((action: RemoveMediaType) =>
-        this.httpClient.delete('http://localhost:8081/api/media-types/' + encodeURIComponent(action.payload)).pipe(
-          map(() => new RemoveMediaTypeSuccess(action.payload)),
-          catchError((error: HttpErrorResponse) => of(new RemoveMediaTypeError(error.error)))
         )
       )
     );

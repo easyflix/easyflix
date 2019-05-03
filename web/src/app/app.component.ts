@@ -7,7 +7,6 @@ import {RouterOutlet} from '@angular/router';
 import {FilesService} from '@app/services/files.service';
 import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
 import {map, mergeMap} from 'rxjs/operators';
-import {MediaTypesService} from '@app/services/media-types.service';
 import {LibrariesService} from '@app/services/libraries.service';
 import {ThemesUtils} from '@app/utils/themes.utils';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
@@ -33,7 +32,6 @@ export class AppComponent implements OnInit {
     private core: CoreService,
     private files: FilesService,
     private libraries: LibrariesService,
-    private mediaTypes: MediaTypesService,
     private socketClient: HttpSocketClientService
   ) { }
 
@@ -51,11 +49,8 @@ export class AppComponent implements OnInit {
       error => console.log(error),
       () => console.log('complete')
     );*/
-    concat(
-      this.libraries.load().pipe(
-        mergeMap(libraries => concat(...libraries.map(lib => this.files.load(lib))))
-      ),
-      this.mediaTypes.load()
+    this.libraries.load().pipe(
+      mergeMap(libraries => concat(...libraries.map(lib => this.files.load(lib))))
     ).subscribe(
       () => {},
       error => console.log(error),

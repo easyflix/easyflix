@@ -6,7 +6,6 @@ import * as fromCore from './core.reducer';
 import * as fromVideo from './video.reducer';
 import * as fromFiles from './files.reducer';
 import * as fromLibraries from './libraries.reducer';
-import * as fromMediaTypes from './media-types.reducer';
 
 import {Library, LibraryFile, MediaType} from '@app/models';
 import {FilesUtils} from '@app/utils/files.utils';
@@ -16,7 +15,6 @@ export interface State {
   video: fromVideo.State;
   files: fromFiles.State;
   libraries: fromLibraries.State;
-  mediaTypes: fromMediaTypes.State;
 }
 
 export const reducers: ActionReducerMap<State> = {
@@ -24,7 +22,6 @@ export const reducers: ActionReducerMap<State> = {
   video: fromVideo.reducer,
   files: fromFiles.reducer,
   libraries: fromLibraries.reducer,
-  mediaTypes: fromMediaTypes.reducer,
 };
 
 export const metaReducers: MetaReducer<State>[] = !environment.production ? [] : [];
@@ -33,7 +30,6 @@ export const getCoreState = (state: State) => state.core;
 export const getVideoState = (state: State) => state.video;
 export const getFilesState = (state: State) => state.files;
 export const getLibrariesState = (state: State) => state.libraries;
-export const getMediaTypesState = (state: State) => state.mediaTypes;
 
 export const getShowSidenav = createSelector(
   getCoreState,
@@ -141,20 +137,3 @@ export const getLibrariesLoaded = createSelector(
   getLibrariesState,
   fromLibraries.getLoaded
 );
-
-export const {
-  selectEntities: getAllMediaTypesEntities,
-  selectAll: getAllMediaTypes,
-} = fromMediaTypes.adapter.getSelectors(getMediaTypesState);
-
-export const getMediaTypeBySubType = createSelector(
-  getAllMediaTypesEntities,
-  (mediaTypes: Dictionary<MediaType>, subType: string) => mediaTypes[subType]
-);
-
-export const getMediaTypesLoaded = createSelector(
-  getMediaTypesState,
-  fromMediaTypes.getLoaded
-);
-
-

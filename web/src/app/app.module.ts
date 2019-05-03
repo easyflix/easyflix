@@ -21,8 +21,6 @@ import {FilesService} from './services/files.service';
 import {VideoGuard} from './guards/video.guard';
 import {VideoResolverService} from '@app/guards/video-resolver.service';
 import {LibrariesLoadedGuard} from '@app/guards/libraries-loaded.guard';
-import {MediaTypesLoadedGuard} from '@app/guards/media-types-loaded.guard';
-import {MediaTypesService} from '@app/services/media-types.service';
 import {LibrariesService} from '@app/services/libraries.service';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 
@@ -52,11 +50,9 @@ import {HttpSocketClientService} from '@app/services/http-socket-client.service'
     VideoService,
     FilesService,
     LibrariesService,
-    MediaTypesService,
     VideoGuard,
     // FilesLoadedGuard,
     LibrariesLoadedGuard,
-    MediaTypesLoadedGuard,
     VideoResolverService,
     HttpSocketClientService
   ],
