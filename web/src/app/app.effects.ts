@@ -20,6 +20,7 @@ import {
 } from '@app/actions/libraries.actions';
 import {ChangeTheme, CoreActionTypes} from '@app/actions/core.actions';
 import {OverlayContainer} from '@angular/cdk/overlay';
+import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 
 @Injectable()
 export class AppEffects {
@@ -45,7 +46,7 @@ export class AppEffects {
     this.actions$.pipe(
       ofType(FilesActionTypes.LoadFiles),
       switchMap((action: LoadFiles) =>
-        this.httpClient.get('http://localhost:8081/api/libraries/' + encodeURIComponent(action.payload.name)).pipe(
+        this.socketClient.get('/api/libraries/' + encodeURIComponent(action.payload.name)).pipe(
           map((result: { library: Library, files: LibraryFile[] }) => new LoadFilesSuccess(result.files)),
           catchError((error: HttpErrorResponse) => of(new LoadFilesError(error.message)))
         )
@@ -60,7 +61,7 @@ export class AppEffects {
     this.actions$.pipe(
       ofType(LibrariesActionTypes.LoadLibraries),
       switchMap(() =>
-        this.httpClient.get('http://localhost:8081/api/libraries').pipe(
+        this.socketClient.get('/api/libraries').pipe(
           map((libs: Library[]) => new LoadLibrariesSuccess(libs)),
           catchError((error: HttpErrorResponse) => of(new LoadLibrariesError(error.message)))
         )
@@ -75,7 +76,7 @@ export class AppEffects {
     this.actions$.pipe(
       ofType(LibrariesActionTypes.AddLibrary),
       switchMap((action: AddLibrary) =>
-        this.httpClient.post('http://localhost:8081/api/libraries', action.payload).pipe(
+        this.socketClient.post('/api/libraries', action.payload).pipe(
           map((library: Library) =>
             new AddLibrarySuccess(library) // , new LoadFilesSuccess(response.files))
           ),
@@ -92,7 +93,7 @@ export class AppEffects {
     this.actions$.pipe(
       ofType(LibrariesActionTypes.RemoveLibrary),
       switchMap((action: RemoveLibrary) =>
-        this.httpClient.delete('http://localhost:8081/api/libraries/' + encodeURIComponent(action.payload.name)).pipe(
+        this.socketClient.delete('/api/libraries/' + encodeURIComponent(action.payload.name)).pipe(
           map(() => new RemoveLibrarySuccess(action.payload)),
           catchError((error: HttpErrorResponse) => of(new RemoveLibraryError(error.error)))
         )
@@ -107,7 +108,7 @@ export class AppEffects {
     this.actions$.pipe(
       ofType(LibrariesActionTypes.ScanLibrary),
       switchMap((action: ScanLibrary) =>
-        this.httpClient.post('http://localhost:8081/api/libraries/' + encodeURIComponent(action.payload.name) + '/scan', null).pipe(
+        this.socketClient.post('/api/libraries/' + encodeURIComponent(action.payload.name) + '/scan', null).pipe(
           map((files: LibraryFile[]) => new ScanLibrarySuccess(files, action.payload)),
           catchError((error: HttpErrorResponse) => of(new ScanLibraryError(error.error, action.payload)))
         )
@@ -116,7 +117,7 @@ export class AppEffects {
 
   constructor(
     private actions$: Actions,
-    private httpClient: HttpClient,
+    private socketClient: HttpSocketClientService,
     private overlayContainer: OverlayContainer,
   ) {}
 
