@@ -1,17 +1,16 @@
 package net.creasource.webflix.routes
 
-import akka.http.scaladsl.model.headers.{ByteRange, Range, RangeUnits, `Accept-Ranges`, `Content-Range`}
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.headers.{ByteRange, Range, RangeUnits, `Accept-Ranges`, `Content-Range`}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.directives.RouteDirectives.complete
-import akka.http.scaladsl.server.directives.{ContentTypeResolver, FileAndResourceDirectives, RangeDirectives}
+import akka.http.scaladsl.server.directives.{FileAndResourceDirectives, RangeDirectives}
 import akka.pattern.ask
 import akka.stream.scaladsl.Sink
 import net.creasource.Application
 import net.creasource.exceptions.NotFoundException
 import net.creasource.webflix.actors.LibrarySupervisor.{GetFileById, GetLibrary}
-import net.creasource.webflix.actors.MediaTypesActor.GetContentTypeResolver
 import net.creasource.webflix.{Library, LibraryFile}
 
 import scala.collection.immutable.Seq
@@ -31,8 +30,8 @@ object VideosRoutes extends FileAndResourceDirectives {
           file <- (app.libraries ? GetFileById(id)).mapTo[LibraryFile]
           if !file.isDirectory
           library <- (app.libraries ? GetLibrary(file.libraryName)).mapTo[Library]
-          ctr <- (app.mediaTypesActor ? GetContentTypeResolver).mapTo[ContentTypeResolver]
         } yield {
+          val ctr = app.contentTypeResolver
           val path = library.resolvePath(file.path)
           library match {
             case _: Library.Local =>

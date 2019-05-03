@@ -1,13 +1,10 @@
 package net.creasource.webflix.routes
 
-import akka.http.scaladsl.model.MediaType.NotCompressible
-import akka.http.scaladsl.model.{MediaType, StatusCodes}
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit._
 import net.creasource.Application
 import net.creasource.json.JsonSupport
 import net.creasource.util.WithLibrary
-import net.creasource.webflix.actors.MediaTypesActor
-import net.creasource.webflix.actors.MediaTypesActor.AddMediaTypeError
 import net.creasource.webflix.{Library, LibraryFile}
 import org.scalatest.{Matchers, WordSpecLike}
 import spray.json._
@@ -107,43 +104,6 @@ class APIRoutesTest
       Get("/libraries") ~> route ~> check {
         status shouldEqual StatusCodes.OK
         responseAs[Seq[Library]] shouldEqual Seq.empty
-      }
-    }
-
-  }
-
-  "API routes (media-types)" should {
-
-    val route = APIRoutes.routes(application)
-
-    "return default media-types for GETs on /media-types" in {
-      Get("/media-types") ~> route ~> check {
-        status shouldEqual StatusCodes.OK
-        responseAs[Seq[MediaType.Binary]] shouldEqual Seq(MediaTypesActor.`video/x-mastroka`)
-      }
-    }
-
-    "return a custom media-type for POSTs on /media-types" in {
-      val custom = MediaType.video("x-custom", NotCompressible, "custom")
-      Post("/media-types", custom) ~> route ~> check {
-        status shouldEqual StatusCodes.OK
-        responseAs[MediaType.Binary] shouldEqual custom
-      }
-    }
-
-    "return a BadRequest for POSTs on /media-types for existing media-types" in {
-      val custom = MediaType.video("x-custom", NotCompressible, "custom")
-      Post("/media-types", custom) ~> route ~> check {
-        status shouldEqual StatusCodes.BadRequest
-        responseAs[AddMediaTypeError] shouldEqual AddMediaTypeError("contentType", "alreadyExists")
-      }
-    }
-
-    "return an empty OK response for DELETEs on /media-types" in {
-      val custom = MediaType.video("x-custom", NotCompressible, "custom")
-      Delete(s"/media-types/${custom.subType}") ~> route ~> check {
-        status shouldEqual StatusCodes.OK
-        responseAs[String] shouldEqual ""
       }
     }
 
