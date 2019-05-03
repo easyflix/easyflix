@@ -11,12 +11,13 @@ import {
 } from '@angular/core';
 import {PanelDirective} from '@app/shared/directives/panel.directive';
 import {FileListComponent} from './file-list.component';
-import {combineLatest, EMPTY, Subscription} from 'rxjs';
+import {asapScheduler, combineLatest, EMPTY, scheduled, Subscription} from 'rxjs';
 import {LibraryListComponent} from './library-list.component';
 import {LibraryFile} from '@app/models';
 import {ActivatedRoute, Router} from '@angular/router';
-import {map, mergeMap, take, tap} from 'rxjs/operators';
+import {mergeMap, take, tap} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
+import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 
 export interface AnimatableComponent {
   afterAnimation();
@@ -118,7 +119,8 @@ export class LibraryComponent implements OnInit, OnDestroy {
     private componentFactoryResolver: ComponentFactoryResolver,
     private router: Router,
     private activatedRoute: ActivatedRoute,
-    private files: FilesService
+    private files: FilesService,
+    private socketClient: HttpSocketClientService
   ) {
     this.folderFactory = this.componentFactoryResolver.resolveComponentFactory(FileListComponent);
     this.librariesFactory = this.componentFactoryResolver.resolveComponentFactory(LibraryListComponent);
@@ -144,12 +146,21 @@ export class LibraryComponent implements OnInit, OnDestroy {
         const param = route.get('path');
         if (param === null) { return EMPTY; }
         const foldersIds = param.split(':');
-        return combineLatest(foldersIds.map(id => this.files.getById(id))).pipe(
-          map((folds: LibraryFile[]) => folds.filter(f => !!f)),
-          tap(() => this.resetBreadcrumbs()),
-          tap(folders => folders.forEach(f => this.goTo(f, false, 0)))
-        );
+        return combineLatest(foldersIds.map(id =>
+          this.files.getById(id).pipe(
+            mergeMap(file => {
+              if (file !== undefined) {
+                return scheduled([file], asapScheduler);
+              } else {
+                return this.socketClient.get('/api/videos/' + id);
+              }
+            }),
+            take(1)
+          )
+        ));
       }),
+      tap(() => this.resetBreadcrumbs()),
+      tap((folders: LibraryFile[]) => folders.forEach(f => this.goTo(f, false, 0))),
     ).subscribe();
   }
 
@@ -169,6 +180,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
   }
 
   goTo(folder: LibraryFile, navigate: boolean = true, animationTime: number = this.DRAWER_ANIMATION_TIME) {
+    console.log('goto: ' + folder.path)
     if (this.animating) { return; }
     this.animating = true;
     const fromRef = this.components[this.components.length - 1];
