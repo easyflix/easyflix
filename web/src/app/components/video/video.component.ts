@@ -53,16 +53,16 @@ export class VideoComponent implements OnInit, OnDestroy {
 
     this.route.queryParamMap.pipe(
       take(1),
-      map(params => params.get('pp')),
-      filter(pp => pp !== null),
-      tap(pp => pp === '0' ? setTimeout(() => this.pause(), 0) : {})
+      map(params => params.get('play')),
+      filter(play => play !== null),
+      tap(play => play === '0' ? setTimeout(() => this.pause(), 0) : {})
     ).subscribe();
 
     this.route.queryParamMap.pipe(
       take(1),
-      map(params => params.get('pt')),
-      filter(pt => pt !== null),
-      tap(pt => this.seekTo(+pt))
+      map(params => params.get('time')),
+      filter(time => time !== null),
+      tap(time => this.seekTo(+time))
     ).subscribe();
 
     this.subscriptions.push(
@@ -70,11 +70,11 @@ export class VideoComponent implements OnInit, OnDestroy {
       this.video.getCurrentTime().pipe(
         throttleTime(1000),
         map(ct => Math.floor(ct)),
-        tap(ct => this.router.navigate([], { queryParams: { pt: ct }, queryParamsHandling: 'merge' }))
+        tap(ct => this.router.navigate([], { queryParams: { time: ct }, queryParamsHandling: 'merge' }))
       ).subscribe(),
 
       this.video.getPlaying().pipe(
-        tap(playing => this.router.navigate([], { queryParams: { pp: playing ? 1 : 0 }, queryParamsHandling: 'merge' }))
+        tap(playing => this.router.navigate([], { queryParams: { play: playing ? 1 : 0 }, queryParamsHandling: 'merge' }))
       ).subscribe()
 
     );
@@ -171,7 +171,7 @@ export class VideoComponent implements OnInit, OnDestroy {
     this.video.updateCurrentTime(0);
     this.router.navigate(
       [{ outlets: { player: null } }],
-      { queryParams: { pt: null, pp: null }, queryParamsHandling: 'merge' }
+      { queryParams: { time: null, play: null }, queryParamsHandling: 'merge' }
     ).then(() => {
       this.video.setSource(null);
     });

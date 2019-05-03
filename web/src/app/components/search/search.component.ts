@@ -55,7 +55,7 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
       })
     );
     this.navSubscription = this.searchSubject.asObservable().subscribe(() =>
-      this.router.navigate([], { queryParams: { s: this.search.trim() || null }, queryParamsHandling: 'merge', replaceUrl: true })
+      this.router.navigate([], { queryParams: { search: this.search.trim() || null }, queryParamsHandling: 'merge', replaceUrl: true })
     );
   }
 
@@ -63,8 +63,9 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
     this.activatedRoute.queryParamMap.pipe(
       take(1),
       tap(params => {
-        if (params.get('s') !== null) {
-          this.search = params.get('s');
+        const searchParam = params.get('search');
+        if (searchParam !== null) {
+          this.search = searchParam;
         }
       })
     ).subscribe();

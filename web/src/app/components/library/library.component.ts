@@ -141,7 +141,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
     this.routeSub = this.activatedRoute.queryParamMap.pipe(
       take(1),
       mergeMap(route => {
-        const param = route.get('l');
+        const param = route.get('path');
         if (param === null) { return EMPTY; }
         const foldersIds = param.split(':');
         return combineLatest(foldersIds.map(id => this.files.getById(id))).pipe(
@@ -165,7 +165,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
 
   navigate() {
     const id = this.breadcrumbsIds.length === 0 ? null : this.breadcrumbsIds.reduce((a, b) => `${a}:${b}`);
-    this.router.navigate([], { queryParams: { l: id }, queryParamsHandling: 'merge', replaceUrl: true });
+    this.router.navigate([], { queryParams: { path: id }, queryParamsHandling: 'merge', replaceUrl: true });
   }
 
   goTo(folder: LibraryFile, navigate: boolean = true, animationTime: number = this.DRAWER_ANIMATION_TIME) {
