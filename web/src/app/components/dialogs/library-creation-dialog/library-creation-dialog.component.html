@@ -59,7 +59,7 @@
         <div class="field-container">
           <mat-form-field floatLabel="auto" appearance="standard">
             <mat-label>Name</mat-label>
-            <input matInput formControlName="name" required>
+            <input matInput spellcheck="false" formControlName="name" required>
             <mat-hint>Display name of the library</mat-hint>
             <mat-error *ngIf="ftpFormGroup.controls.name.invalid">{{ getErrorMessage(ftpFormGroup.controls.name) }}</mat-error>
           </mat-form-field>
@@ -72,7 +72,7 @@
           </div>
           <mat-form-field floatLabel="auto" appearance="standard">
             <mat-label>Hostname</mat-label>
-            <input matInput formControlName="hostname" required>
+            <input matInput spellcheck="false" formControlName="hostname" required>
             <mat-hint>Hostname of the server</mat-hint>
             <mat-error *ngIf="ftpFormGroup.controls.hostname.invalid">{{ getErrorMessage(ftpFormGroup.controls.hostname) }}</mat-error>
           </mat-form-field>
@@ -84,19 +84,19 @@
           </mat-form-field>
           <mat-form-field floatLabel="auto" appearance="standard">
             <mat-label>Username</mat-label>
-            <input matInput formControlName="username" required>
+            <input matInput spellcheck="false" formControlName="username" required>
             <mat-hint>Your username</mat-hint>
             <mat-error *ngIf="ftpFormGroup.controls.username.invalid">{{ getErrorMessage(ftpFormGroup.controls.username) }}</mat-error>
           </mat-form-field>
           <mat-form-field floatLabel="auto" appearance="standard">
             <mat-label>Password</mat-label>
-            <input matInput formControlName=password required type="password">
+            <input matInput spellcheck="false" formControlName=password required type="password">
             <mat-hint>Your password</mat-hint>
             <mat-error *ngIf="ftpFormGroup.controls.password.invalid">{{ getErrorMessage(ftpFormGroup.controls.password) }}</mat-error>
           </mat-form-field>
           <mat-form-field floatLabel="auto" appearance="standard">
             <mat-label>Root folder</mat-label>
-            <input matInput formControlName="path">
+            <input matInput spellcheck="false" formControlName="path">
             <mat-hint>The folder to scan on the server, if different from /</mat-hint>
             <mat-error *ngIf="ftpFormGroup.controls.path.invalid">{{ getErrorMessage(ftpFormGroup.controls.path) }}</mat-error>
           </mat-form-field>
@@ -116,7 +116,7 @@
         <div class="field-container">
           <mat-form-field floatLabel="auto" appearance="standard">
             <mat-label>Name</mat-label>
-            <input matInput formControlName="name" required>
+            <input matInput spellcheck="false" formControlName="name" required>
             <mat-hint>Display name of the library</mat-hint>
             <mat-error *ngIf="s3FormGroup.controls.name.invalid">{{ getErrorMessage(s3FormGroup.controls.name) }}</mat-error>
           </mat-form-field>
@@ -128,25 +128,25 @@
           </mat-form-field>
           <mat-form-field floatLabel="auto" appearance="standard">
             <mat-label>Bucket</mat-label>
-            <input matInput formControlName="bucket" required>
+            <input matInput spellcheck="false" formControlName="bucket" required>
             <mat-hint>The bucket name</mat-hint>
             <mat-error *ngIf="s3FormGroup.controls.bucket.invalid">{{ getErrorMessage(s3FormGroup.controls.bucket) }}</mat-error>
           </mat-form-field>
           <mat-form-field floatLabel="auto" appearance="standard">
             <mat-label>Path</mat-label>
-            <input matInput formControlName="path">
+            <input matInput spellcheck="false" formControlName="path">
             <mat-hint>The bucket key prefix to use</mat-hint>
             <mat-error *ngIf="s3FormGroup.controls.path.invalid">{{ getErrorMessage(s3FormGroup.controls.path) }}</mat-error>
           </mat-form-field>
           <mat-form-field floatLabel="auto" appearance="standard">
             <mat-label>Access Id</mat-label>
-            <input matInput formControlName="accessId" required>
+            <input matInput spellcheck="false" formControlName="accessId" required>
             <mat-hint>Your access Id</mat-hint>
             <mat-error *ngIf="s3FormGroup.controls.accessId.invalid">{{ getErrorMessage(s3FormGroup.controls.accessId) }}</mat-error>
           </mat-form-field>
           <mat-form-field floatLabel="auto" appearance="standard">
             <mat-label>Access Secret</mat-label>
-            <input matInput formControlName="accessSecret" required type="password">
+            <input matInput spellcheck="false" formControlName="accessSecret" required type="password">
             <mat-hint>Your access secret</mat-hint>
             <mat-error *ngIf="s3FormGroup.controls.accessSecret.invalid">{{ getErrorMessage(s3FormGroup.controls.accessSecret) }}</mat-error>
           </mat-form-field>
