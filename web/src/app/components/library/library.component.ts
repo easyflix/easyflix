@@ -11,13 +11,12 @@ import {
 } from '@angular/core';
 import {PanelDirective} from '@app/shared/directives/panel.directive';
 import {FileListComponent} from './file-list.component';
-import {Subscription} from 'rxjs';
+import {combineLatest, EMPTY, Subscription} from 'rxjs';
 import {LibraryListComponent} from './library-list.component';
 import {LibraryFile} from '@app/models';
 import {ActivatedRoute, Router} from '@angular/router';
-import {mergeMap, take} from 'rxjs/operators';
+import {map, mergeMap, take, tap} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
-import {LibrariesService} from '@app/services/libraries.service';
 
 export interface AnimatableComponent {
   afterAnimation();
@@ -119,8 +118,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
     private componentFactoryResolver: ComponentFactoryResolver,
     private router: Router,
     private activatedRoute: ActivatedRoute,
-    private files: FilesService,
-    private libraries: LibrariesService
+    private files: FilesService
   ) {
     this.folderFactory = this.componentFactoryResolver.resolveComponentFactory(FileListComponent);
     this.librariesFactory = this.componentFactoryResolver.resolveComponentFactory(LibraryListComponent);
@@ -128,45 +126,41 @@ export class LibraryComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.librariesComponent = this.librariesFactory.create(this.panels.viewContainerRef.injector);
+
     this.librariesSub =
       this.librariesComponent.instance.openLibrary.pipe(
         mergeMap(library => this.files.getByPath(library.name).pipe(take(1)))
       ).subscribe((folder: LibraryFile) => this.goTo(folder));
+
     this.panels.viewContainerRef.insert(this.librariesComponent.hostView, 0);
+
     this.librariesComponent.instance.afterAnimation();
+
     this.components.push(this.librariesComponent);
 
-    /*this.routeSub = this.activatedRoute.queryParamMap.pipe(
+    this.routeSub = this.activatedRoute.queryParamMap.pipe(
       take(1),
       mergeMap(route => {
         const param = route.get('l');
         if (param === null) { return EMPTY; }
-        const [libraryName, ...foldersIds] = param.split(':');
-        return this.libraries.getByName(libraryName).pipe(
-          filter(l => l !== undefined),
-          mergeMap(library => {
-            if (foldersIds.length === 0) {
-              return of({library, folders: []});
-            }
-            return this.files.getByIds(foldersIds).pipe(
-              map((folds: LibraryFile[]) => {
-                const folders = folds.filter(f => !!f).sort((a, b) => a.path.localeCompare(b.path));
-                return ({ library, folders });
-              })
-            );
-          }),
-          tap(result => {
-            this.goTo(result.library, false, 0);
-            result.folders.forEach(f => this.goTo(f, false, 0));
-          })
+        const foldersIds = param.split(':');
+        return combineLatest(foldersIds.map(id => this.files.getById(id))).pipe(
+          map((folds: LibraryFile[]) => folds.filter(f => !!f)),
+          tap(() => this.resetBreadcrumbs()),
+          tap(folders => folders.forEach(f => this.goTo(f, false, 0)))
         );
       }),
-    ).subscribe();*/
+    ).subscribe();
   }
 
   ngOnDestroy() {
     this.librariesSub.unsubscribe();
-    // this.routeSub.unsubscribe();
+    this.routeSub.unsubscribe();
+  }
+
+  resetBreadcrumbs() {
+    this.breadcrumbsIds = [];
+    this.breadcrumbs = [];
   }
 
   navigate() {
@@ -184,7 +178,6 @@ export class LibraryComponent implements OnInit, OnDestroy {
     toRef.instance.next.subscribe(f => this.goTo(f));
     this.components.push(toRef);
     this.breadcrumbs.push(folder.path);
-    // this.currentFolderPath = folder.path;
     this.breadcrumbsIds.push(folder.id);
     if (navigate) { this.navigate(); }
     this.animate(fromRef, toRef, true, animationTime);
