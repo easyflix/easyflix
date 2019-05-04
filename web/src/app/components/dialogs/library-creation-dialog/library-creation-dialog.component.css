@@ -77,7 +77,7 @@ form.ftp .field-container {
 }
 
 form.ftp mat-form-field {
-  flex-basis: calc(50% - 1rem);
+  flex-basis: calc(50% - .5rem);
 }
 
 form.ftp mat-form-field:nth-child(2n+1) {

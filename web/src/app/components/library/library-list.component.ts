@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, ElementRef, EventEmitter, OnInit, ViewChild} from '@angular/core';
-import {Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {EMPTY, Observable} from 'rxjs';
+import {map, mergeMap} from 'rxjs/operators';
 import {Library} from '@app/models';
 import {AnimatableComponent} from '@app/components/library/library.component';
 import {LibrariesService} from '@app/services/libraries.service';
@@ -8,6 +8,7 @@ import {MatDialog, MatSnackBar} from '@angular/material';
 import {LibraryCreationDialogComponent} from '@app/components/dialogs/library-creation-dialog/library-creation-dialog.component';
 import {FilesService} from '@app/services/files.service';
 import {FTPLibrary, LocalLibrary, S3Library} from '@app/models/library';
+import {ConfirmDialogComponent} from '@app/components/dialogs/confirm-dialog.component';
 
 @Component({
   selector: 'app-libraries-view',
@@ -288,7 +289,22 @@ export class LibraryListComponent implements OnInit, AnimatableComponent {
   }
 
   removeLibrary(library: Library) {
-    this.libraries.remove(library).subscribe(); // TODO confirm dialog
+    const dialogRef =
+      this.dialog.open(
+        ConfirmDialogComponent,
+        { data: { title: 'Please confirm', message: 'Are you sure that you want to delete the library \'' + library.name + '\'?' } }
+      );
+
+    dialogRef.afterClosed().pipe(
+      mergeMap(confirmed => {
+        if (confirmed) {
+          return this.libraries.remove(library);
+        } else {
+          return EMPTY;
+        }
+      })
+    ).subscribe();
+
   }
 
   getSpace(library: LocalLibrary): number {

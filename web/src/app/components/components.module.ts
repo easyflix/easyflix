@@ -21,6 +21,7 @@ import {GlobalComponent} from './settings/global/global.component';
 import {LibrariesComponent} from './settings/libraries/libraries.component';
 import {LocalComponent} from '@app/components/settings/local/local.component';
 import {LibraryCreationDialogComponent} from '@app/components/dialogs/library-creation-dialog/library-creation-dialog.component';
+import {ConfirmDialogComponent} from '@app/components/dialogs/confirm-dialog.component';
 
 const COMPONENTS = [
   FileListComponent,
@@ -43,7 +44,8 @@ const COMPONENTS = [
   GlobalComponent,
   LocalComponent,
   LibrariesComponent,
-  LibraryCreationDialogComponent
+  LibraryCreationDialogComponent,
+  ConfirmDialogComponent
 ];
 
 @NgModule({
@@ -53,7 +55,8 @@ const COMPONENTS = [
   entryComponents: [
     LibraryListComponent,
     FileListComponent,
-    LibraryCreationDialogComponent
+    LibraryCreationDialogComponent,
+    ConfirmDialogComponent
   ]
 })
 export class ComponentsModule {}

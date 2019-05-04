@@ -180,7 +180,6 @@ export class LibraryComponent implements OnInit, OnDestroy {
   }
 
   goTo(folder: LibraryFile, navigate: boolean = true, animationTime: number = this.DRAWER_ANIMATION_TIME) {
-    console.log('goto: ' + folder.path)
     if (this.animating) { return; }
     this.animating = true;
     const fromRef = this.components[this.components.length - 1];
