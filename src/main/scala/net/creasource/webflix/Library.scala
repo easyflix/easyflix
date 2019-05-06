@@ -141,9 +141,9 @@ object Library extends JsonSupport {
       }).collect{ case option if option.isDefined => option.get }
     }
 
-    def fromPath(path: Path): Source[ByteString, Future[IOResult]] = conType match {
-      case Types.FTP => Ftp.fromPath(path.toString.replaceAll("""\\""", "/"), ftpSettings)
-      case Types.FTPS => Ftps.fromPath(path.toString.replaceAll("""\\""", "/"), ftpsSettings)
+    def fromPath(path: Path, offset: Long = 0L): Source[ByteString, Future[IOResult]] = conType match {
+      case Types.FTP => Ftp.fromPath(path.toString.replaceAll("""\\""", "/"), ftpSettings, 8192, offset)
+      case Types.FTPS => Ftps.fromPath(path.toString.replaceAll("""\\""", "/"), ftpsSettings, 8192, offset)
     }
 
     override def validate(): Try[Library] =

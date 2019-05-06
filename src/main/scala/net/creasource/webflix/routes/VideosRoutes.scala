@@ -40,13 +40,12 @@ object VideosRoutes extends FileAndResourceDirectives {
                 case _ => getFromFile(path.toFile)(ctr)
               }
             case lib: Library.FTP =>
-              val entity =
-                if (file.size > 0)
-                  HttpEntity.Default(ctr(path.getFileName.toString), file.size, lib.fromPath(path))
-                else
-                  HttpEntity.empty(ctr(path.getFileName.toString))
-              RangeDirectives.withRangeSupport {
-                complete(HttpResponse(StatusCodes.OK, entity = entity))
+              optionalHeaderValueByType[Range](()) {
+                case Some(Range(RangeUnits.Bytes, Seq(range))) => getFromFTPWithRange(file, lib, range)(ctr)
+                case _ =>
+                  RangeDirectives.withRangeSupport {
+                    complete(HttpEntity.Default(ctr(path.getFileName.toString), file.size, lib.fromPath(path)))
+                  }
               }
             case lib: Library.S3 =>
               optionalHeaderValueByType[Range](()) { rangeHeader =>

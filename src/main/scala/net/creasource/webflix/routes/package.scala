@@ -33,7 +33,7 @@ package object routes {
           entity = HttpEntity.Default(
             contentType = contentTypeResolver(file.getName),
             contentLength = idxRange.length,
-            data = FileIO.fromPath(file.toPath, 8192, idxRange.start).take(idxRange.length / 8192 + 1) // FIXME data length might be bigger thant contentLength
+            data = FileIO.fromPath(file.toPath, 8192, idxRange.start).take(idxRange.length / 8192 + 1) // FIXME data length might be bigger than contentLength
           )
         ).withHeaders(
           `Content-Range`(idxRange.contentRange(file.length)),
@@ -41,6 +41,24 @@ package object routes {
         )
         complete(response)
       } else reject
+    }
+  }
+
+  def getFromFTPWithRange(file: LibraryFile, ftpLib: Library.FTP, range: ByteRange)(implicit contentTypeResolver: ContentTypeResolver): Route = {
+    get {
+      val idxRange = indexRange(file.size, range)
+      val response = HttpResponse(
+        status = StatusCodes.PartialContent,
+        entity = HttpEntity.Default(
+          contentType = contentTypeResolver(file.name),
+          contentLength = idxRange.length,
+          data = ftpLib.fromPath(ftpLib.resolvePath(file.path), idxRange.start) // .take(idxRange.length / 8192 + 1)
+        )
+      ).withHeaders(
+        `Content-Range`(idxRange.contentRange(file.size)),
+        `Accept-Ranges`(RangeUnits.Bytes)
+      )
+      complete(response)
     }
   }
 
