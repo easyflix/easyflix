@@ -47,22 +47,12 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
 
   case class UpdateLibrary(library: Library.Local)
 
-//  app.bus.subscribe(self, classOf[ResolverUpdate])
-
   library match {
     case lib: Library.Local => app.system.scheduler.schedule(1.minutes, 1.minutes, self, UpdateLibrary(lib))
     case _ =>
   }
 
   def common(library: Library): Receive = {
-
-//    case ResolverUpdate(ctr) =>
-//      logger.info("Received a content type resolver update. Rescanning.")
-//      contentTypeResolver = ctr
-//      files.values.foreach {
-//        case LibraryFile(name, path, false, _, _, _) if !ctr(name).mediaType.isVideo => files -= path // TODO submit to event stream
-//      }
-//      self ! Scan
 
     case GetFiles => sender() ! files.values.toSeq
 
@@ -135,6 +125,7 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
       }
 
     case Scan =>
+      files = Map.empty
       val client = sender()
       library.scan()
         .via(killSwitch.flow)
