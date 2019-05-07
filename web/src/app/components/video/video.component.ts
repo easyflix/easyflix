@@ -70,11 +70,17 @@ export class VideoComponent implements OnInit, OnDestroy {
       this.video.getCurrentTime().pipe(
         throttleTime(1000),
         map(ct => Math.floor(ct)),
-        tap(ct => this.router.navigate([], { queryParams: { time: ct }, queryParamsHandling: 'merge' }))
+        tap(ct => this.router.navigate(
+          [],
+          { queryParams: { time: ct }, queryParamsHandling: 'merge', replaceUrl: true })
+        )
       ).subscribe(),
 
       this.video.getPlaying().pipe(
-        tap(playing => this.router.navigate([], { queryParams: { play: playing ? 1 : 0 }, queryParamsHandling: 'merge' }))
+        tap(playing => this.router.navigate(
+          [],
+          { queryParams: { play: playing ? 1 : 0 }, queryParamsHandling: 'merge', replaceUrl: true })
+        )
       ).subscribe()
 
     );
@@ -171,7 +177,7 @@ export class VideoComponent implements OnInit, OnDestroy {
     this.video.updateCurrentTime(0);
     this.router.navigate(
       [{ outlets: { player: null } }],
-      { queryParams: { time: null, play: null }, queryParamsHandling: 'merge' }
+      { queryParams: { time: null, play: null }, queryParamsHandling: 'merge', replaceUrl: true }
     ).then(() => {
       this.video.setSource(null);
     });
