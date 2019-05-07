@@ -8,6 +8,10 @@
   $foreground: map-get($theme, foreground);
   $background: map-get($theme, background);
 
+  mat-sidenav {
+    @include mat-elevation(2);
+  }
+
   app-sidenav {
     > nav {
       background-color: mat-color($background, app-bar);
@@ -66,6 +70,16 @@
     }
     input {
       @include cdk-text-field-autofill-color(transparent, mat-color($foreground, text))
+    }
+  }
+
+  app-video-list, app-video-grid {
+    .item {
+      background-color: mat-color($background, card);
+      @include mat-elevation(2);
+    }
+    .item:hover, .item:focus {
+      @include mat-elevation(8);
     }
   }
 

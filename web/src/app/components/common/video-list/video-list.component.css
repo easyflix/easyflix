@@ -16,8 +16,6 @@ section {
   box-sizing: border-box;
   transition-property: transform;
   transition: 300ms ease;
-  background-color: #424242;
-  box-shadow: 2px 2px 0 rgba(0,0,0,0.2)
 }
 
 .item:last-of-type {
@@ -31,8 +29,6 @@ section {
 .item:hover, .item:focus {
   transform: scale(1.3);
   z-index: 1;
-  /*box-shadow: 0 0 5px rgba(0,0,0,0.75);*/
-  /*border: 1px solid rgba(0,0,0,0.75);*/
 }
 
 .button {
