@@ -13,7 +13,6 @@ import {VideoDetailedListComponent} from './components/common/video-detailed-lis
 import {VideoResolverService} from '@app/guards/video-resolver.service';
 import {LibrariesLoadedGuard} from '@app/guards/libraries-loaded.guard';
 import {GlobalComponent} from '@app/components/settings/global/global.component';
-import {LibrariesComponent} from '@app/components/settings/libraries/libraries.component';
 import {LocalComponent} from '@app/components/settings/local/local.component';
 
 const navOutletName = 'nav';
@@ -63,12 +62,8 @@ export const routes: Routes = [
         component: LocalComponent
       },
       {
-        path: 'global',
+        path: 'server',
         component: GlobalComponent
-      },
-      {
-        path: 'libraries',
-        component: LibrariesComponent
       }
     ]
   },

@@ -18,7 +18,6 @@ import {VideoListComponent} from './common/video-list/video-list.component';
 import {VideoGridComponent} from './common/video-grid/video-grid.component';
 import {VideoDetailedListComponent} from './common/video-detailed-list/video-detailed-list.component';
 import {GlobalComponent} from './settings/global/global.component';
-import {LibrariesComponent} from './settings/libraries/libraries.component';
 import {LocalComponent} from '@app/components/settings/local/local.component';
 import {LibraryCreationDialogComponent} from '@app/components/dialogs/library-creation-dialog/library-creation-dialog.component';
 import {ConfirmDialogComponent} from '@app/components/dialogs/confirm-dialog.component';
@@ -43,7 +42,6 @@ const COMPONENTS = [
   VideoDetailedListComponent,
   GlobalComponent,
   LocalComponent,
-  LibrariesComponent,
   LibraryCreationDialogComponent,
   ConfirmDialogComponent
 ];
