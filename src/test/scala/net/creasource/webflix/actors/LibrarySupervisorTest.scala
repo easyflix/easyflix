@@ -17,7 +17,9 @@ class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
 
       supervisor ! LibrarySupervisor.AddLibrary(Library.Local("name", libraryPath))
 
-      expectMsg(Library.Local("name", libraryPath))
+      expectMsgPF() {
+        case Library.Local("name", `libraryPath`, _, _, _) =>
+      }
 
     }
 
@@ -33,7 +35,11 @@ class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
 
       supervisor ! LibrarySupervisor.GetLibraries
 
-      expectMsg(Seq(Library.Local("name", libraryPath)))
+      val libs: Seq[Library] = expectMsgType[Seq[Library]]
+
+      libs.head.name should be ("name")
+      libs.head.path should be (libraryPath)
+      libs.length should be (1)
 
     }
 
@@ -41,7 +47,7 @@ class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
 
       supervisor ! LibrarySupervisor.GetLibrary("name")
 
-      expectMsg(Library.Local("name", libraryPath))
+      expectMsgType[Library.Local]
 
       supervisor ! LibrarySupervisor.GetLibrary("badName")
 
@@ -121,7 +127,7 @@ class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
 
       supervisor ! LibrarySupervisor.AddLibrary(lib)
 
-      expectMsg(lib)
+      expectMsgType[Library.Local]
 
     }
 

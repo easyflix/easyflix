@@ -30,21 +30,21 @@ class APIRoutesTest
     val lib = Library.Local("name", libraryPath)
 
     "return an empty array for GETs on /libraries" in {
-      Get("/libraries") ~> route ~> check {
+      Get("/api/libraries") ~> route ~> check {
         status shouldEqual StatusCodes.OK
         responseAs[Seq[Library]] shouldEqual Seq.empty
       }
     }
 
     "return a library for POSTs on /libraries" in {
-      Post("/libraries", lib.toJson) ~> route ~> check {
+      Post("/api/libraries", lib.toJson) ~> route ~> check {
         status shouldEqual StatusCodes.OK
         responseAs[Library] shouldEqual lib
       }
     }
 
     "return a BadRequest for consecutive POSTs on /libraries" in {
-      Post("/libraries", lib.toJson) ~> route ~> check {
+      Post("/api/libraries", lib.toJson) ~> route ~> check {
         status shouldEqual StatusCodes.BadRequest
         responseAs[JsValue] shouldEqual JsObject(
           "control" -> "name".toJson,
@@ -55,45 +55,44 @@ class APIRoutesTest
     }
 
     "return created libraries for GETs on /libraries" in {
-      Get("/libraries") ~> route ~> check {
+      Get("/api/libraries") ~> route ~> check {
         status shouldEqual StatusCodes.OK
         responseAs[Seq[Library]] shouldEqual Seq(lib)
       }
     }
 
     "return an object for GETs on /library/{name}" in {
-      Get(s"/libraries/${lib.name}") ~> route ~> check {
+      Get(s"/api/libraries/${lib.name}") ~> route ~> check {
         status shouldEqual StatusCodes.OK
-        responseAs[JsObject] shouldEqual JsObject(
-          "library" -> lib.toJson,
-          "files" -> JsArray()
-        )
+        val obj = responseAs[JsObject]
+        obj.fields("files") should be (JsArray())
+        obj.fields("library").asJsObject.fields("name").convertTo[String] should be (lib.name)
       }
     }
 
     "return a 404 for GETs on /library/unknown" in {
-      Get(s"/libraries/unknown") ~> route ~> check {
+      Get(s"/api/libraries/unknown") ~> route ~> check {
         status shouldEqual StatusCodes.NotFound
         responseAs[JsValue] shouldEqual JsString("No library with that name")
       }
     }
 
     "return files for POSTs on /library/{name}/scan" in {
-      Post(s"/libraries/${lib.name}/scan") ~> route ~> check {
+      Post(s"/api/libraries/${lib.name}/scan") ~> route ~> check {
         status shouldEqual StatusCodes.OK
         responseAs[Seq[LibraryFile]].length shouldEqual libraryFiles.length + 1
       }
     }
 
     "return a 404 for POSTs on /library/unknown/scan" in {
-      Post(s"/libraries/unknown/scan") ~> route ~> check {
+      Post(s"/api/libraries/unknown/scan") ~> route ~> check {
         status shouldEqual StatusCodes.NotFound
         responseAs[JsValue] shouldEqual JsString("No library with that name")
       }
     }
 
     "return an Accepted status for DELETEs on /library/{name}" in {
-      Delete(s"/libraries/${lib.name}") ~> route ~> check {
+      Delete(s"/api/libraries/${lib.name}") ~> route ~> check {
         status shouldEqual StatusCodes.Accepted
         responseAs[String] shouldEqual ""
       }
@@ -101,7 +100,7 @@ class APIRoutesTest
 
     "return an empty array for GETs on /libraries (2)" in {
       Thread.sleep(100) // Remove this test ?
-      Get("/libraries") ~> route ~> check {
+      Get("/api/libraries") ~> route ~> check {
         status shouldEqual StatusCodes.OK
         responseAs[Seq[Library]] shouldEqual Seq.empty
       }
