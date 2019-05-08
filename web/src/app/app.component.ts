@@ -10,6 +10,7 @@ import {map, mergeMap} from 'rxjs/operators';
 import {LibrariesService} from '@app/services/libraries.service';
 import {ThemesUtils} from '@app/utils/themes.utils';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
+import {MoviesService} from '@app/services/movies.service';
 
 @Component({
   selector: 'app-root',
@@ -32,6 +33,7 @@ export class AppComponent implements OnInit {
     private core: CoreService,
     private files: FilesService,
     private libraries: LibrariesService,
+    private movies: MoviesService,
     private socketClient: HttpSocketClientService
   ) { }
 
@@ -56,6 +58,9 @@ export class AppComponent implements OnInit {
       error => console.log(error),
       () => {}
     );
+
+    this.movies.load().subscribe();
+
     this.core.changeTheme(ThemesUtils.allThemes[0]);
 
     /**

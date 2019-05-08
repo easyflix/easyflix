@@ -23,6 +23,7 @@ import {VideoResolverService} from '@app/guards/video-resolver.service';
 import {LibrariesLoadedGuard} from '@app/guards/libraries-loaded.guard';
 import {LibrariesService} from '@app/services/libraries.service';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
+import {MoviesService} from "@app/services/movies.service";
 
 @NgModule({
   declarations: [
@@ -50,6 +51,7 @@ import {HttpSocketClientService} from '@app/services/http-socket-client.service'
     VideoService,
     FilesService,
     LibrariesService,
+    MoviesService,
     VideoGuard,
     // FilesLoadedGuard,
     LibrariesLoadedGuard,

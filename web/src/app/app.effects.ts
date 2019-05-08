@@ -1,12 +1,12 @@
 import {Injectable} from '@angular/core';
-import {HttpClient, HttpErrorResponse} from '@angular/common/http';
+import {HttpErrorResponse} from '@angular/common/http';
 import {Action} from '@ngrx/store';
 import {Actions, Effect, ofType} from '@ngrx/effects';
-import {Observable, of} from 'rxjs';
+import {asapScheduler, Observable, of, scheduled} from 'rxjs';
 import {catchError, map, switchMap, tap} from 'rxjs/operators';
 
 import {FilesActionTypes, LoadFiles, LoadFilesError, LoadFilesSuccess} from '@app/actions/files.actions';
-import {LibraryFile, Library, MediaType} from '@app/models';
+import {Library, LibraryFile, Movie} from '@app/models';
 import {
   AddLibrary,
   AddLibraryError,
@@ -16,11 +16,15 @@ import {
   LoadLibrariesSuccess,
   RemoveLibrary,
   RemoveLibraryError,
-  RemoveLibrarySuccess, ScanLibrary, ScanLibraryError, ScanLibrarySuccess
+  RemoveLibrarySuccess,
+  ScanLibrary,
+  ScanLibraryError,
+  ScanLibrarySuccess
 } from '@app/actions/libraries.actions';
 import {ChangeTheme, CoreActionTypes} from '@app/actions/core.actions';
 import {OverlayContainer} from '@angular/cdk/overlay';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
+import {LoadMovies, LoadMoviesError, LoadMoviesSuccess, MoviesActionTypes} from "@app/actions/movies.actions";
 
 @Injectable()
 export class AppEffects {
@@ -49,6 +53,21 @@ export class AppEffects {
         this.socketClient.get('/api/libraries/' + encodeURIComponent(action.payload.name)).pipe(
           map((result: { library: Library, files: LibraryFile[] }) => new LoadFilesSuccess(result.files)),
           catchError((error: HttpErrorResponse) => of(new LoadFilesError(error.message)))
+        )
+      )
+    );
+
+  /**
+   * Load movies
+   */
+  @Effect()
+  loadMovies$: Observable<Action> =
+    this.actions$.pipe(
+      ofType(MoviesActionTypes.LoadMovies),
+      switchMap(() =>
+        this.socketClient.get('/api/movies').pipe(
+          map((movies: Movie[]) => new LoadMoviesSuccess(movies)),
+          catchError((error: HttpErrorResponse) => scheduled([new LoadMoviesError(error.message)], asapScheduler))
         )
       )
     );

@@ -5,16 +5,16 @@ import akka.actor.{Actor, PoisonPill, Props}
 import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes}
+import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
-import akka.stream.{KillSwitches, OverflowStrategy}
 import akka.util.ByteString
 import net.creasource.Application
 import net.creasource.tmdb.SearchMovies
 import net.creasource.webflix.events.{FileAdded, MovieAdded}
 import net.creasource.webflix.{LibraryFile, Movie}
 
+import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
 import scala.util.{Success, Try}
 
 object TMDBActor {
@@ -73,9 +73,8 @@ class TMDBActor()(implicit application: Application) extends Actor {
       .to(Sink.actorRef(self, Done))
   }
 
-  val ((searchActor, ks), connectionPool) =
+  val (searchActor, connectionPool) =
     Source.actorRef(10000, OverflowStrategy.dropNew)
-      .viaMat(KillSwitches.single)(Keep.both)
       .toMat(searchSink)(Keep.both)
       .run()
 
@@ -83,18 +82,14 @@ class TMDBActor()(implicit application: Application) extends Actor {
 
   def behavior(movies: Seq[Movie]): Receive = {
 
-    case FileAdded(file) =>
-      if (!file.isDirectory) {
-        logger.info("New file received: " + file.name)
-        searchActor ! file
-      }
+    case FileAdded(file) => searchActor ! file
 
     case GetMovies => sender() ! movies
 
-    case (search: SearchMovies, _: MovieMetadata) =>
+    case (search: SearchMovies, metadata: MovieMetadata) =>
       if (search.total_results > 0) {
         val head = search.results.head
-        val movie = Movie(head.title, head.poster_path, head.backdrop_path, head.overview)
+        val movie = Movie(head.title, head.poster_path, head.backdrop_path, head.overview, metadata.file.path)
         application.bus.publish(MovieAdded(movie))
         context become behavior(movies :+ movie)
       }
@@ -148,8 +143,7 @@ class TMDBActor()(implicit application: Application) extends Actor {
 
   override def postStop(): Unit = {
     searchActor ! PoisonPill
-    ks.shutdown()
-    Await.result(connectionPool.shutdown(), 10.seconds)
+    connectionPool.shutdown()
   }
 
 }
