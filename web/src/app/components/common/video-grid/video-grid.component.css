@@ -5,13 +5,14 @@ section {
 }
 
 .item {
-  height: 210px;
-  min-width: 170px;
+  height: 255px; /* 450 */
+  min-width: 170px; /* 300 */
   margin-right: 32px;
   margin-bottom: 75px;
   box-sizing: border-box;
   transition-property: transform;
   transition: 300ms ease;
+  background-size: cover;
 }
 
 .item:hover, .item:focus {
