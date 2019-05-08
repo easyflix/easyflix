@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.{ContentType, MediaType}
 import akka.http.scaladsl.server.directives.ContentTypeResolver
 import akka.stream.ActorMaterializer
 import com.typesafe.config.{Config, ConfigFactory}
-import net.creasource.webflix.actors.LibrarySupervisor
+import net.creasource.webflix.actors.{LibrarySupervisor, TMDBActor}
 import net.creasource.webflix.events.ApplicationBus
 
 import scala.concurrent.Await
@@ -31,6 +31,7 @@ class Application {
 
   val bus: ApplicationBus = new ApplicationBus
   val libraries: ActorRef = system.actorOf(LibrarySupervisor.props()(this), "libraries")
+  val tmdb: ActorRef = system.actorOf(TMDBActor.props()(this), "tmdb")
 
   private val `video/x-mastroka`: MediaType.Binary = MediaType.video("x-mastroka", NotCompressible, "mkv")
 

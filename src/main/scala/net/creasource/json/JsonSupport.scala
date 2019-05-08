@@ -49,7 +49,7 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
 
   //implicit def immSeqWriter[T: JsonWriter]: RootJsonWriter[Seq[T]] = (obj: Seq[T]) => JsArray(obj.map(_.toJson).toVector)
 
-  implicit val mediaTypeWriter: RootJsonWriter[MediaType.Binary] = mediaType => JsObject(
+/*  implicit val mediaTypeWriter: RootJsonWriter[MediaType.Binary] = mediaType => JsObject(
     "subType" -> mediaType.subType.toJson,
     "extensions" -> mediaType.fileExtensions.toJson
   )
@@ -61,7 +61,7 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
     MediaType.video(subType, NotCompressible, extensions: _*)
   }
 
-  implicit val mediaTypeFormat: RootJsonFormat[MediaType.Binary] = rootJsonFormat(mediaTypeReader, mediaTypeWriter)
+  implicit val mediaTypeFormat: RootJsonFormat[MediaType.Binary] = rootJsonFormat(mediaTypeReader, mediaTypeWriter)*/
 
   implicit val pathReader: RootJsonReader[Path] = {
     case JsString(path) => Paths.get(path)
