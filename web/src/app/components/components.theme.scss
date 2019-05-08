@@ -39,7 +39,7 @@
   app-main {
     a {
       color: mat-color($foreground, text);
-      border-color: mat-color($foreground, divider) !important;
+      border-color: mat-color($foreground, disabled) !important;
     }
   }
 
