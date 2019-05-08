@@ -55,6 +55,11 @@ export const getTheme = createSelector(
   fromCore.getTheme
 );
 
+export const getConfig = createSelector(
+  getCoreState,
+  fromCore.getConfig
+);
+
 export const getVideoSource = createSelector(
   getVideoState,
   fromVideo.getVideoSource

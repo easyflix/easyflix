@@ -8,6 +8,7 @@ import akka.pattern.ask
 import net.creasource.Application
 import net.creasource.exceptions.{NotFoundException, ValidationException}
 import net.creasource.json.JsonSupport
+import net.creasource.tmdb.Configuration
 import net.creasource.webflix.LibraryFile.Id
 import net.creasource.webflix.actors.LibrarySupervisor._
 import net.creasource.webflix.actors.TMDBActor
@@ -113,6 +114,11 @@ object APIRoutes extends Directives with JsonSupport {
         pathPrefix("movies") {
           get {
             onSuccess((app.tmdb ? TMDBActor.GetMovies).mapTo[Seq[Movie]])(complete(_))
+          }
+        },
+        pathPrefix("config") {
+          get {
+            onSuccess((app.tmdb ? TMDBActor.GetConfig).mapTo[Configuration])(r => complete(r.images))
           }
         }
       )

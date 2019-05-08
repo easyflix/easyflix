@@ -21,10 +21,11 @@ import {
   ScanLibraryError,
   ScanLibrarySuccess
 } from '@app/actions/libraries.actions';
-import {ChangeTheme, CoreActionTypes} from '@app/actions/core.actions';
+import {ChangeTheme, CoreActionTypes, LoadConfigError, LoadConfigSuccess} from '@app/actions/core.actions';
 import {OverlayContainer} from '@angular/cdk/overlay';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
-import {LoadMovies, LoadMoviesError, LoadMoviesSuccess, MoviesActionTypes} from "@app/actions/movies.actions";
+import {LoadMoviesError, LoadMoviesSuccess, MoviesActionTypes} from '@app/actions/movies.actions';
+import {ImagesConfig} from '@app/models/images-config';
 
 @Injectable()
 export class AppEffects {
@@ -130,6 +131,21 @@ export class AppEffects {
         this.socketClient.post('/api/libraries/' + encodeURIComponent(action.payload.name) + '/scan', null).pipe(
           map((files: LibraryFile[]) => new ScanLibrarySuccess(files, action.payload)),
           catchError((error: HttpErrorResponse) => of(new ScanLibraryError(error.error, action.payload)))
+        )
+      )
+    );
+
+  /**
+   * Load Config
+   */
+  @Effect()
+  loadConfig$: Observable<Action> =
+    this.actions$.pipe(
+      ofType(CoreActionTypes.LoadConfig),
+      switchMap(() =>
+        this.socketClient.get('/api/config/').pipe(
+          map((config: ImagesConfig) => new LoadConfigSuccess(config)),
+          catchError((error: HttpErrorResponse) => scheduled([new LoadConfigError(error.error)], asapScheduler))
         )
       )
     );

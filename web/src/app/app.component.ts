@@ -59,14 +59,16 @@ export class AppComponent implements OnInit {
       () => {}
     );
 
-    this.movies.load().subscribe();
-
-    this.core.changeTheme(ThemesUtils.allThemes[0]);
-
     /**
      * Socket
      */
     this.socketClient.getSocket().subscribe();
+
+    this.movies.load().subscribe();
+
+    this.core.loadConfig().subscribe();
+
+    this.core.changeTheme(ThemesUtils.allThemes[0]);
   }
 
   openSidenav() {

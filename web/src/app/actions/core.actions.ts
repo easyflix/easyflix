@@ -1,6 +1,7 @@
 import {Action} from '@ngrx/store';
 import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
 import {Theme} from '@app/utils/themes.utils';
+import {ImagesConfig} from '@app/models/images-config';
 
 export enum CoreActionTypes {
   OpenSidenav = 'core/sidenav/open',
@@ -9,6 +10,9 @@ export enum CoreActionTypes {
   SetSidenavMode = 'core/sidenav/mode',
   SetSidenavSize = 'core/sidenav/size',
   ChangeTheme = 'core/theme',
+  LoadConfig = 'core/config/load',
+  LoadConfigSuccess = 'core/config/load/success',
+  LoadConfigError = 'core/config/load/error'
 }
 
 export class OpenSidenav implements Action {
@@ -38,10 +42,27 @@ export class ChangeTheme implements Action {
   constructor(public payload: Theme) {}
 }
 
+export class LoadConfig implements Action {
+  readonly type = CoreActionTypes.LoadConfig;
+}
+
+export class LoadConfigSuccess implements Action {
+  readonly type = CoreActionTypes.LoadConfigSuccess;
+  constructor(public payload: ImagesConfig) {}
+}
+
+export class LoadConfigError implements Action {
+  readonly type = CoreActionTypes.LoadConfigError;
+  constructor(public payload: string) {}
+}
+
 export type CoreActionsUnion =
   OpenSidenav |
   CloseSidenav |
   ToggleSidenav |
   SetSidenavMode |
   SetSidenavSize |
-  ChangeTheme;
+  ChangeTheme |
+  LoadConfig |
+  LoadConfigSuccess |
+  LoadConfigError;
