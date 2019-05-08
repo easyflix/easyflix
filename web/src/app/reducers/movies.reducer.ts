@@ -26,6 +26,10 @@ export function reducer(
       return adapter.upsertMany(action.payload, state);
     }
 
+    case MoviesActionTypes.AddMovies: {
+      return adapter.upsertMany(action.payload, state);
+    }
+
     default: return state;
   }
 }

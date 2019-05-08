@@ -7,7 +7,8 @@ import {State, getAllMovies, getMovieByPath} from '@app/reducers';
 import {Actions} from '@ngrx/effects';
 import {ServiceHelper} from './service-helper';
 import {HttpSocketClientService} from './http-socket-client.service';
-import {LoadMovies, MoviesActionTypes} from '@app/actions/movies.actions';
+import {AddMovies, LoadMovies, MoviesActionTypes} from '@app/actions/movies.actions';
+import {bufferTime, filter, map, tap} from 'rxjs/operators';
 
 @Injectable()
 export class MoviesService extends ServiceHelper {
@@ -18,14 +19,14 @@ export class MoviesService extends ServiceHelper {
   ) {
     super(store, actions$);
 
-    /*this.socketClient.getSocket().pipe(
-      filter(message => message.method === 'FileAdded'),
+    this.socketClient.getSocket().pipe(
+      filter(message => message.method === 'MovieAdded'),
       map(message => message.entity),
       bufferTime(100, null, 15),
-      filter(files => files.length > 0),
-      tap(files => console.log(files)),
-      tap((files: LibraryFile[]) => this.store.dispatch(new AddFiles(files)))
-    ).subscribe();*/
+      filter(movies => movies.length > 0),
+      tap(movies => console.log(movies)),
+      tap((movies: Movie[]) => this.store.dispatch(new AddMovies(movies)))
+    ).subscribe();
   }
 
   getAll(): Observable<Movie[]> {

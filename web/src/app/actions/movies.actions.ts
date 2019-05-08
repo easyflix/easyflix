@@ -2,9 +2,15 @@ import {Action} from '@ngrx/store';
 import {Movie} from '@app/models';
 
 export enum MoviesActionTypes {
+  AddMovies = 'movies/add',
   LoadMovies = 'movies/load',
   LoadMoviesSuccess = 'movies/load/success',
   LoadMoviesError = 'movies/load/error',
+}
+
+export class AddMovies implements Action {
+  readonly type = MoviesActionTypes.AddMovies;
+  constructor(public payload: Movie[]) {}
 }
 
 export class LoadMovies implements Action {
@@ -22,6 +28,7 @@ export class LoadMoviesError implements Action {
 }
 
 export type MoviesActionsUnion =
+  AddMovies |
   LoadMovies |
   LoadMoviesSuccess |
   LoadMoviesError;
