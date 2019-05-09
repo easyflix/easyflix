@@ -15,7 +15,7 @@ import {MoviesComponent} from './movies/movies.component';
 import {ShowsComponent} from './shows/shows.component';
 import {MainComponent} from './main.component';
 import {VideoListComponent} from './common/video-list/video-list.component';
-import {VideoGridComponent} from './common/video-grid/video-grid.component';
+import {MoviesGridComponent} from './movies/movies-grid.component';
 import {VideoDetailedListComponent} from './common/video-detailed-list/video-detailed-list.component';
 import {GlobalComponent} from './settings/global/global.component';
 import {LocalComponent} from '@app/components/settings/local/local.component';
@@ -38,7 +38,7 @@ const COMPONENTS = [
   ShowsComponent,
   MainComponent,
   VideoListComponent,
-  VideoGridComponent,
+  MoviesGridComponent,
   VideoDetailedListComponent,
   GlobalComponent,
   LocalComponent,

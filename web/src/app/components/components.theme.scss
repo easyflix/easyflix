@@ -73,7 +73,7 @@
     }
   }
 
-  app-video-list, app-video-grid {
+  app-video-list, app-movies-grid {
     .item {
       background-color: mat-color($background, card);
       @include mat-elevation(2);

@@ -8,7 +8,7 @@ import {AboutComponent} from './components/about/about.component';
 import {VideoComponent} from './components/video/video.component';
 import {MoviesComponent} from './components/movies/movies.component';
 import {ShowsComponent} from './components/shows/shows.component';
-import {VideoGridComponent} from './components/common/video-grid/video-grid.component';
+import {MoviesGridComponent} from './components/movies/movies-grid.component';
 import {VideoDetailedListComponent} from './components/common/video-detailed-list/video-detailed-list.component';
 import {VideoResolverService} from '@app/guards/video-resolver.service';
 import {LibrariesLoadedGuard} from '@app/guards/libraries-loaded.guard';
@@ -26,7 +26,7 @@ export const routes: Routes = [
     component: MoviesComponent,
     data: { animation: 'movies' },
     children: [
-      { path: '', component: VideoGridComponent, data: { animation: 'grid' } },
+      { path: '', component: MoviesGridComponent, data: { animation: 'grid' } },
       { path: 'list', component: VideoDetailedListComponent, data: { animation: 'list' } }
     ],
   },

@@ -8,12 +8,39 @@ import {filter, take} from 'rxjs/operators';
 import {ImagesConfig} from '@app/models/images-config';
 
 @Component({
-  selector: 'app-video-grid',
-  templateUrl: './video-grid.component.html',
-  styleUrls: ['./video-grid.component.css'],
+  selector: 'app-movies-grid',
+  template: `
+    <section>
+      <div class="item"
+           tabindex="0"
+           *ngFor="let movie of movies$ | async"
+           [style]="getStyle(movie)">
+      </div>
+    </section>
+  `,
+  styles: [`
+    section {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+    .item {
+      height: 255px; /* 450 */
+      min-width: 170px; /* 300 */
+      margin-right: 32px;
+      margin-bottom: 75px;
+      box-sizing: border-box;
+      transition: transform 300ms ease;
+      background-size: cover;
+    }
+    .item:hover, .item:focus {
+      transform: scale(1.3);
+      z-index: 1;
+    }
+  `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VideoGridComponent implements OnInit {
+export class MoviesGridComponent implements OnInit {
 
   movies$: Observable<Movie[]>;
   config: ImagesConfig;
