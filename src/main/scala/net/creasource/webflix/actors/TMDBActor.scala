@@ -1,16 +1,16 @@
 package net.creasource.webflix.actors
 
-import akka.Done
-import akka.actor.{Actor, PoisonPill, Props, Stash}
+import akka.actor.{Actor, ActorRef, PoisonPill, Props, Stash, Terminated}
 import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.util.ByteString
+import akka.{Done, NotUsed}
 import net.creasource.Application
-import net.creasource.tmdb.{Configuration, SearchMovies}
-import net.creasource.webflix.events.{FileAdded, MovieAdded}
+import net.creasource.tmdb.{Configuration, MovieDetails, SearchMovies}
+import net.creasource.webflix.events.{FileAdded, MovieAdded, MovieDetailsAdded}
 import net.creasource.webflix.{LibraryFile, Movie}
 import spray.json._
 
@@ -23,6 +23,7 @@ object TMDBActor {
   case object GetConfig
   case object GetMovies
   case object GetTVShows
+  case class GetMovieDetails(id: Int)
 
   def props()(implicit application: Application): Props = Props(new TMDBActor)
 
@@ -37,11 +38,14 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
   val logger = Logging(context.system, this)
 
   sealed trait Context
+  case class MovieId(id: Int) extends Context
   case class MovieMetadata(name: String, year: Int, rest: String, file: LibraryFile) extends Context
   case class ShowMetadata(name: String, episode: String, rest: String, file: LibraryFile) extends Context
   case object ConfigurationContext extends Context
 
   private val api_key = application.config.getString("tmdb.api-key")
+
+  var requests: Map[ActorRef, Int] = Map.empty
 
   application.bus.subscribe(self, classOf[FileAdded])
 
@@ -50,7 +54,8 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
       (Try[HttpResponse], Context),
       Http.HostConnectionPool
   ] =
-    Http().cachedHostConnectionPoolHttps[Context]("api.themoviedb.org")
+    Flow[(HttpRequest, Context)].throttle(40, 11.seconds)
+      .viaMat(Http().cachedHostConnectionPoolHttps[Context]("api.themoviedb.org"))(Keep.right)
 
   val searchSink: Sink[LibraryFile, Http.HostConnectionPool] = {
     Flow[LibraryFile]
@@ -63,23 +68,39 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
       .collect { case Some(meta) => meta } // Metadata
       .map(createRequest) // Option[(HttpRequest, Metadata)]
       .collect { case Some(req) => req } // (HttpRequest, Metadata)
-      .via(Flow[(HttpRequest, Context)].throttle(40, 11.seconds)) // Throttle
       .viaMat(poolClientFlow)(Keep.right) // (Try[HttpResponse], Metadata) + mat
       /*.alsoTo(Sink.foreach{ // TODO do something when response is a failure
         case (Success(value), file) =>
         case (Failure(e), file) =>
       })*/
       .collect { case (Success(value), file) => (value, file) } // (HttpResponse, Metadata)
-      .mapAsync(4)(parseResponse.tupled) // (Option[SearchMovies], Metadata)
+      .mapAsync(4)(parseSearchResponse.tupled) // (Option[SearchMovies], Metadata)
       .collect { case (Some(searchMovies), metadata) => (searchMovies, metadata) } // (SearchMovies, Metadata)
       .to(Sink.actorRef(self, Done))
   }
+
+  val movieDetailsSink: Sink[Movie, NotUsed] =
+    Flow[Movie]
+      .map(_.id)
+      .map(id => HttpRequest(uri = MovieDetails.get(id, api_key)) -> MovieId(id))
+      .via(poolClientFlow)
+      .collect { case (Success(value), file) => (value, file) }
+      .mapAsync(4)(parseMovieDetailsResponse.tupled)
+      .collect { case Some(movieDetails) => movieDetails }
+      .to(Sink.actorRef(self, Done))
 
   val (searchActor, connectionPool) =
     Source.actorRef(10000, OverflowStrategy.dropNew)
       .toMat(searchSink)(Keep.both)
       .run()
 
+  val movieDetailsActor: ActorRef = Source.actorRef(10000, OverflowStrategy.dropNew)
+      .toMat(movieDetailsSink)(Keep.left)
+      .run()
+
+  /**
+    * Load configuration
+    */
   Source.single((HttpRequest(uri = Configuration.get(api_key)), ConfigurationContext))
     .via(poolClientFlow)
     .runWith(Sink.foreach {
@@ -100,14 +121,16 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
     case config @ Configuration(_, _) =>
       unstashAll()
       logger.info("Configuration loaded successfully")
-      context.become(behavior(config, Seq.empty))
+      context.become(behavior(config, Seq.empty, Seq.empty))
     case _ =>
       stash()
   }
 
-  def behavior(config: Configuration, movies: Seq[Movie]): Receive = {
+  def behavior(config: Configuration, movies: Seq[Movie], moviesDetails: Seq[MovieDetails]): Receive = {
 
-    case FileAdded(file) => searchActor ! file
+    case FileAdded(file) =>
+      if (!movies.map(_.path).contains(file.path))
+        searchActor ! file
 
     case GetMovies => sender() ! movies
 
@@ -116,10 +139,27 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
     case (search: SearchMovies, metadata: MovieMetadata) =>
       if (search.total_results > 0) {
         val head = search.results.head
-        val movie = Movie(head.title, head.poster_path, head.backdrop_path, head.overview, metadata.file.path)
+        val movie = Movie(head.id, head.title, head.poster_path, head.backdrop_path, head.overview, metadata.file.path)
+        movieDetailsActor ! movie
         application.bus.publish(MovieAdded(movie))
-        context become behavior(config, movies :+ movie)
+        context become behavior(config, movies :+ movie, moviesDetails)
       }
+
+    case movieDetails: MovieDetails =>
+      context become behavior(config, movies, moviesDetails :+ movieDetails)
+      application.bus.publish(MovieDetailsAdded(movieDetails))
+      requests.find(_._2 == movieDetails.id).foreach(_._1 ! movieDetails)
+
+    case GetMovieDetails(id) =>
+      moviesDetails.find(_.id == id) match {
+        case Some(movieDetails) =>
+          sender() ! movieDetails
+        case None =>
+          context.watch(sender())
+          requests += (sender() -> id)
+      }
+
+    case Terminated(actorRef) => requests -= actorRef
 
   }
 
@@ -151,7 +191,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
     uriOpt.map(uri => (HttpRequest(uri = uri), context))
   }
 
-  def parseResponse: (HttpResponse, Context) => Future[(Option[SearchMovies], Context)] = (response, metadata) => {
+  def parseSearchResponse: (HttpResponse, Context) => Future[(Option[SearchMovies], Context)] = (response, metadata) => {
     response match {
       case HttpResponse(StatusCodes.OK, _, entity, _) =>
         entity.dataBytes.runFold(ByteString(""))(_ ++ _).map {
@@ -160,6 +200,18 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
       case resp @ HttpResponse(_, _, _, _) =>
         resp.discardEntityBytes()
         Future.successful(None -> metadata)
+    }
+  }
+
+  def parseMovieDetailsResponse: (HttpResponse, Context) => Future[Option[MovieDetails]] = (response, _) => {
+    response match {
+      case HttpResponse(StatusCodes.OK, _, entity, _) =>
+        entity.dataBytes.runFold(ByteString(""))(_ ++ _).map {
+          body => Try(body.utf8String.parseJson.convertTo[MovieDetails]).toOption
+        }
+      case resp @ HttpResponse(_, _, _, _) =>
+        resp.discardEntityBytes()
+        Future.successful(None)
     }
   }
 
