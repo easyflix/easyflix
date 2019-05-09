@@ -43,9 +43,8 @@ import {filter, map, take} from 'rxjs/operators';
     }
     .movie {
       padding: 2rem 0;
-      max-width: 950px;
       display: grid;
-      grid-template-columns: 300px auto;
+      grid-template-columns: 300px 740px;
       grid-template-rows: 450px 220px auto;
       grid-template-areas:
         "poster meta"
@@ -53,28 +52,22 @@ import {filter, map, take} from 'rxjs/operators';
         "cast cast";
       justify-items: stretch;
     }
-    
-
     .poster-area {
       grid-area: poster;
     }
-
     .meta-area {
       grid-area: meta;
       margin-left: 2rem;
     }
-
     .description-area {
       grid-area: description;
       overflow-y: auto;
       line-height: 1.5;
       margin-top: 2rem;
     }
-
     p {
       margin-top: 0
     }
-
     .cast-area {
       grid-area: cast;
       display: flex;
@@ -82,7 +75,6 @@ import {filter, map, take} from 'rxjs/operators';
       margin-top: 2rem;
       justify-content: space-between;
     }
-
     .people {
       height: 150px;
       width: 100px;

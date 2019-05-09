@@ -17,6 +17,7 @@ import {map} from 'rxjs/operators';
         <a [routerLink]="['/home']" routerLinkActive="active" queryParamsHandling="preserve">Home</a>
         <a routerLink="/movies" routerLinkActive="active" queryParamsHandling="preserve">Movies</a>
         <a routerLink="/shows" routerLinkActive="active" queryParamsHandling="preserve">TV Shows</a>
+        <a routerLink="/shows" routerLinkActive="active" queryParamsHandling="preserve">Others</a>
       </nav>
       <!--<mat-icon (click)="searchInput.focus()">search</mat-icon>
       <input #searchInput

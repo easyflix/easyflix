@@ -28,6 +28,7 @@ import {ImagesConfig} from '@app/models/images-config';
       min-width: 170px; /* 300 */
       margin-right: 32px;
       margin-bottom: 75px;
+      margin-top: 60px;
       box-sizing: border-box;
       transition: transform 300ms ease;
       background-size: cover;
