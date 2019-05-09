@@ -16,11 +16,12 @@ import {ShowsComponent} from './shows/shows.component';
 import {MainComponent} from './main.component';
 import {VideoListComponent} from './common/video-list/video-list.component';
 import {MoviesGridComponent} from './movies/movies-grid.component';
-import {VideoDetailedListComponent} from './common/video-detailed-list/video-detailed-list.component';
+import {MoviesListComponent} from './movies/movies-list.component';
 import {GlobalComponent} from './settings/global/global.component';
 import {LocalComponent} from '@app/components/settings/local/local.component';
 import {LibraryCreationDialogComponent} from '@app/components/dialogs/library-creation-dialog/library-creation-dialog.component';
 import {ConfirmDialogComponent} from '@app/components/dialogs/confirm-dialog.component';
+import {MovieComponent} from '@app/components/movies/movie.component';
 
 const COMPONENTS = [
   FileListComponent,
@@ -39,11 +40,12 @@ const COMPONENTS = [
   MainComponent,
   VideoListComponent,
   MoviesGridComponent,
-  VideoDetailedListComponent,
+  MoviesListComponent,
   GlobalComponent,
   LocalComponent,
   LibraryCreationDialogComponent,
-  ConfirmDialogComponent
+  ConfirmDialogComponent,
+  MovieComponent
 ];
 
 @NgModule({

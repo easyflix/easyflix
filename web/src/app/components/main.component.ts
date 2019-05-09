@@ -18,13 +18,13 @@ import {map} from 'rxjs/operators';
         <a routerLink="/movies" routerLinkActive="active" queryParamsHandling="preserve">Movies</a>
         <a routerLink="/shows" routerLinkActive="active" queryParamsHandling="preserve">TV Shows</a>
       </nav>
-      <mat-icon (click)="searchInput.focus()">search</mat-icon>
+      <!--<mat-icon (click)="searchInput.focus()">search</mat-icon>
       <input #searchInput
              placeholder="Titles, people, genres"
              value="" type="search" autocomplete="off"
              [class.active]="searchFocused"
              (focus)="searchFocused = true"
-             (blur)="searchFocused = false">
+             (blur)="searchFocused = false">-->
     </header>
     <main [@mainAnimation]="getAnimationData(main)">
       <router-outlet #main="outlet"></router-outlet>
@@ -35,6 +35,7 @@ import {map} from 'rxjs/operators';
       display: flex;
       flex-direction: column;
       height: 100%;
+      overflow: hidden;
     }
     .menu {
       position: absolute;
@@ -83,7 +84,8 @@ import {map} from 'rxjs/operators';
       flex-grow: 1;
       overflow-y: auto;
       overflow-x: hidden;
-      position: relative;
+      display: flex;
+      flex-direction: column;
     }
   `],
   animations: [mainAnimations],

@@ -29,10 +29,11 @@ const superimpose =
   query(':enter, :leave', [
     style({
       position: 'absolute',
-      top: 0,
+      top: '60px',
       left: 0,
       width: '100%',
-      minHeight: '100%'
+      minHeight: '100%',
+      overflow: 'hidden'
     })
   ]);
 

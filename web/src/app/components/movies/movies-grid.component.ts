@@ -10,19 +10,18 @@ import {ImagesConfig} from '@app/models/images-config';
 @Component({
   selector: 'app-movies-grid',
   template: `
-    <section>
-      <div class="item"
-           tabindex="0"
-           *ngFor="let movie of movies$ | async"
-           [style]="getStyle(movie)">
-      </div>
-    </section>
+    <div class="item"
+         tabindex="0"
+         *ngFor="let movie of movies$ | async"
+         [style]="getStyle(movie)">
+    </div>
   `,
   styles: [`
-    section {
+    :host {
       display: flex;
       flex-direction: row;
       flex-wrap: wrap;
+      padding-left: 60px;
     }
     .item {
       height: 255px; /* 450 */
