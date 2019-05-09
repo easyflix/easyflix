@@ -21,7 +21,7 @@ const initialState: State = {
   sidenavMode: 'side',
   sidenavWidth: 'normal',
   theme: ThemesUtils.allThemes[0],
-  config: null,
+  config: undefined,
 };
 
 /**

@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {CoreService} from '@app/services/core.service';
 import {MoviesService} from '@app/services/movies.service';
-import {config, Observable} from 'rxjs';
+import {Observable} from 'rxjs';
 import {Movie} from '@app/models';
 import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
 import {filter, take} from 'rxjs/operators';
@@ -22,10 +22,14 @@ export class VideoGridComponent implements OnInit {
     private core: CoreService,
     private movies: MoviesService,
     private sanitizer: DomSanitizer,
+    private cdr: ChangeDetectorRef
   ) {
     this.movies$ = movies.getAll();
     this.core.getConfig().pipe(filter(s => !!s), take(1)).subscribe(
-      conf => this.config = conf
+      conf => {
+        this.config = conf;
+        this.cdr.markForCheck();
+      }
     );
   }
 
@@ -34,7 +38,7 @@ export class VideoGridComponent implements OnInit {
   }
 
   getStyle(movie: Movie): SafeStyle {
-    if (config !== null) {
+    if (this.config !== undefined) {
       return this.sanitizer.bypassSecurityTrustStyle(
         `background-image: url(${this.config.secure_base_url}w300${movie.poster})`
       );
