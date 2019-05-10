@@ -139,7 +139,18 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
     case (search: SearchMovies, metadata: MovieMetadata) =>
       if (search.total_results > 0) {
         val head = search.results.head
-        val movie = Movie(head.id, head.title, head.poster_path, head.backdrop_path, head.overview, metadata.file.path)
+        val movie = Movie(
+          head.id,
+          head.title,
+          head.original_title,
+          head.original_language,
+          head.release_date,
+          head.poster_path,
+          head.backdrop_path,
+          head.overview,
+          head.vote_average,
+          metadata.file.path
+        )
         movieDetailsActor ! movie
         application.bus.publish(MovieAdded(movie))
         context become behavior(config, movies :+ movie, moviesDetails)

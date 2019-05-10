@@ -96,6 +96,9 @@
     .poster {
       @include mat-elevation(4);
     }
+    .year {
+      color: mat-color($foreground, disabled-text);
+    }
   }
 
 

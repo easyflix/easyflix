@@ -13,7 +13,18 @@ import {filter, map, take} from 'rxjs/operators';
         <div class="movie">
           <div class="poster" [style]="getPosterStyle() | async"></div>
           <div class="meta">
-            <h1>{{ movie.title }} <span class="year">({{ movie.year }})</span></h1>
+            <h1 class="title">{{ movie.title }} <span class="year">({{ movie.release_date.substr(0, 4) }})</span></h1>
+            <div class="score">
+              <mat-progress-spinner mode="determinate"
+                                    [value]="movie.vote_average * 10"
+                                    diameter="55" color="accent">
+              </mat-progress-spinner>
+              <span>{{ getScore(movie) }}%</span>
+            </div>
+            <div class="overview">
+              <h2>Overview</h2>
+              <p>{{ movie.overview }}</p>
+            </div>
           </div>
           <div class="description">
           </div>
@@ -70,9 +81,28 @@ import {filter, map, take} from 'rxjs/operators';
       line-height: 1.5;
       margin-top: 2rem;
     }
-    h1 {
+    .title {
       font-size: 3rem;
       margin: 0;
+      font-weight: 500;
+    }
+    .year {
+      font-size: 2rem;
+      vertical-align: middle;
+      font-weight: 400;
+    }
+    .score {
+      position: relative;
+      margin: 2rem 0;
+    }
+    .score span {
+      position: absolute;
+      top: 18px;
+      left: 14px;
+    }
+    .overview p {
+      font-weight: 300;
+      line-height: 1.5;
     }
     p {
       margin-top: 0
@@ -120,6 +150,10 @@ export class MovieComponent implements OnInit {
         `background-image: url(${config.secure_base_url}original${this.movie.backdrop})`
       ))
     );
+  }
+
+  getScore(movie: Movie) {
+    return Math.floor(movie.vote_average * 10);
   }
 
 }
