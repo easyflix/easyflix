@@ -8,10 +8,9 @@ import {Movie} from '@app/models';
 @Component({
   selector: 'app-movies-list',
   template: `
-      <cdk-virtual-scroll-viewport itemSize="1080">
-        <app-movie *cdkVirtualFor="let movie of movies$ | async" [movie]="movie"></app-movie>
-      </cdk-virtual-scroll-viewport>
-      <!--<app-movie *ngFor="let movie of movies$ | async" [movie]="movie"></app-movie>-->
+    <cdk-virtual-scroll-viewport itemSize="1080" minBufferPx="1080" maxBufferPx="2160">
+      <app-movie *cdkVirtualFor="let movie of movies$ | async; trackBy: trackByFunc" [movie]="movie"></app-movie>
+    </cdk-virtual-scroll-viewport>
   `,
   styles: [`
     :host {
@@ -39,6 +38,10 @@ export class MoviesListComponent implements OnInit {
   }
 
   ngOnInit() {
+  }
+
+  trackByFunc(index: number, movie: Movie) {
+    return movie.path;
   }
 
 }

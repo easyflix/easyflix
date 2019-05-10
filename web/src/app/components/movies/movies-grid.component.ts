@@ -22,12 +22,13 @@ import {ImagesConfig} from '@app/models/images-config';
       flex-direction: row;
       flex-wrap: wrap;
       padding-left: 60px;
+      padding-bottom: 30px;
     }
     .item {
       height: 255px; /* 450 */
       min-width: 170px; /* 300 */
       margin-right: 32px;
-      margin-bottom: 75px;
+      margin-bottom: 15px;
       margin-top: 60px;
       box-sizing: border-box;
       transition: transform 300ms ease;

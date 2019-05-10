@@ -9,37 +9,42 @@ import {filter, map, take} from 'rxjs/operators';
   selector: 'app-movie',
   template: `
     <div class="container" [style]="getBackdropStyle() | async"  tabindex="0">
-      <div class="movie">
-        <div class="poster-area" [style]="getPosterStyle() | async"></div>
-        <div class="meta-area">
-          <h3>{{ movie.title }}</h3>
-        </div>
-        <div class="description-area">
-        </div>
-        <div class="cast-area">
-          <div class="people"></div>
-          <div class="people"></div>
-          <div class="people"></div>
-          <div class="people"></div>
-          <div class="people"></div>
-          <div class="people"></div>
-          <div class="people"></div>
+      <div class="filter">
+        <div class="movie">
+          <div class="poster" [style]="getPosterStyle() | async"></div>
+          <div class="meta">
+            <h1>{{ movie.title }} <span class="year">({{ movie.year }})</span></h1>
+          </div>
+          <div class="description">
+          </div>
+          <div class="cast">
+            <div class="people"></div>
+            <div class="people"></div>
+            <div class="people"></div>
+            <div class="people"></div>
+            <div class="people"></div>
+            <div class="people"></div>
+            <div class="people"></div>
+          </div>
         </div>
       </div>
     </div>
   `,
   styles: [`
     .container {
-      display: flex;
-      width: 100%;
-      align-items: center;
-      justify-content: center;
       background-size: cover;
       background-position: 50% 50%;
       height: 1080px;
     }
     .container:focus {
       outline: none;
+    }
+    .filter {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
     }
     .movie {
       padding: 2rem 0;
@@ -52,23 +57,27 @@ import {filter, map, take} from 'rxjs/operators';
         "cast cast";
       justify-items: stretch;
     }
-    .poster-area {
+    .poster {
       grid-area: poster;
     }
-    .meta-area {
+    .meta {
       grid-area: meta;
       margin-left: 2rem;
     }
-    .description-area {
+    .description {
       grid-area: description;
       overflow-y: auto;
       line-height: 1.5;
       margin-top: 2rem;
     }
+    h1 {
+      font-size: 3rem;
+      margin: 0;
+    }
     p {
       margin-top: 0
     }
-    .cast-area {
+    .cast {
       grid-area: cast;
       display: flex;
       flex-direction: row;

@@ -10,7 +10,7 @@ section {
 }
 
 .item {
-  height: 210px;
+  height: 255px;
   min-width: 170px;
   margin: 0 16px;
   box-sizing: border-box;

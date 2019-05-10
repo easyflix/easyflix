@@ -7,6 +7,7 @@
 header {
   display: flex;
   flex-direction: row;
+  align-items: center;
   padding: 0 60px;
   position: absolute;
   top: 0;
@@ -35,13 +36,7 @@ mat-form-field {
 }
 
 button {
-  border-radius: 1px;
-  border: 1px solid rgba(0,0,0,0.3);
-  margin-left: 1rem
-}
-
-button:last-of-type {
-  margin-left: -1px;
+  margin-left: .5rem;
 }
 
 .animation-container {

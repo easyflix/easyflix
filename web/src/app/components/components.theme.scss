@@ -83,5 +83,20 @@
     }
   }
 
+  app-movies {
+    button.active {
+      color: mat-color($primary);
+    }
+  }
+
+  app-movie {
+    .filter {
+      background-color: mat-color($background, background, 0.85);
+    }
+    .poster {
+      @include mat-elevation(4);
+    }
+  }
+
 
 }

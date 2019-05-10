@@ -1,4 +1,15 @@
   <header>
+    <button mat-icon-button routerLink="./"
+            queryParamsHandling="preserve"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{exact: true}">
+      <mat-icon class="material-icons-outlined">view_module</mat-icon>
+    </button>
+    <button mat-icon-button routerLink="./list"
+            queryParamsHandling="preserve"
+            routerLinkActive="active">
+      <mat-icon class="material-icons-outlined">view_stream</mat-icon>
+    </button>
     <div class="filters">
       <mat-form-field floatLabel="never">
         <mat-label>Genre</mat-label>
@@ -36,12 +47,6 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <button mat-icon-button routerLink="./" queryParamsHandling="preserve">
-        <mat-icon class="material-icons-outlined">view_module</mat-icon>
-      </button>
-      <button mat-icon-button routerLink="./list" queryParamsHandling="preserve">
-        <mat-icon class="material-icons-outlined">view_stream</mat-icon>
-      </button>
     </div>
   </header>
   <div class="animation-container" [@moviesAnimation]="getAnimationData(main)">
