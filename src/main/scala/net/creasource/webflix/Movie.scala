@@ -1,7 +1,5 @@
 package net.creasource.webflix
 
-import java.nio.file.Path
-
 import net.creasource.json.JsonSupport
 import spray.json.RootJsonFormat
 
@@ -15,7 +13,7 @@ case class Movie(
     backdrop: Option[String],
     overview: String,
     vote_average: Float,
-    path: Path)
+    file: LibraryFile)
 
 object Movie extends JsonSupport {
 

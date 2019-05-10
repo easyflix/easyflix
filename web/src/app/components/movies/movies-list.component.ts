@@ -41,7 +41,7 @@ export class MoviesListComponent implements OnInit {
   }
 
   trackByFunc(index: number, movie: Movie) {
-    return movie.path;
+    return movie.file.path;
   }
 
 }

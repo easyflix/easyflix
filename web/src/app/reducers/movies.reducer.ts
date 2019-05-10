@@ -6,7 +6,7 @@ import {Movie} from '@app/models';
  * State
  */
 export const adapter: EntityAdapter<Movie> = createEntityAdapter<Movie>({
-  selectId: movie => movie.path
+  selectId: movie => movie.file.path
 });
 
 export interface State extends EntityState<Movie> {}

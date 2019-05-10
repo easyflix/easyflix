@@ -129,7 +129,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
   def behavior(config: Configuration, movies: Seq[Movie], moviesDetails: Seq[MovieDetails]): Receive = {
 
     case FileAdded(file) =>
-      if (!movies.map(_.path).contains(file.path))
+      if (!movies.map(_.file.path).contains(file.path))
         searchActor ! file
 
     case GetMovies => sender() ! movies
@@ -149,7 +149,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
           head.backdrop_path,
           head.overview,
           head.vote_average,
-          metadata.file.path
+          metadata.file
         )
         movieDetailsActor ! movie
         application.bus.publish(MovieAdded(movie))

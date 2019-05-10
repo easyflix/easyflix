@@ -1,3 +1,4 @@
+import {LibraryFile} from '@app/models/library-file';
 
 export interface Movie {
   title: string;
@@ -8,5 +9,5 @@ export interface Movie {
   backdrop?: string;
   overview: string;
   vote_average: number;
-  path: string;
+  file: LibraryFile;
 }
