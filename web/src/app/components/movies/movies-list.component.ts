@@ -1,7 +1,6 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {CoreService} from '@app/services/core.service';
 import {MoviesService} from '@app/services/movies.service';
-import {DomSanitizer} from '@angular/platform-browser';
 import {Observable} from 'rxjs';
 import {Movie} from '@app/models';
 
@@ -9,7 +8,9 @@ import {Movie} from '@app/models';
   selector: 'app-movies-list',
   template: `
     <cdk-virtual-scroll-viewport itemSize="1080" minBufferPx="1080" maxBufferPx="2160">
-      <app-movie *cdkVirtualFor="let movie of movies$ | async; trackBy: trackByFunc" [movie]="movie"></app-movie>
+      <app-movie *cdkVirtualFor="let movie of movies$ | async; trackBy: trackByFunc; templateCacheSize: 0"
+                 [movie]="movie">
+      </app-movie>
     </cdk-virtual-scroll-viewport>
   `,
   styles: [`
@@ -30,9 +31,7 @@ export class MoviesListComponent implements OnInit {
 
   constructor(
     private core: CoreService,
-    private movies: MoviesService,
-    private sanitizer: DomSanitizer,
-    private cdr: ChangeDetectorRef
+    private movies: MoviesService
   ) {
     this.movies$ = movies.getAll();
   }

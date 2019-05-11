@@ -24,7 +24,7 @@ export class MoviesService extends ServiceHelper {
       map(message => message.entity),
       bufferTime(100, null, 15),
       filter(movies => movies.length > 0),
-      tap(movies => console.log(movies)),
+      // tap(movies => console.log(movies)),
       tap((movies: Movie[]) => this.store.dispatch(new AddMovies(movies)))
     ).subscribe();
   }

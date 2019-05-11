@@ -1,6 +1,7 @@
 import {LibraryFile} from '@app/models/library-file';
 
 export interface Movie {
+  id: number;
   title: string;
   original_title: string;
   original_language: string;

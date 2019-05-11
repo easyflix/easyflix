@@ -1,9 +1,10 @@
-import {Component, Input, OnInit} from '@angular/core';
-import {Movie} from '@app/models';
+import {AfterViewInit, Component, Input, OnInit} from '@angular/core';
+import {Movie, MovieDetails} from '@app/models';
 import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
 import {CoreService} from '@app/services/core.service';
 import {Observable} from 'rxjs';
-import {filter, map, take} from 'rxjs/operators';
+import {filter, map, share, take} from 'rxjs/operators';
+import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 
 @Component({
   selector: 'app-movie',
@@ -39,23 +40,34 @@ import {filter, map, take} from 'rxjs/operators';
               </h2>
               <dl class="left">
                 <dt>Original title</dt>
-                <dd>{{ movie.original_title }}</dd>
+                <dd class="original-title">{{ movie.original_title }}</dd>
                 <dt>Release date</dt>
                 <dd>{{ movie.release_date }}</dd>
                 <dt>Directed by</dt>
                 <dd>Some Name</dd>
                 <dt>Runtime</dt>
-                <dd>2h21</dd>
+                <dd *ngIf="movieDetails$ | async as details; else loading">
+                  {{ details.runtime | sgTime }}
+                </dd>
               </dl>
               <dl class="right">
                 <dt>Language</dt>
                 <dd>English</dd>
                 <dt>Genres</dt>
-                <dd>action, horror</dd>
+                <dd *ngIf="movieDetails$ | async as details; else loading">
+                  {{ getGenre(details) }}
+                </dd>
                 <dt>Budget</dt>
-                <dd>$356,000,000</dd>
+                <dd *ngIf="movieDetails$ | async as details; else loading">
+                  {{ details.budget }}
+                </dd>
                 <dt>Revenue</dt>
-                <dd>$2,303,235,585</dd>
+                <dd *ngIf="movieDetails$ | async as details; else loading">
+                  {{ details.revenue }}
+                </dd>
+                <ng-template #loading>
+                  <dd class="loading">Loading...</dd>
+                </ng-template>
               </dl>
               <mat-divider *ngIf="showMore"></mat-divider>
               <dl *ngIf="showMore">
@@ -181,8 +193,13 @@ import {filter, map, take} from 'rxjs/operators';
     }
     dl.left, dl.right {
       display: inline-flex;
-      width: 50%;
       margin-top: 0;
+    }
+    dl.left {
+      width: 40%;
+    }
+    dl.right {
+      width: 60%;
     }
     dt {
       width: 9rem;
@@ -195,6 +212,11 @@ import {filter, map, take} from 'rxjs/operators';
     dd {
       width: calc(100% - 9rem);
       margin: .3rem 0;
+    }
+    .original-title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .tags mat-chip {
       margin-top: 0;
@@ -225,12 +247,19 @@ export class MovieComponent implements OnInit {
 
   showMore = false;
 
+  movieDetails$: Observable<MovieDetails>;
+
   constructor(
     private core: CoreService,
     private sanitizer: DomSanitizer,
+    private socketClient: HttpSocketClientService
   ) { }
 
   ngOnInit() {
+    this.movieDetails$ = this.socketClient.get('/api/movies/' + this.movie.id).pipe(
+      map((response: MovieDetails) => response),
+      share()
+    );
   }
 
   getPosterStyle(): Observable<SafeStyle> {
@@ -255,6 +284,10 @@ export class MovieComponent implements OnInit {
 
   getScore(movie: Movie) {
     return Math.floor(movie.vote_average * 10);
+  }
+
+  getGenre(details: MovieDetails) {
+    return details.genres.map(genre => genre.name).join(', ');
   }
 
 }
