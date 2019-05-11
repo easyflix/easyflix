@@ -10,8 +10,8 @@ import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.util.ByteString
 import net.creasource.Application
 import net.creasource.tmdb.{Configuration, MovieDetails, SearchMovies}
-import net.creasource.webflix.events.{FileAdded, MovieAdded, MovieDetailsAdded}
-import net.creasource.webflix.{LibraryFile, Movie}
+import net.creasource.webflix.events.{FileAdded, MovieAdded}
+import net.creasource.webflix.{LibraryFile, Movie, MovieExt}
 import spray.json._
 
 import scala.concurrent.Future
@@ -23,7 +23,7 @@ object TMDBActor {
   case object GetConfig
   case object GetMovies
   case object GetTVShows
-  case class GetMovieDetails(id: Int)
+  case class GetMovieExt(id: Int)
 
   def props()(implicit application: Application): Props = Props(new TMDBActor)
 
@@ -105,7 +105,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
     case _ => stash()
   }
 
-  def behavior(config: Configuration, movies: Seq[Movie], moviesDetails: Seq[MovieDetails]): Receive = {
+  def behavior(config: Configuration, movies: Seq[Movie], movieExts: Seq[MovieExt]): Receive = {
 
     // Events
     case FileAdded(file) =>
@@ -136,7 +136,9 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
         case ShowMetadata(_, _, _, _) =>
           entity.discardBytes() // TODO
         case MovieId(_) =>
-          parseEntity[MovieDetails](entity).foreach(self ! _)
+          val f = parseEntity[MovieExt](entity)
+          f.failed.foreach(logger.error(_, "error!"))
+          f.foreach(self ! _)
       }
 
     case (Success(HttpResponse(StatusCodes.TooManyRequests, headers, entity, _)), requestContext: RuntimeContext) =>
@@ -169,8 +171,8 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
 
     case GetMovies => sender() ! movies
 
-    case GetMovieDetails(id) =>
-      moviesDetails.find(_.id == id) match {
+    case GetMovieExt(id) =>
+      movieExts.find(_.id == id) match {
         case Some(details) =>
           sender() ! details
         case None =>
@@ -183,13 +185,18 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
       logger.info("Received search results for: " + movie.title)
       requestDetails(movie)
       application.bus.publish(MovieAdded(movie))
-      context become behavior(config, movies :+ movie, moviesDetails)
+      context become behavior(config, movies :+ movie, movieExts)
 
-    case details: MovieDetails =>
+    case detailsExt: MovieExt =>
+      val details = detailsExt.copy(
+        credits = detailsExt.credits.copy(
+          crew = detailsExt.credits.crew.filter(_.job == "Director"),
+          cast = detailsExt.credits.cast.take(7)
+        )
+      )
       logger.info("Received movie details for: " + details.title)
       requests.find(_._2 == details.id).foreach(_._1 ! details)
-      application.bus.publish(MovieDetailsAdded(details))
-      context become behavior(config, movies, moviesDetails :+ details)
+      context become behavior(config, movies, movieExts :+ details)
 
     case Terminated(actorRef) => requests -= actorRef
 
@@ -227,7 +234,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
       case MovieMetadata(name, year, _, _) =>
         Some(SearchMovies.get(api_key, name, year = Some(year)))
       case MovieId(id) =>
-        Some(MovieDetails.get(id, api_key))
+        Some(MovieDetails.get(id, api_key, append_to_response = Some("credits")))
       case ConfigurationContext =>
         Some(Configuration.get(api_key))
     }
