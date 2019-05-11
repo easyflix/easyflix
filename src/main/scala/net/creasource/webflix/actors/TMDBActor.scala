@@ -1,13 +1,13 @@
 package net.creasource.webflix.actors
 
+import akka.Done
 import akka.actor.{Actor, ActorRef, PoisonPill, Props, Stash, Terminated}
 import akka.event.Logging
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes}
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse, ResponseEntity, StatusCodes}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.util.ByteString
-import akka.{Done, NotUsed}
 import net.creasource.Application
 import net.creasource.tmdb.{Configuration, MovieDetails, SearchMovies}
 import net.creasource.webflix.events.{FileAdded, MovieAdded, MovieDetailsAdded}
@@ -27,6 +27,14 @@ object TMDBActor {
 
   def props()(implicit application: Application): Props = Props(new TMDBActor)
 
+  sealed trait Context
+  case object ConfigurationContext extends Context
+
+  sealed trait RuntimeContext extends Context
+  case class MovieId(id: Int) extends RuntimeContext
+  case class MovieMetadata(name: String, year: Int, rest: String, file: LibraryFile) extends RuntimeContext
+  case class ShowMetadata(name: String, episode: String, rest: String, file: LibraryFile) extends RuntimeContext
+
 }
 
 class TMDBActor()(implicit application: Application) extends Actor with Stash {
@@ -37,141 +45,160 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
 
   val logger = Logging(context.system, this)
 
-  sealed trait Context
-  case class MovieId(id: Int) extends Context
-  case class MovieMetadata(name: String, year: Int, rest: String, file: LibraryFile) extends Context
-  case class ShowMetadata(name: String, episode: String, rest: String, file: LibraryFile) extends Context
-  case object ConfigurationContext extends Context
-
   private val api_key = application.config.getString("tmdb.api-key")
 
   var requests: Map[ActorRef, Int] = Map.empty
 
   application.bus.subscribe(self, classOf[FileAdded])
 
-  val poolClientFlow: Flow[
-      (HttpRequest, Context),
-      (Try[HttpResponse], Context),
-      Http.HostConnectionPool
-  ] =
-    Flow[(HttpRequest, Context)].throttle(40, 11.seconds)
-      .viaMat(Http().cachedHostConnectionPoolHttps[Context]("api.themoviedb.org"))(Keep.right)
+  val (tmdb: ActorRef, connectionPool: Http.HostConnectionPool) =
+    Source.actorRef(10000, OverflowStrategy.dropNew)
+      .via(Flow[(HttpRequest, Context)].throttle(40, 10.seconds))
+      .viaMat(Http().cachedHostConnectionPoolHttps[Context]("api.themoviedb.org"))(Keep.both)
+      .log("TMDB error")
+      .to(Sink.actorRef(self, Done))
+      .run()
 
-  val searchSink: Sink[LibraryFile, Http.HostConnectionPool] = {
-    Flow[LibraryFile]
+  def search(file: LibraryFile): Unit = {
+    Seq(file)
       .filter(!_.isDirectory)
       .filter(!_.name.matches("(?i).*sample.*"))
-      .map(extractMeta) // Option[Metadata]
-      /*.alsoTo(Sink.foreach {
-        case (None, file) => TODO do something when no metadata has been extracted
-      })*/
-      .collect { case Some(meta) => meta } // Metadata
-      .map(createRequest) // Option[(HttpRequest, Metadata)]
-      .collect { case Some(req) => req } // (HttpRequest, Metadata)
-      .viaMat(poolClientFlow)(Keep.right) // (Try[HttpResponse], Metadata) + mat
-      /*.alsoTo(Sink.foreach{ // TODO do something when response is a failure
-        case (Success(value), file) =>
-        case (Failure(e), file) =>
-      })*/
-      .collect { case (Success(value), file) => (value, file) } // (HttpResponse, Metadata)
-      .mapAsync(4)(parseSearchResponse.tupled) // (Option[SearchMovies], Metadata)
-      .collect { case (Some(searchMovies), metadata) => (searchMovies, metadata) } // (SearchMovies, Metadata)
-      .to(Sink.actorRef(self, Done))
+      .map(extractMeta)
+      .collect { case Some(meta) => meta }
+      .map(createRequest)
+      .collect { case Some(reqContext) => reqContext }
+      .foreach(tmdb ! _)
   }
 
-  val movieDetailsSink: Sink[Movie, NotUsed] =
-    Flow[Movie]
-      .map(_.id)
-      .map(id => HttpRequest(uri = MovieDetails.get(id, api_key)) -> MovieId(id))
-      .via(poolClientFlow)
-      .collect { case (Success(value), file) => (value, file) }
-      .mapAsync(4)(parseMovieDetailsResponse.tupled)
-      .collect { case Some(movieDetails) => movieDetails }
-      .to(Sink.actorRef(self, Done))
-
-  val (searchActor, connectionPool) =
-    Source.actorRef(10000, OverflowStrategy.dropNew)
-      .toMat(searchSink)(Keep.both)
-      .run()
-
-  val movieDetailsActor: ActorRef = Source.actorRef(10000, OverflowStrategy.dropNew)
-      .toMat(movieDetailsSink)(Keep.left)
-      .run()
+  def requestDetails(movie: Movie): Unit = {
+    Seq(MovieId(movie.id))
+      .map(createRequest)
+      .collect { case Some(reqContext) => reqContext }
+      .foreach(tmdb ! _)
+  }
 
   /**
     * Load configuration
     */
-  Source.single((HttpRequest(uri = Configuration.get(api_key)), ConfigurationContext))
-    .via(poolClientFlow)
-    .runWith(Sink.foreach {
-      case (Success(HttpResponse(StatusCodes.OK, _, entity, _)), _) =>
-        entity.dataBytes.runFold(ByteString(""))(_ ++ _).foreach { body =>
-          self ! body.utf8String.parseJson.convertTo[Configuration]
-        }
-      case (Success(response: HttpResponse), _) =>
-        logger.error("Received a non-200 response for the configuration request: " + response.status)
-        response.discardEntityBytes()
-      case (Failure(exception: Exception), _) =>
-        logger.error(exception, "Could not load configuration.")
-    })
+  Seq(ConfigurationContext)
+    .map(createRequest)
+    .collect{ case Some(req) => req }
+    .foreach(tmdb ! _)
 
   override def receive: Receive = loading
 
   def loading: Receive = {
+
+    case (Success(HttpResponse(StatusCodes.OK, _, entity, _)), ConfigurationContext) =>
+      parseEntity[Configuration](entity).foreach(self ! _)
+
+    case (Success(HttpResponse(_, _, entity, _)), ConfigurationContext) =>
+      entity.discardBytes()
+      logger.error("Got a non-200 response for configuration request.")
+      self ! PoisonPill // TODO
+
     case config @ Configuration(_, _) =>
       unstashAll()
       logger.info("Configuration loaded successfully")
       context.become(behavior(config, Seq.empty, Seq.empty))
-    case _ =>
-      stash()
+
+    case _ => stash()
   }
 
   def behavior(config: Configuration, movies: Seq[Movie], moviesDetails: Seq[MovieDetails]): Receive = {
 
+    // Events
     case FileAdded(file) =>
       if (!movies.map(_.file.path).contains(file.path))
-        searchActor ! file
+        search(file)
+
+    // TMDB responses
+    case (Success(HttpResponse(StatusCodes.OK, _, entity, _)), requestContext: RuntimeContext) =>
+      requestContext match {
+        case MovieMetadata(_, _, _, file) =>
+          parseEntity[SearchMovies](entity).foreach { search =>
+            if (search.total_results > 0) {
+              val head = search.results.head
+              self ! Movie(
+                head.id,
+                head.title,
+                head.original_title,
+                head.original_language,
+                head.release_date,
+                head.poster_path,
+                head.backdrop_path,
+                head.overview,
+                head.vote_average,
+                file
+              )
+            }
+          }
+        case ShowMetadata(_, _, _, _) =>
+          entity.discardBytes() // TODO
+        case MovieId(_) =>
+          parseEntity[MovieDetails](entity).foreach(self ! _)
+      }
+
+    case (Success(HttpResponse(StatusCodes.TooManyRequests, headers, entity, _)), requestContext: RuntimeContext) =>
+      entity.discardBytes()
+      val retryIn = headers
+        .find(_.lowercaseName == "retry-after")
+        .flatMap(header => Try(header.value.toInt).toOption)
+        .getOrElse(1)
+      requestContext match {
+        case MovieMetadata(_, _, _, file) =>
+          logger.info(s"Rescheduling in $retryIn seconds: " + file.name)
+          system.scheduler.scheduleOnce(FiniteDuration(retryIn, SECONDS))(search(file))
+        case ShowMetadata(_, _, _, _) => // TODO
+        case MovieId(id) =>
+          logger.info(s"Rescheduling in $retryIn seconds: " + id)
+          system.scheduler.scheduleOnce(FiniteDuration(retryIn, SECONDS)) {
+            movies.find(_.id == id).foreach(requestDetails)
+          }
+      }
+
+    case (Success(HttpResponse(_, _, entity, _)), _) =>
+      entity.discardBytes()
+      logger.warning("Unhandled response")
+
+    case (Failure(exception), runtimeContext) =>
+      logger.error("An error occurred for context: " + runtimeContext, exception)
+
+    // Requests
+    case GetConfig => sender() ! config
 
     case GetMovies => sender() ! movies
 
-    case GetConfig => sender() ! config
-
-    case (search: SearchMovies, metadata: MovieMetadata) =>
-      if (search.total_results > 0) {
-        val head = search.results.head
-        val movie = Movie(
-          head.id,
-          head.title,
-          head.original_title,
-          head.original_language,
-          head.release_date,
-          head.poster_path,
-          head.backdrop_path,
-          head.overview,
-          head.vote_average,
-          metadata.file
-        )
-        movieDetailsActor ! movie
-        application.bus.publish(MovieAdded(movie))
-        context become behavior(config, movies :+ movie, moviesDetails)
-      }
-
-    case movieDetails: MovieDetails =>
-      context become behavior(config, movies, moviesDetails :+ movieDetails)
-      application.bus.publish(MovieDetailsAdded(movieDetails))
-      requests.find(_._2 == movieDetails.id).foreach(_._1 ! movieDetails)
-
     case GetMovieDetails(id) =>
       moviesDetails.find(_.id == id) match {
-        case Some(movieDetails) =>
-          sender() ! movieDetails
+        case Some(details) =>
+          sender() ! details
         case None =>
           context.watch(sender())
           requests += (sender() -> id)
       }
 
+    // Internal
+    case movie: Movie =>
+      logger.info("Received search results for: " + movie.title)
+      requestDetails(movie)
+      application.bus.publish(MovieAdded(movie))
+      context become behavior(config, movies :+ movie, moviesDetails)
+
+    case details: MovieDetails =>
+      logger.info("Received movie details for: " + details.title)
+      requests.find(_._2 == details.id).foreach(_._1 ! details)
+      application.bus.publish(MovieDetailsAdded(details))
+      context become behavior(config, movies, moviesDetails :+ details)
+
     case Terminated(actorRef) => requests -= actorRef
 
+  }
+
+  def parseEntity[T](entity: ResponseEntity)(implicit reader: RootJsonReader[T]): Future[T] = {
+    entity.dataBytes.runFold(ByteString(""))(_ ++ _).flatMap { body =>
+      Future(body.utf8String.parseJson.convertTo[T])
+    }
   }
 
   def extractMeta(file: LibraryFile): Option[Context] = {
@@ -195,43 +222,19 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
 
   def createRequest: Context => Option[(HttpRequest, Context)] = context => {
     val uriOpt = context match {
-      case ShowMetadata(_, _, _, _) => None
-      case MovieMetadata(name, year, _, _) => Some(SearchMovies.get(api_key, name, year = Some(year)))
-      case _ => None
+      case ShowMetadata(_, _, _, _) =>
+        None // TODO
+      case MovieMetadata(name, year, _, _) =>
+        Some(SearchMovies.get(api_key, name, year = Some(year)))
+      case MovieId(id) =>
+        Some(MovieDetails.get(id, api_key))
+      case ConfigurationContext =>
+        Some(Configuration.get(api_key))
     }
     uriOpt.map(uri => (HttpRequest(uri = uri), context))
   }
 
-  def parseSearchResponse: (HttpResponse, Context) => Future[(Option[SearchMovies], Context)] = (response, metadata) => {
-    response match {
-      case HttpResponse(StatusCodes.OK, _, entity, _) =>
-        entity.dataBytes.runFold(ByteString(""))(_ ++ _).map {
-          body => parseEntity(body).toOption -> metadata
-        }
-      case resp @ HttpResponse(_, _, _, _) =>
-        resp.discardEntityBytes()
-        Future.successful(None -> metadata)
-    }
-  }
-
-  def parseMovieDetailsResponse: (HttpResponse, Context) => Future[Option[MovieDetails]] = (response, _) => {
-    response match {
-      case HttpResponse(StatusCodes.OK, _, entity, _) =>
-        entity.dataBytes.runFold(ByteString(""))(_ ++ _).map {
-          body => Try(body.utf8String.parseJson.convertTo[MovieDetails]).toOption
-        }
-      case resp @ HttpResponse(_, _, _, _) =>
-        resp.discardEntityBytes()
-        Future.successful(None)
-    }
-  }
-
-  def parseEntity(entity: ByteString): Try[SearchMovies] = {
-    Try(entity.utf8String.parseJson.convertTo[SearchMovies])
-  }
-
   override def postStop(): Unit = {
-    searchActor ! PoisonPill
     connectionPool.shutdown()
   }
 
