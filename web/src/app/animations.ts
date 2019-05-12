@@ -40,8 +40,16 @@ const superimpose =
     })
   ]);
 
+const hideElements =
+  query(':enter .animation-hide, :leave .animation-hide', [
+    style({
+      display: 'none'
+    })
+  ]);
+
 const fadeInOut = [
   superimpose,
+  hideElements,
   query(':leave', animateChild()),
   group([
     fadeIn[0],
@@ -99,5 +107,6 @@ export const moviesAnimations = trigger('moviesAnimation', [
   // transition(debug('movies'), []),
   transition('void <=> *', []),
   transition('grid => list', slideLeft),
+  transition('grid <=> details', fadeInOut),
   transition('list => grid', slideRight),
 ]);

@@ -14,6 +14,8 @@ import {VideoResolverService} from '@app/guards/video-resolver.service';
 import {LibrariesLoadedGuard} from '@app/guards/libraries-loaded.guard';
 import {GlobalComponent} from '@app/components/settings/global/global.component';
 import {LocalComponent} from '@app/components/settings/local/local.component';
+import {MovieDetailsComponent} from '@app/components/movies/movie-details.component';
+import {MovieResolverService} from '@app/guards/movie-resolver.service';
 
 const navOutletName = 'nav';
 
@@ -27,7 +29,15 @@ export const routes: Routes = [
     data: { animation: 'movies' },
     children: [
       { path: '', component: MoviesGridComponent, data: { animation: 'grid' } },
-      { path: 'list', component: MoviesListComponent, data: { animation: 'list' } }
+      { path: 'list', component: MoviesListComponent, data: { animation: 'list' } },
+      {
+        path: ':id',
+        component: MovieDetailsComponent,
+        data: { animation: 'details' },
+        resolve: {
+          movie: MovieResolverService
+        },
+      },
     ],
   },
   { path: 'shows', component: ShowsComponent, data: { animation: 'shows' } },

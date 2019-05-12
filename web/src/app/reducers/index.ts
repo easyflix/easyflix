@@ -152,7 +152,7 @@ export const {
   selectAll: getAllMovies,
 } = fromMovies.adapter.getSelectors(getMoviesState);
 
-export const getMovieByPath = createSelector(
+export const getMovieById = createSelector(
   getAllMoviesEntities,
-  (entities, path) => entities[path]
+  (entities, id) => entities[id]
 );

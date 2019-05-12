@@ -1,7 +1,7 @@
 package net.creasource.webflix.actors
 
 import akka.Done
-import akka.actor.{Actor, ActorRef, PoisonPill, Props, Stash, Terminated}
+import akka.actor.{Actor, ActorRef, PoisonPill, Props, Stash, Status, Terminated}
 import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, ResponseEntity, StatusCodes}
@@ -9,6 +9,7 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.util.ByteString
 import net.creasource.Application
+import net.creasource.exceptions.NotFoundException
 import net.creasource.tmdb.{MovieDetails, SearchMovies}
 import net.creasource.webflix.events.{FileAdded, MovieAdded}
 import net.creasource.webflix.{Configuration, LibraryFile, Movie, MovieExt}
@@ -23,6 +24,7 @@ object TMDBActor {
   case object GetConfig
   case object GetMovies
   case object GetTVShows
+  case class GetMovie(id: Int)
   case class GetMovieExt(id: Int)
 
   def props()(implicit application: Application): Props = Props(new TMDBActor)
@@ -208,6 +210,12 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
     case GetConfig => sender() ! config
 
     case GetMovies => sender() ! movies
+
+    case GetMovie(id) =>
+      movies.find(_.id == id) match {
+        case Some(movie) => sender() ! movie
+        case _ => sender() ! Status.Failure(NotFoundException("Movie not found"))
+      }
 
     case GetMovieExt(id) =>
       movieExts.find(_.id == id) match {

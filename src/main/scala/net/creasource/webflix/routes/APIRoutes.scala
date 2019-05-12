@@ -110,15 +110,22 @@ object APIRoutes extends Directives with JsonSupport {
             }
           }
         },
-        pathPrefix("movies") {
+        pathPrefix("movies-ext") {
           path(Segment) { id =>
             get {
               onSuccess((app.tmdb ? TMDBActor.GetMovieExt(id.toInt))(30.seconds).mapTo[MovieExt])(complete(_))
             }
-          } ~
-          get {
-            onSuccess((app.tmdb ? TMDBActor.GetMovies).mapTo[Seq[Movie]])(complete(_))
           }
+        },
+        pathPrefix("movies") {
+          path(Segment) { id =>
+            get {
+              onSuccess((app.tmdb ? TMDBActor.GetMovie(id.toInt))(30.seconds).mapTo[Movie])(complete(_))
+            }
+          } ~
+            get {
+              onSuccess((app.tmdb ? TMDBActor.GetMovies).mapTo[Seq[Movie]])(complete(_))
+            }
         },
         pathPrefix("config") {
           get {

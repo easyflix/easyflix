@@ -10,11 +10,12 @@ import {Configuration} from '@app/models/configuration';
 @Component({
   selector: 'app-movies-grid',
   template: `
-    <div class="item"
-         tabindex="0"
-         *ngFor="let movie of movies$ | async"
-         [style]="getStyle(movie)">
-    </div>
+    <a class="item"
+       tabindex="0"
+       *ngFor="let movie of movies$ | async"
+       [style]="getStyle(movie)"
+       [routerLink]="['/movies', movie.id]">
+    </a>
   `,
   styles: [`
     :host {
@@ -25,11 +26,10 @@ import {Configuration} from '@app/models/configuration';
       padding-bottom: 30px;
     }
     .item {
+      display: block;
       height: 255px; /* 450 */
       min-width: 170px; /* 300 */
-      margin-right: 32px;
-      margin-bottom: 15px;
-      margin-top: 60px;
+      margin: 60px 32px 15px 0;
       box-sizing: border-box;
       transition: transform 300ms ease;
       background-size: cover;

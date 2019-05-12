@@ -16,7 +16,12 @@ import {Cast, Crew} from '@app/models/movie-ext';
           <div class="poster" [style]="getPosterStyle() | async"></div>
           <div class="meta">
             <h1 class="title">{{ movie.title }} <span class="year">({{ movie.release_date.substr(0, 4) }})</span></h1>
-            <h2 class="tagline" *ngIf="movieExt$ | async as details;">{{ details.tagline }}</h2>
+            <h2 class="tagline" *ngIf="movieExt$ | async as details; else taglineLoading">
+              {{ details.tagline ? details.tagline : '&nbsp;' }}
+            </h2>
+            <ng-template #taglineLoading>
+              <h2 class="tagline loading">Loading...</h2>
+            </ng-template>
             <div class="actions">
               <div class="score">
                 <mat-progress-spinner mode="determinate"
@@ -127,7 +132,7 @@ import {Cast, Crew} from '@app/models/movie-ext';
     }
     .movie {
       display: grid;
-      grid-template-columns: 300px 900px; /* TODO media query */
+      grid-template-columns: 300px auto;
       grid-template-rows: auto 258px;
       grid-template-areas:
         "poster meta"
@@ -143,7 +148,8 @@ import {Cast, Crew} from '@app/models/movie-ext';
     .meta {
       grid-area: meta;
       margin-left: 2rem;
-      max-width: 1000px;
+      margin-bottom: 2rem;
+      max-width: 900px;
     }
     .title {
       font-size: 3rem;
@@ -190,7 +196,7 @@ import {Cast, Crew} from '@app/models/movie-ext';
     .information header {
       display: flex;
       flex-direction: row;
-      margin-bottom: 1rem;
+      margin: 1rem 0;
       border-bottom: 1px solid;
     }
     .information h3 {
@@ -198,7 +204,7 @@ import {Cast, Crew} from '@app/models/movie-ext';
       font-size: 16px;
       width: 8.5rem;
       text-align: center;
-      margin: .5rem 0 -1px 0;
+      margin: 0 0 -1px 0;
       padding: .75rem 0;
       cursor: pointer;
     }
@@ -300,7 +306,7 @@ export class MovieComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.movieExt$ = this.socketClient.get('/api/movies/' + this.movie.id).pipe(
+    this.movieExt$ = this.socketClient.get('/api/movies-ext/' + this.movie.id).pipe(
       map((response: MovieExt) => response),
       share()
     );

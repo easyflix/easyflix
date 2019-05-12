@@ -3,7 +3,7 @@ import {Observable} from 'rxjs';
 
 import {Movie} from '@app/models';
 import {Store} from '@ngrx/store';
-import {State, getAllMovies, getMovieByPath} from '@app/reducers';
+import {State, getAllMovies, getMovieById} from '@app/reducers';
 import {Actions} from '@ngrx/effects';
 import {ServiceHelper} from './service-helper';
 import {HttpSocketClientService} from './http-socket-client.service';
@@ -33,8 +33,8 @@ export class MoviesService extends ServiceHelper {
     return this.store.select(getAllMovies);
   }
 
-  getByPath(path: string): Observable<Movie> {
-    return this.store.select(getMovieByPath, path);
+  getById(id: number): Observable<Movie> {
+    return this.store.select(getMovieById, id);
   }
 
   load(): Observable<Movie[]> {

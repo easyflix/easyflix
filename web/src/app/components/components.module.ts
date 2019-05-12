@@ -22,6 +22,7 @@ import {LocalComponent} from '@app/components/settings/local/local.component';
 import {LibraryCreationDialogComponent} from '@app/components/dialogs/library-creation-dialog/library-creation-dialog.component';
 import {ConfirmDialogComponent} from '@app/components/dialogs/confirm-dialog.component';
 import {MovieComponent} from '@app/components/movies/movie.component';
+import {MovieDetailsComponent} from '@app/components/movies/movie-details.component';
 
 const COMPONENTS = [
   FileListComponent,
@@ -45,7 +46,8 @@ const COMPONENTS = [
   LocalComponent,
   LibraryCreationDialogComponent,
   ConfirmDialogComponent,
-  MovieComponent
+  MovieComponent,
+  MovieDetailsComponent
 ];
 
 @NgModule({
