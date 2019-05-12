@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Input, OnInit} from '@angular/core';
 import {Movie, MovieExt} from '@app/models';
 import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
 import {CoreService} from '@app/services/core.service';
@@ -16,13 +16,14 @@ import {Cast, Crew} from '@app/models/movie-ext';
           <div class="poster" [style]="getPosterStyle() | async"></div>
           <div class="meta">
             <h1 class="title">{{ movie.title }} <span class="year">({{ movie.release_date.substr(0, 4) }})</span></h1>
+            <h2 class="tagline" *ngIf="movieExt$ | async as details;">{{ details.tagline }}</h2>
             <div class="actions">
               <div class="score">
                 <mat-progress-spinner mode="determinate"
                                       [value]="movie.vote_average * 10"
                                       diameter="55" color="accent">
                 </mat-progress-spinner>
-                <span>{{ getScore(movie) }}%</span>
+                <span>{{ getScore() }}%</span>
               </div>
               <button class="play" mat-button mat-raised-button color="primary">
                 <mat-icon>play_arrow</mat-icon>
@@ -147,8 +148,13 @@ import {Cast, Crew} from '@app/models/movie-ext';
     }
     .title {
       font-size: 3rem;
-      margin: 0;
+      margin: 0 0 .5rem 0;
       font-weight: 500;
+    }
+    .tagline {
+      margin: 0;
+      font-weight: 300;
+      font-size: 1.25rem;
     }
     .year {
       font-size: 2rem;
@@ -267,7 +273,8 @@ import {Cast, Crew} from '@app/models/movie-ext';
       text-align: center;
       padding: 0 .5rem;
     }
-  `]
+  `],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MovieComponent implements OnInit {
 
@@ -323,8 +330,8 @@ export class MovieComponent implements OnInit {
     return EMPTY;
   }
 
-  getScore(movie: Movie) {
-    return Math.floor(movie.vote_average * 10);
+  getScore() {
+    return Math.floor(this.movie.vote_average * 10);
   }
 
   getGenre(details: MovieExt) {
