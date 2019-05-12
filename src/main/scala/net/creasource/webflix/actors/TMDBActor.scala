@@ -33,8 +33,8 @@ object TMDBActor {
 
   sealed trait RuntimeContext extends Context
   case class MovieId(id: Int) extends RuntimeContext
-  case class MovieMetadata(name: String, year: Int, rest: String, file: LibraryFile) extends RuntimeContext
-  case class ShowMetadata(name: String, episode: String, rest: String, file: LibraryFile) extends RuntimeContext
+  case class MovieMetadata(name: String, year: Int, tags: List[String], file: LibraryFile) extends RuntimeContext
+  case class ShowMetadata(name: String, episode: String, tags: List[String], file: LibraryFile) extends RuntimeContext
 
 }
 
@@ -88,16 +88,19 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
 
   override def receive: Receive = loading(Configuration(None, None))
 
+  case class Images(images: net.creasource.tmdb.Configuration.Images)
+  case class Languages(languages: net.creasource.tmdb.Configuration.Languages)
+
   def loading(config: Configuration): Receive = {
 
     case (Success(HttpResponse(StatusCodes.OK, _, entity, _)), ConfigurationContext) =>
       parseEntity[net.creasource.tmdb.Configuration](entity).foreach { conf =>
-        self ! config.copy(images = Some(conf.images))
+        self ! Images(conf.images)
       }
 
     case (Success(HttpResponse(StatusCodes.OK, _, entity, _)), LanguagesContext) =>
       parseEntity[net.creasource.tmdb.Configuration.Languages](entity).foreach { languages =>
-        self ! config.copy(languages = Some(languages))
+        self ! Languages(languages)
       }
 
     case (Success(HttpResponse(_, _, entity, _)), requestContext) =>
@@ -116,13 +119,24 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
     case (Failure(exception), requestContext) =>
       logger.error("An error occurred for context: " + requestContext, exception)
 
-    case conf @ Configuration(_, _) =>
-      if (conf.languages.isDefined && conf.images.isDefined) {
+    case Images(images) =>
+      val configuration = config.copy(images = Some(images))
+      if (configuration.languages.isDefined & configuration.images.isDefined) {
         unstashAll()
         logger.info("Configuration loaded successfully")
-        context.become(behavior(conf, Seq.empty, Seq.empty))
+        context.become(behavior(configuration, Seq.empty, Seq.empty))
       } else {
-        context.become(loading(conf))
+        context.become(loading(configuration))
+      }
+
+    case Languages(languages) =>
+      val configuration = config.copy(languages = Some(languages))
+      if (configuration.languages.isDefined & configuration.images.isDefined) {
+        unstashAll()
+        logger.info("Configuration loaded successfully")
+        context.become(behavior(configuration, Seq.empty, Seq.empty))
+      } else {
+        context.become(loading(configuration))
       }
 
     case _ => stash()
@@ -138,7 +152,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
     // TMDB responses
     case (Success(HttpResponse(StatusCodes.OK, _, entity, _)), requestContext: RuntimeContext) =>
       requestContext match {
-        case MovieMetadata(_, _, _, file) =>
+        case MovieMetadata(_, _, tags, file) =>
           parseEntity[SearchMovies](entity).foreach { search =>
             if (search.total_results > 0) {
               val head = search.results.head
@@ -152,6 +166,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
                 head.backdrop_path,
                 head.overview,
                 head.vote_average,
+                tags,
                 file
               )
             }
@@ -237,9 +252,27 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
       .replaceAll("""\[|\]""", "")
       .replaceAll("[ ]+", " ")
 
+    def extractTags(rest: String): List[String] = {
+      var tags = List.empty[String]
+      val lower = rest.toLowerCase
+      if (lower.contains("h264") || lower.contains("x264"))
+        tags +:= "x264"
+      if (lower.contains("h265") || lower.contains("x265"))
+        tags +:= "x265"
+      if (lower.endsWith("mkv"))
+        tags +:= "mkv"
+      if (lower.endsWith("mp4"))
+        tags +:= "mp4"
+      if (lower.contains("720p"))
+        tags +:= "720p"
+      if (lower.contains("1080p"))
+        tags +:= "1080p"
+      tags
+    }
+
     clean(file.name) match {
-      case show(title, episode, rest) => Some(ShowMetadata(title.trim, episode, rest, file))
-      case movie(title, year, _, rest) => Some(MovieMetadata(title.trim, year.toInt, rest, file))
+      case show(title, episode, rest) => Some(ShowMetadata(title.trim, episode, extractTags(rest), file))
+      case movie(title, year, _, rest) => Some(MovieMetadata(title.trim, year.toInt, extractTags(rest), file))
       case _ => None
     }
   }

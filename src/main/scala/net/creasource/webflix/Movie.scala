@@ -13,10 +13,11 @@ case class Movie(
     backdrop: Option[String],
     overview: String,
     vote_average: Float,
+    tags: List[String],
     file: LibraryFile)
 
 object Movie extends JsonSupport {
 
-  implicit val format: RootJsonFormat[Movie] = jsonFormat10(Movie.apply)
+  implicit val format: RootJsonFormat[Movie] = jsonFormat11(Movie.apply)
 
 }
