@@ -63,11 +63,11 @@ import {Cast, Crew} from '@app/models/movie-ext';
                 </dd>
                 <dt>Budget</dt>
                 <dd *ngIf="movieExt$ | async as details; else loading">
-                  {{ details.budget }}
+                  {{ details.budget | currency:'USD':'symbol':'1.0' }}
                 </dd>
                 <dt>Revenue</dt>
                 <dd *ngIf="movieExt$ | async as details; else loading">
-                  {{ details.revenue }}
+                  {{ details.revenue | currency:'USD':'symbol':'1.0' }}
                 </dd>
                 <ng-template #loading>
                   <dd class="loading">Loading...</dd>
