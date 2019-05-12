@@ -30,64 +30,65 @@ import {Cast, Crew} from '@app/models/movie-ext';
                 PLAY
               </button>
             </div>
-            <div class="overview">
-              <h2>Overview</h2>
-              <p>{{ movie.overview }}</p>
-            </div>
+            <p class="overview">
+              {{ movie.overview }}
+            </p>
             <div class="information">
-              <h2>Information
-                <button mat-icon-button (click)="showMore = !showMore" class="show-more">
-                  <mat-icon>{{ showMore ? 'arrow_drop_up' : 'arrow_drop_down' }}</mat-icon>
-                </button>
-              </h2>
-              <dl class="left">
-                <dt>Original title</dt>
-                <dd>{{ movie.original_title }}</dd>
-                <dt>Release date</dt>
-                <dd>{{ movie.release_date | date:'mediumDate'}}</dd>
-                <dt>Directed by</dt>
-                <dd *ngIf="movieExt$ | async as details; else loading">
-                  {{ getDirectors(details.credits.crew) }}
-                </dd>
-                <dt>Runtime</dt>
-                <dd *ngIf="movieExt$ | async as details; else loading">
-                  {{ details.runtime | sgTime }}
-                </dd>
-              </dl>
-              <dl class="right">
-                <dt>Language</dt>
-                <dd>{{ getLanguage(movie.original_language) | async }}</dd>
-                <dt>Genres</dt>
-                <dd *ngIf="movieExt$ | async as details; else loading">
-                  {{ getGenre(details) }}
-                </dd>
-                <dt>Budget</dt>
-                <dd *ngIf="movieExt$ | async as details; else loading">
-                  {{ details.budget | currency:'USD':'symbol':'1.0' }}
-                </dd>
-                <dt>Revenue</dt>
-                <dd *ngIf="movieExt$ | async as details; else loading">
-                  {{ details.revenue | currency:'USD':'symbol':'1.0' }}
-                </dd>
-                <ng-template #loading>
-                  <dd class="loading">Loading...</dd>
-                </ng-template>
-              </dl>
-              <mat-divider *ngIf="showMore"></mat-divider>
-              <dl *ngIf="showMore">
-                <dt>Library</dt>
-                <dd>{{ movie.file.libraryName }}</dd>
-                <dt>File name</dt>
-                <dd>{{ movie.file.name }}</dd>
-                <dt>File size</dt>
-                <dd>{{ movie.file.size | sgFileSize }}</dd>
-                <dt>Tags</dt>
-                <dd class="tags">
-                  <mat-chip-list [selectable]="false" [disabled]="true">
-                    <mat-chip *ngFor="let tag of movie.tags">{{ tag }}</mat-chip>
-                  </mat-chip-list>
-                </dd>
-              </dl>
+              <header>
+                <h3 (click)="showFileInfo = false" [class.selected]="!showFileInfo">Movie Info</h3>
+                <h3 (click)="showFileInfo = true" [class.selected]="showFileInfo">File Info</h3>
+              </header>
+              <section class="movie-info" *ngIf="!showFileInfo">
+                <dl class="left">
+                  <dt>Original title</dt>
+                  <dd>{{ movie.original_title }}</dd>
+                  <dt>Release date</dt>
+                  <dd>{{ movie.release_date | date:'mediumDate'}}</dd>
+                  <dt>Directed by</dt>
+                  <dd *ngIf="movieExt$ | async as details; else loading">
+                    {{ getDirectors(details.credits.crew) }}
+                  </dd>
+                  <dt>Runtime</dt>
+                  <dd *ngIf="movieExt$ | async as details; else loading">
+                    {{ details.runtime | sgTime }}
+                  </dd>
+                </dl>
+                <dl class="right">
+                  <dt>Language</dt>
+                  <dd>{{ getLanguage(movie.original_language) | async }}</dd>
+                  <dt>Genres</dt>
+                  <dd *ngIf="movieExt$ | async as details; else loading">
+                    {{ getGenre(details) }}
+                  </dd>
+                  <dt>Budget</dt>
+                  <dd *ngIf="movieExt$ | async as details; else loading">
+                    {{ details.budget | currency:'USD':'symbol':'1.0' }}
+                  </dd>
+                  <dt>Revenue</dt>
+                  <dd *ngIf="movieExt$ | async as details; else loading">
+                    {{ details.revenue | currency:'USD':'symbol':'1.0' }}
+                  </dd>
+                  <ng-template #loading>
+                    <dd class="loading">Loading...</dd>
+                  </ng-template>
+                </dl>
+              </section>
+              <section class="file-info" *ngIf="showFileInfo">
+                <dl>
+                  <dt>Library</dt>
+                  <dd>{{ movie.file.libraryName }}</dd>
+                  <dt>File name</dt>
+                  <dd>{{ movie.file.name }}</dd>
+                  <dt>File size</dt>
+                  <dd>{{ movie.file.size | sgFileSize }}</dd>
+                  <dt>Tags</dt>
+                  <dd class="tags">
+                    <mat-chip-list [selectable]="false" [disabled]="true">
+                      <mat-chip *ngFor="let tag of movie.tags">{{ tag }}</mat-chip>
+                    </mat-chip-list>
+                  </dd>
+                </dl>
+              </section>
             </div>
           </div>
           <div class="cast" *ngIf="movieExt$ | async as details; else castLoading">
@@ -159,14 +160,14 @@ import {Cast, Crew} from '@app/models/movie-ext';
       vertical-align: middle;
       font-weight: 400;
     }
-    .score {
-      position: relative;
-      margin: 2rem 0;
-    }
     .actions {
       display: flex;
       flex-direction: row;
       align-items: center;
+      margin: 1.5rem 0;
+    }
+    .score {
+      position: relative;
     }
     .score span {
       position: absolute;
@@ -181,36 +182,39 @@ import {Cast, Crew} from '@app/models/movie-ext';
       margin-top: 0;
       margin-bottom: 1rem;
     }
-    .overview p {
+    .overview {
       font-weight: 300;
       line-height: 1.5;
-      margin-top: 0
+      margin: 0
     }
-    .information h2 {
+    .information header {
       display: flex;
-      align-items: center;
+      flex-direction: row;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid;
     }
-    .show-more {
-      height: 30px;
-      width: 30px;
-      line-height: 30px;
-      margin-left: .5rem;
+    .information h3 {
+      font-weight: 400;
+      font-size: 16px;
+      width: 8.5rem;
+      text-align: center;
+      margin: .5rem 0 -1px 0;
+      padding: .75rem 0;
+      cursor: pointer;
+    }
+    .information h3.selected {
+      border-bottom: 2px solid;
     }
     dl {
-      display: flex;
+      display: inline-flex;
       flex-direction: row;
       flex-wrap: wrap;
       font-weight: 300;
-      margin: 1rem 0;
+      margin: 0;
+      width: 100%;
+      min-height: 120px;
     }
     dl.left, dl.right {
-      display: inline-flex;
-      margin-top: 0;
-    }
-    dl.left {
-      width: 50%;
-    }
-    dl.right {
       width: 50%;
     }
     dt {
@@ -249,7 +253,6 @@ import {Cast, Crew} from '@app/models/movie-ext';
       flex-direction: row;
       justify-content: space-between;
       flex-wrap: wrap;
-      margin-top: 1rem;
     }
     .people {
       display: flex;
@@ -286,7 +289,7 @@ export class MovieComponent implements OnInit {
 
   @Input() movie: Movie;
 
-  showMore = false;
+  showFileInfo = false;
 
   movieExt$: Observable<MovieExt>;
 

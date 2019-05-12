@@ -11,39 +11,35 @@
       <mat-icon class="material-icons-outlined">view_stream</mat-icon>
     </button>
     <div class="filters">
-      <mat-form-field floatLabel="never">
+<!--      <mat-form-field floatLabel="never">
         <mat-label>Genre</mat-label>
-        <mat-select>
-          <mat-option>-- None --</mat-option>
+        <mat-select multiple>
           <mat-option value="test">
             Test
           </mat-option>
         </mat-select>
-      </mat-form-field>
+      </mat-form-field>-->
       <mat-form-field floatLabel="never">
         <mat-label>Year</mat-label>
-        <mat-select>
-          <mat-option>-- None --</mat-option>
-          <mat-option value="test">
-            Test
+        <mat-select multiple>
+          <mat-option *ngFor="let year of years$ | async" [value]="year">
+            {{ year }}
           </mat-option>
         </mat-select>
       </mat-form-field>
       <mat-form-field floatLabel="never">
         <mat-label>Language</mat-label>
-        <mat-select>
-          <mat-option>-- None --</mat-option>
-          <mat-option value="test">
-            Test
+        <mat-select multiple>
+          <mat-option *ngFor="let language of languages$ | async" [value]="language.code">
+            {{ language.name }}
           </mat-option>
         </mat-select>
       </mat-form-field>
       <mat-form-field floatLabel="never">
-        <mat-label>Format</mat-label>
-        <mat-select>
-          <mat-option>-- None --</mat-option>
-          <mat-option value="test">
-            Test
+        <mat-label>Tags</mat-label>
+        <mat-select multiple>
+          <mat-option *ngFor="let tag of tags$ | async" [value]="tag">
+            {{ tag }}
           </mat-option>
         </mat-select>
       </mat-form-field>
