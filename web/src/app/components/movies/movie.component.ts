@@ -92,7 +92,6 @@ import {Cast, Crew} from '@app/models/movie-ext';
             </div>
           </div>
           <div class="cast" *ngIf="movieExt$ | async as details; else castLoading">
-            <h2>Casting</h2>
             <div class="people" *ngFor="let actor of details.credits.cast">
               <div class="profile" [style]="getActorStyle(actor) | async"></div>
               <div class="name">
@@ -127,7 +126,7 @@ import {Cast, Crew} from '@app/models/movie-ext';
     .movie {
       display: grid;
       grid-template-columns: 300px 900px; /* TODO media query */
-      grid-template-rows: auto 280px;
+      grid-template-rows: auto 258px;
       grid-template-areas:
         "poster meta"
         "cast cast";
@@ -237,10 +236,7 @@ import {Cast, Crew} from '@app/models/movie-ext';
       flex-direction: row;
       justify-content: space-between;
       flex-wrap: wrap;
-    }
-    .cast h2 {
-      flex-basis: 100%;
-      margin-bottom: .5rem;
+      margin-top: 1rem;
     }
     .people {
       display: flex;
@@ -255,10 +251,12 @@ import {Cast, Crew} from '@app/models/movie-ext';
     .name {
       font-weight: 400;
       font-size: 14px;
-      height: 2rem;
+      height: 3rem;
       display: flex;
       align-items: center;
       justify-content: center;
+      text-align: center;
+      padding: 0 .5rem;
     }
   `]
 })
