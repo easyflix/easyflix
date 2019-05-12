@@ -120,25 +120,30 @@ import {Cast, Crew} from '@app/models/movie-ext';
       background-size: cover;
       background-position: 50% 50%;
       height: 1080px;
+      display: flex;
+      flex-direction: column;
     }
     .container:focus {
       outline: none;
     }
     .filter {
       display: flex;
+      flex-direction: column;
       width: 100%;
-      height: 100%;
+      flex-grow: 1;
       justify-content: center;
+      align-items: center;
     }
     .movie {
       display: grid;
+      max-width: 1300px;
       grid-template-columns: 300px auto;
-      grid-template-rows: auto 258px;
+      grid-template-rows: auto 306px;
       grid-template-areas:
         "poster meta"
         "cast cast";
       justify-items: stretch;
-      padding: 8rem 2rem 10rem;
+      padding: 0 2rem;
       box-sizing: border-box;
     }
     .poster {
@@ -148,7 +153,6 @@ import {Cast, Crew} from '@app/models/movie-ext';
     .meta {
       grid-area: meta;
       margin-left: 2rem;
-      margin-bottom: 2rem;
       max-width: 900px;
     }
     .title {
@@ -259,6 +263,7 @@ import {Cast, Crew} from '@app/models/movie-ext';
       flex-direction: row;
       justify-content: space-between;
       flex-wrap: wrap;
+      margin-top: 3rem;
     }
     .people {
       display: flex;

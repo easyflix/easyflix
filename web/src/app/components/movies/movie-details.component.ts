@@ -14,9 +14,12 @@ import {Movie} from '@app/models';
     :host {
       display: flex;
       flex-direction: column;
+      min-height: 850px;
       max-height: 1020px;
+      height: calc(100vh - 60px);
       overflow: hidden;
       position: relative;
+      justify-content: center;
     }
     app-movie {
       width: 100%;

@@ -8,10 +8,10 @@ import {map} from 'rxjs/operators';
 @Component({
   selector: 'app-main',
   template: `
-    <button mat-icon-button class="menu" *ngIf="showMenuButton$ | async" (click)="openSidenav()">
-      <mat-icon>menu</mat-icon>
-    </button>
     <header>
+      <button mat-icon-button class="menu" *ngIf="showMenuButton$ | async" (click)="openSidenav()">
+        <mat-icon>menu</mat-icon>
+      </button>
       <h1>Webflix</h1>
       <nav>
         <a [routerLink]="['/home']" routerLinkActive="active" queryParamsHandling="preserve">Home</a>
@@ -49,6 +49,7 @@ import {map} from 'rxjs/operators';
       flex-direction: row;
       align-items: center;
       padding: 0 60px;
+      z-index: 1;
     }
     h1 {
       margin: 0 1rem 0 0;
