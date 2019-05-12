@@ -341,7 +341,7 @@ export class MovieComponent implements OnInit {
       take(1),
       map(config =>
         config.languages
-          .find(language => language.iso_639_1 == languageCode)
+          .find(language => language.iso_639_1 === languageCode)
           .english_name
       )
     );

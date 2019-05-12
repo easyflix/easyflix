@@ -6,7 +6,8 @@ import {Movie} from '@app/models';
  * State
  */
 export const adapter: EntityAdapter<Movie> = createEntityAdapter<Movie>({
-  selectId: movie => movie.file.path
+  selectId: movie => movie.id,
+  sortComparer: (a, b) => a.title.localeCompare(b.title)
 });
 
 export interface State extends EntityState<Movie> {}
