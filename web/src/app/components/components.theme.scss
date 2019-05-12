@@ -99,6 +99,12 @@
     .year {
       color: mat-color($foreground, disabled-text);
     }
+    .people {
+      @include mat-elevation(4);
+    }
+    .name {
+      background-color: mat-color($background, background);
+    }
   }
 
 

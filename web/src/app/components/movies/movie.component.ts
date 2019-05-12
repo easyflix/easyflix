@@ -1,15 +1,16 @@
 import {AfterViewInit, Component, Input, OnInit} from '@angular/core';
-import {Movie, MovieDetails} from '@app/models';
+import {Movie, MovieExt} from '@app/models';
 import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
 import {CoreService} from '@app/services/core.service';
 import {Observable} from 'rxjs';
 import {filter, map, share, take} from 'rxjs/operators';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
+import {Cast, Crew} from '@app/models/movie-ext';
 
 @Component({
   selector: 'app-movie',
   template: `
-    <div class="container" [style]="getBackdropStyle() | async"  tabindex="0">
+    <div class="container" [style]="getBackdropStyle() | async" tabindex="0">
       <div class="filter">
         <div class="movie">
           <div class="poster" [style]="getPosterStyle() | async"></div>
@@ -44,9 +45,11 @@ import {HttpSocketClientService} from '@app/services/http-socket-client.service'
                 <dt>Release date</dt>
                 <dd>{{ movie.release_date }}</dd>
                 <dt>Directed by</dt>
-                <dd>Some Name</dd>
+                <dd *ngIf="movieExt$ | async as details; else loading">
+                  {{ getDirectors(details.credits.crew) }}
+                </dd>
                 <dt>Runtime</dt>
-                <dd *ngIf="movieDetails$ | async as details; else loading">
+                <dd *ngIf="movieExt$ | async as details; else loading">
                   {{ details.runtime | sgTime }}
                 </dd>
               </dl>
@@ -54,15 +57,15 @@ import {HttpSocketClientService} from '@app/services/http-socket-client.service'
                 <dt>Language</dt>
                 <dd>English</dd>
                 <dt>Genres</dt>
-                <dd *ngIf="movieDetails$ | async as details; else loading">
+                <dd *ngIf="movieExt$ | async as details; else loading">
                   {{ getGenre(details) }}
                 </dd>
                 <dt>Budget</dt>
-                <dd *ngIf="movieDetails$ | async as details; else loading">
+                <dd *ngIf="movieExt$ | async as details; else loading">
                   {{ details.budget }}
                 </dd>
                 <dt>Revenue</dt>
-                <dd *ngIf="movieDetails$ | async as details; else loading">
+                <dd *ngIf="movieExt$ | async as details; else loading">
                   {{ details.revenue }}
                 </dd>
                 <ng-template #loading>
@@ -88,16 +91,20 @@ import {HttpSocketClientService} from '@app/services/http-socket-client.service'
               </dl>
             </div>
           </div>
-          <div class="cast">
+          <div class="cast" *ngIf="movieExt$ | async as details; else castLoading">
             <h2>Casting</h2>
-            <div class="people"></div>
-            <div class="people"></div>
-            <div class="people"></div>
-            <div class="people"></div>
-            <div class="people"></div>
-            <div class="people"></div>
-            <div class="people"></div>
+            <div class="people" *ngFor="let actor of details.credits.cast">
+              <div class="profile" [style]="getActorStyle(actor) | async"></div>
+              <div class="name">
+                {{ actor.name }}
+              </div>
+            </div>
           </div>
+          <ng-template #castLoading>
+            <div class="cast loading">
+              <h2>Casting</h2>
+            </div>
+          </ng-template>
         </div>
       </div>
     </div>
@@ -120,12 +127,12 @@ import {HttpSocketClientService} from '@app/services/http-socket-client.service'
     .movie {
       display: grid;
       grid-template-columns: 300px 900px; /* TODO media query */
-      grid-template-rows: auto 220px;
+      grid-template-rows: auto 280px;
       grid-template-areas:
         "poster meta"
         "cast cast";
       justify-items: stretch;
-      padding: 8rem 2rem 12rem;
+      padding: 8rem 2rem 10rem;
       box-sizing: border-box;
     }
     .poster {
@@ -233,11 +240,25 @@ import {HttpSocketClientService} from '@app/services/http-socket-client.service'
     }
     .cast h2 {
       flex-basis: 100%;
+      margin-bottom: .5rem;
     }
     .people {
-      height: 175px;
-      width: 138px;
-      background-color: grey;
+      display: flex;
+      flex-direction: column;
+      width: 140px;
+    }
+    .profile {
+      height: 210px; /* 278 */
+       /* 185 */
+      background-size: cover;
+    }
+    .name {
+      font-weight: 400;
+      font-size: 14px;
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   `]
 })
@@ -247,7 +268,7 @@ export class MovieComponent implements OnInit {
 
   showMore = false;
 
-  movieDetails$: Observable<MovieDetails>;
+  movieExt$: Observable<MovieExt>;
 
   constructor(
     private core: CoreService,
@@ -256,8 +277,8 @@ export class MovieComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.movieDetails$ = this.socketClient.get('/api/movies/' + this.movie.id).pipe(
-      map((response: MovieDetails) => response),
+    this.movieExt$ = this.socketClient.get('/api/movies/' + this.movie.id).pipe(
+      map((response: MovieExt) => response),
       share()
     );
   }
@@ -282,12 +303,26 @@ export class MovieComponent implements OnInit {
     );
   }
 
+  getActorStyle(actor: Cast): Observable<SafeStyle> {
+    return this.core.getConfig().pipe(
+      filter(s => !!s),
+      take(1),
+      map(config => this.sanitizer.bypassSecurityTrustStyle(
+        `background-image: url(${config.secure_base_url}w185${actor.profile_path})`
+      ))
+    );
+  }
+
   getScore(movie: Movie) {
     return Math.floor(movie.vote_average * 10);
   }
 
-  getGenre(details: MovieDetails) {
+  getGenre(details: MovieExt) {
     return details.genres.map(genre => genre.name).join(', ');
+  }
+
+  getDirectors(crew: Crew[]) {
+    return crew.map(director => director.name).join(', ');
   }
 
 }
