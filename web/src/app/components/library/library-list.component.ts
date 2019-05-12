@@ -4,7 +4,8 @@ import {map, mergeMap} from 'rxjs/operators';
 import {Library} from '@app/models';
 import {AnimatableComponent} from '@app/components/library/library.component';
 import {LibrariesService} from '@app/services/libraries.service';
-import {MatDialog, MatSnackBar} from '@angular/material';
+import {MatDialog} from '@angular/material/dialog';
+import {MatSnackBar} from '@angular/material/snack-bar';
 import {LibraryCreationDialogComponent} from '@app/components/dialogs/library-creation-dialog/library-creation-dialog.component';
 import {FilesService} from '@app/services/files.service';
 import {FTPLibrary, LocalLibrary, S3Library} from '@app/models/library';
@@ -210,7 +211,7 @@ export class LibraryListComponent implements OnInit, AnimatableComponent {
 
   openLibrary: EventEmitter<Library> = new EventEmitter();
 
-  @ViewChild('matList', { read: ElementRef })
+  @ViewChild('matList', { read: ElementRef, static: false })
   matList: ElementRef;
 
   constructor(

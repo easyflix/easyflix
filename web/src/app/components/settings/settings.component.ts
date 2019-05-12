@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {MatTabNav} from '@angular/material';
+import {MatTabNav} from '@angular/material/tabs';
 import {CoreService} from '@app/services/core.service';
 import {Observable, Subscription} from 'rxjs';
 import {SidenavWidthType} from '@app/reducers/core.reducer';
@@ -32,7 +32,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 /*  @ViewChild('libraryNgForm', { read: FormGroupDirective }) libraryNgForm;
   @ViewChild('mediaTypeNgForm', { read: FormGroupDirective }) mediaTypeNgForm;*/
 
-  @ViewChild(MatTabNav) navBar: MatTabNav;
+  @ViewChild(MatTabNav, { static: true }) navBar: MatTabNav;
 
   sidenavWidth$: Observable<SidenavWidthType>;
 

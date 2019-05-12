@@ -14,7 +14,7 @@ import {LibraryFile} from '@app/models';
 })
 export class VideoComponent implements OnInit, OnDestroy {
 
-  @ViewChild('video')
+  @ViewChild('video', { static: true })
   videoRef: ElementRef;
 
   src$: Observable<string>;

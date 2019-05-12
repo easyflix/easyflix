@@ -99,6 +99,16 @@
     .year {
       color: mat-color($foreground, disabled-text);
     }
+    .information header {
+      border-color: mat-color($foreground, divider) !important;
+    }
+    .information h3 {
+      color: mat-color($foreground, secondary-text);
+    }
+    .information h3.selected {
+      color: mat-color($foreground, text);
+      border-color: mat-color($primary) !important;
+    }
     .people {
       @include mat-elevation(4);
     }

@@ -95,10 +95,10 @@ export class FileListComponent implements OnInit, AnimatableComponent {
   files$: Observable<LibraryFile[]>;
   currentFolder: LibraryFile;
 
-  @ViewChild('back', { read: ElementRef })
+  @ViewChild('back', { read: ElementRef, static: true })
   back: ElementRef;
 
-  @ViewChild('scrollable', { read: ElementRef })
+  @ViewChild('scrollable', { read: ElementRef, static: true })
   scrollable: ElementRef;
 
   constructor(

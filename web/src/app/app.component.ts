@@ -1,5 +1,4 @@
-import {ChangeDetectionStrategy, Component, HostListener, OnInit, ViewChild} from '@angular/core';
-import {MatSidenav} from '@angular/material';
+import {ChangeDetectionStrategy, Component, HostListener, OnInit} from '@angular/core';
 import {concat, Observable} from 'rxjs';
 import {CoreService} from './services/core.service';
 import {playerAnimations} from '@app/animations';
@@ -25,9 +24,6 @@ export class AppComponent implements OnInit {
   showSidenav$: Observable<boolean>;
   sidenavMode$: Observable<SidenavModeType>;
   sidenavWidth$: Observable<SidenavWidthType>;
-
-  @ViewChild('sidenav')
-  sidenav: MatSidenav;
 
   constructor(
     private core: CoreService,

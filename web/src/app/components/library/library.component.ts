@@ -99,7 +99,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
   state = 's0';
   animating = false;
 
-  @ViewChild('myPanels', {read: PanelDirective})
+  @ViewChild('myPanels', { read: PanelDirective, static: true })
   panels: PanelDirective;
 
   librariesComponent: ComponentRef<LibraryListComponent>;

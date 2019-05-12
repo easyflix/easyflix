@@ -79,7 +79,7 @@ export class SidenavComponent implements OnInit, OnDestroy {
 
   @Output() closeSidenav: EventEmitter<void> = new EventEmitter();
 
-  @ViewChild('firstButton', { read: ElementRef })
+  @ViewChild('firstButton', { read: ElementRef, static: true })
   first: ElementRef;
 
   private subscription: Subscription;

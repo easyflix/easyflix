@@ -1,5 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
-import {MatDialogRef, MatHorizontalStepper} from '@angular/material';
+import {MatDialogRef} from '@angular/material/dialog';
+import {MatHorizontalStepper} from '@angular/material/stepper';
 import {AbstractControl, FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {LibrariesService} from '@app/services/libraries.service';
 import {Library} from '@app/models';
@@ -38,7 +39,7 @@ export class LibraryCreationDialogComponent implements OnInit {
     { key: 'ca-central-1', region: 'Canada (Central)'}
   ];
 
-  @ViewChild(MatHorizontalStepper) stepper: MatHorizontalStepper;
+  @ViewChild(MatHorizontalStepper, { static: true }) stepper: MatHorizontalStepper;
 
   localFormGroup: FormGroup;
   ftpFormGroup: FormGroup;

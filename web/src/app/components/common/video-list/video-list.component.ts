@@ -19,7 +19,7 @@ import {Subscription} from 'rxjs';
 })
 export class VideoListComponent implements OnInit, OnDestroy {
 
-  @ViewChild('section')
+  @ViewChild('section', { static: true })
   section: ElementRef;
 
   itemWidth = 202;
