@@ -84,9 +84,7 @@ import {Cast, Crew} from '@app/models/movie-ext';
                 <dt>Tags</dt>
                 <dd class="tags">
                   <mat-chip-list [selectable]="false" [disabled]="true">
-                    <mat-chip>1080p</mat-chip>
-                    <mat-chip>mp4</mat-chip>
-                    <mat-chip>H264</mat-chip>
+                    <mat-chip *ngFor="let tag of movie.tags">{{ tag }}</mat-chip>
                   </mat-chip-list>
                 </dd>
               </dl>
@@ -235,6 +233,9 @@ import {Cast, Crew} from '@app/models/movie-ext';
     }
     .right dd {
       width: calc(100% - 7rem);
+    }
+    .tags {
+      overflow: visible;
     }
     .tags mat-chip {
       margin-top: 0;
