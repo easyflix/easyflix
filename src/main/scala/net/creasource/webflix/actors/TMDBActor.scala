@@ -9,10 +9,10 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.util.ByteString
 import net.creasource.Application
-import net.creasource.tmdb.{Configuration, MovieDetails, SearchMovies}
+import net.creasource.tmdb.{MovieDetails, SearchMovies}
 import net.creasource.webflix.events.{FileAdded, MovieAdded}
-import net.creasource.webflix.{LibraryFile, Movie, MovieExt}
-import spray.json._
+import net.creasource.webflix.{Configuration, LibraryFile, Movie, MovieExt}
+import spray.json.DefaultJsonProtocol._
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -29,6 +29,7 @@ object TMDBActor {
 
   sealed trait Context
   case object ConfigurationContext extends Context
+  case object LanguagesContext extends Context
 
   sealed trait RuntimeContext extends Context
   case class MovieId(id: Int) extends RuntimeContext
@@ -80,27 +81,49 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
   /**
     * Load configuration
     */
-  Seq(ConfigurationContext)
+  Seq(ConfigurationContext, LanguagesContext)
     .map(createRequest)
     .collect{ case Some(req) => req }
     .foreach(tmdb ! _)
 
-  override def receive: Receive = loading
+  override def receive: Receive = loading(Configuration(None, None))
 
-  def loading: Receive = {
+  def loading(config: Configuration): Receive = {
 
     case (Success(HttpResponse(StatusCodes.OK, _, entity, _)), ConfigurationContext) =>
-      parseEntity[Configuration](entity).foreach(self ! _)
+      parseEntity[net.creasource.tmdb.Configuration](entity).foreach { conf =>
+        self ! config.copy(images = Some(conf.images))
+      }
 
-    case (Success(HttpResponse(_, _, entity, _)), ConfigurationContext) =>
-      entity.discardBytes()
-      logger.error("Got a non-200 response for configuration request.")
-      self ! PoisonPill // TODO
+    case (Success(HttpResponse(StatusCodes.OK, _, entity, _)), LanguagesContext) =>
+      parseEntity[net.creasource.tmdb.Configuration.Languages](entity).foreach { languages =>
+        self ! config.copy(languages = Some(languages))
+      }
 
-    case config @ Configuration(_, _) =>
-      unstashAll()
-      logger.info("Configuration loaded successfully")
-      context.become(behavior(config, Seq.empty, Seq.empty))
+    case (Success(HttpResponse(_, _, entity, _)), requestContext) =>
+      requestContext match {
+        case ConfigurationContext =>
+          entity.discardBytes()
+          logger.error("Got a non-200 response for configuration request.")
+          self ! PoisonPill // TODO
+        case LanguagesContext =>
+          entity.discardBytes()
+          logger.error("Got a non-200 response for languages request.")
+          self ! PoisonPill // TODO
+        case _ => stash()
+      }
+
+    case (Failure(exception), requestContext) =>
+      logger.error("An error occurred for context: " + requestContext, exception)
+
+    case conf @ Configuration(_, _) =>
+      if (conf.languages.isDefined && conf.images.isDefined) {
+        unstashAll()
+        logger.info("Configuration loaded successfully")
+        context.become(behavior(conf, Seq.empty, Seq.empty))
+      } else {
+        context.become(loading(conf))
+      }
 
     case _ => stash()
   }
@@ -163,8 +186,8 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
       entity.discardBytes()
       logger.warning("Unhandled response")
 
-    case (Failure(exception), runtimeContext) =>
-      logger.error("An error occurred for context: " + runtimeContext, exception)
+    case (Failure(exception), requestContext) =>
+      logger.error("An error occurred for context: " + requestContext, exception)
 
     // Requests
     case GetConfig => sender() ! config
@@ -202,12 +225,6 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
 
   }
 
-  def parseEntity[T](entity: ResponseEntity)(implicit reader: RootJsonReader[T]): Future[T] = {
-    entity.dataBytes.runFold(ByteString(""))(_ ++ _).flatMap { body =>
-      Future(body.utf8String.parseJson.convertTo[T])
-    }
-  }
-
   def extractMeta(file: LibraryFile): Option[Context] = {
     val show = """^(.+)([Ss]\d{1,2}[Ee]\d{1,2})(.*)$""".r
     val movie = """^(.+)((19|20)\d{2})(.*)$""".r
@@ -236,9 +253,18 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
       case MovieId(id) =>
         Some(MovieDetails.get(id, api_key, append_to_response = Some("credits")))
       case ConfigurationContext =>
-        Some(Configuration.get(api_key))
+        Some(net.creasource.tmdb.Configuration.get(api_key))
+      case LanguagesContext =>
+        Some(net.creasource.tmdb.Configuration.Language.get(api_key))
     }
     uriOpt.map(uri => (HttpRequest(uri = uri), context))
+  }
+
+  def parseEntity[T](entity: ResponseEntity)(implicit reader: spray.json.RootJsonReader[T]): Future[T] = {
+    import spray.json._
+    entity.dataBytes.runFold(ByteString(""))(_ ++ _).flatMap { body =>
+      Future(body.utf8String.parseJson.convertTo[T])
+    }
   }
 
   override def postStop(): Unit = {

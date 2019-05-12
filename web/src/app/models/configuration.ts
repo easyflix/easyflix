@@ -8,3 +8,14 @@ export interface ImagesConfig {
   profile_sizes: string[];
   still_sizes: string[];
 }
+
+export interface Language {
+  iso_639_1: string;
+  english_name: string;
+  name: string;
+}
+
+export interface Configuration {
+  images: ImagesConfig;
+  languages: Language[];
+}

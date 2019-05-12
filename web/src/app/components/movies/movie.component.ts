@@ -42,7 +42,7 @@ import {Cast, Crew} from '@app/models/movie-ext';
               </h2>
               <dl class="left">
                 <dt>Original title</dt>
-                <dd class="original-title">{{ movie.original_title }}</dd>
+                <dd>{{ movie.original_title }}</dd>
                 <dt>Release date</dt>
                 <dd>{{ movie.release_date }}</dd>
                 <dt>Directed by</dt>
@@ -56,7 +56,7 @@ import {Cast, Crew} from '@app/models/movie-ext';
               </dl>
               <dl class="right">
                 <dt>Language</dt>
-                <dd>English</dd>
+                <dd>{{ getLanguage(movie.original_language) | async }}</dd>
                 <dt>Genres</dt>
                 <dd *ngIf="movieExt$ | async as details; else loading">
                   {{ getGenre(details) }}
@@ -210,10 +210,10 @@ import {Cast, Crew} from '@app/models/movie-ext';
       margin-top: 0;
     }
     dl.left {
-      width: 40%;
+      width: 50%;
     }
     dl.right {
-      width: 60%;
+      width: 50%;
     }
     dt {
       width: 9rem;
@@ -226,11 +226,15 @@ import {Cast, Crew} from '@app/models/movie-ext';
     dd {
       width: calc(100% - 9rem);
       margin: .3rem 0;
-    }
-    .original-title {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+    .right dt {
+      width: 7rem;
+    }
+    .right dd {
+      width: calc(100% - 7rem);
     }
     .tags mat-chip {
       margin-top: 0;
@@ -257,6 +261,7 @@ import {Cast, Crew} from '@app/models/movie-ext';
       justify-content: center;
       height: 210px; /* 278 */
       background-size: cover;
+      background-position: 50% 50%;
     }
     .profile mat-icon {
       font-size: 6rem;
@@ -302,7 +307,7 @@ export class MovieComponent implements OnInit {
       filter(s => !!s),
       take(1),
       map(config => this.sanitizer.bypassSecurityTrustStyle(
-        `background-image: url(${config.secure_base_url}w300${this.movie.poster})`
+        `background-image: url(${config.images.secure_base_url}w300${this.movie.poster})`
       ))
     );
   }
@@ -312,7 +317,7 @@ export class MovieComponent implements OnInit {
       filter(s => !!s),
       take(1),
       map(config => this.sanitizer.bypassSecurityTrustStyle(
-        `background-image: url(${config.secure_base_url}original${this.movie.backdrop})`
+        `background-image: url(${config.images.secure_base_url}original${this.movie.backdrop})`
       ))
     );
   }
@@ -323,11 +328,23 @@ export class MovieComponent implements OnInit {
         filter(s => !!s),
         take(1),
         map(config => this.sanitizer.bypassSecurityTrustStyle(
-          `background-image: url(${config.secure_base_url}w185${actor.profile_path})`
+          `background-image: url(${config.images.secure_base_url}w185${actor.profile_path})`
         ))
       );
     }
     return EMPTY;
+  }
+
+  getLanguage(languageCode: string): Observable<string> {
+    return this.core.getConfig().pipe(
+      filter(s => !!s),
+      take(1),
+      map(config =>
+        config.languages
+          .find(language => language.iso_639_1 == languageCode)
+          .english_name
+      )
+    );
   }
 
   getScore() {

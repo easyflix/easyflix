@@ -1,10 +1,13 @@
 import {Injectable} from '@angular/core';
 import {Store} from '@ngrx/store';
 import * as fromStore from '../reducers';
+import {State} from '../reducers';
 import {Observable} from 'rxjs';
 import {
   ChangeTheme,
-  CloseSidenav, CoreActionTypes, LoadConfig,
+  CloseSidenav,
+  CoreActionTypes,
+  LoadConfig,
   OpenSidenav,
   SetSidenavMode,
   SetSidenavSize,
@@ -12,9 +15,8 @@ import {
 } from '../actions/core.actions';
 import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
 import {Theme} from '@app/utils/themes.utils';
-import {ImagesConfig} from '@app/models/images-config';
+import {Configuration} from '@app/models/configuration';
 import {ServiceHelper} from '@app/services/service-helper';
-import {State} from '../reducers';
 import {Actions} from '@ngrx/effects';
 
 @Injectable()
@@ -64,11 +66,11 @@ export class CoreService extends ServiceHelper {
     this.store.dispatch(new ChangeTheme(theme));
   }
 
-  getConfig(): Observable<ImagesConfig> {
+  getConfig(): Observable<Configuration> {
     return this.store.select(fromStore.getConfig);
   }
 
-  loadConfig(): Observable<ImagesConfig> {
+  loadConfig(): Observable<Configuration> {
     return this.dispatchActionObservable(
       new LoadConfig(),
       CoreActionTypes.LoadConfigSuccess,

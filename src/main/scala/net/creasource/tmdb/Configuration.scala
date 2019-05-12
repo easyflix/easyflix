@@ -39,6 +39,8 @@ object Configuration extends JsonSupport {
   case class Language(iso_639_1: String, english_name: String, name: String)
 
   object Language {
+    def get(api_key: String) = s"/3/configuration/languages?api_key=$api_key"
+
     implicit val format: RootJsonFormat[Language] = jsonFormat3(Language.apply)
   }
 }

@@ -25,7 +25,7 @@ import {ChangeTheme, CoreActionTypes, LoadConfigError, LoadConfigSuccess} from '
 import {OverlayContainer} from '@angular/cdk/overlay';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 import {LoadMoviesError, LoadMoviesSuccess, MoviesActionTypes} from '@app/actions/movies.actions';
-import {ImagesConfig} from '@app/models/images-config';
+import {Configuration} from '@app/models/configuration';
 
 @Injectable()
 export class AppEffects {
@@ -144,7 +144,7 @@ export class AppEffects {
       ofType(CoreActionTypes.LoadConfig),
       switchMap(() =>
         this.socketClient.get('/api/config/').pipe(
-          map((config: ImagesConfig) => new LoadConfigSuccess(config)),
+          map((config: Configuration) => new LoadConfigSuccess(config)),
           catchError((error: HttpErrorResponse) => scheduled([new LoadConfigError(error.error)], asapScheduler))
         )
       )

@@ -1,7 +1,7 @@
 import {Action} from '@ngrx/store';
 import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
 import {Theme} from '@app/utils/themes.utils';
-import {ImagesConfig} from '@app/models/images-config';
+import {Configuration} from '@app/models/configuration';
 
 export enum CoreActionTypes {
   OpenSidenav = 'core/sidenav/open',
@@ -48,7 +48,7 @@ export class LoadConfig implements Action {
 
 export class LoadConfigSuccess implements Action {
   readonly type = CoreActionTypes.LoadConfigSuccess;
-  constructor(public payload: ImagesConfig) {}
+  constructor(public payload: Configuration) {}
 }
 
 export class LoadConfigError implements Action {

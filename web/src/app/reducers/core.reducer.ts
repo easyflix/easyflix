@@ -3,7 +3,7 @@
  */
 import {CoreActionsUnion, CoreActionTypes} from '../actions/core.actions';
 import {Theme, ThemesUtils} from '@app/utils/themes.utils';
-import {ImagesConfig} from '@app/models/images-config';
+import {Configuration} from '@app/models/configuration';
 
 export type SidenavModeType = 'over' | 'push' | 'side';
 export type SidenavWidthType = 'wide' | 'normal' |'narrow';
@@ -13,7 +13,7 @@ export interface State {
   sidenavMode: SidenavModeType;
   sidenavWidth: SidenavWidthType;
   theme: Theme;
-  config: ImagesConfig;
+  config: Configuration;
 }
 
 const initialState: State = {

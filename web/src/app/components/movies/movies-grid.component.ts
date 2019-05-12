@@ -5,7 +5,7 @@ import {Observable} from 'rxjs';
 import {Movie} from '@app/models';
 import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
 import {filter, take} from 'rxjs/operators';
-import {ImagesConfig} from '@app/models/images-config';
+import {Configuration} from '@app/models/configuration';
 
 @Component({
   selector: 'app-movies-grid',
@@ -44,7 +44,7 @@ import {ImagesConfig} from '@app/models/images-config';
 export class MoviesGridComponent implements OnInit {
 
   movies$: Observable<Movie[]>;
-  config: ImagesConfig;
+  config: Configuration;
 
   constructor(
     private core: CoreService,
@@ -68,7 +68,7 @@ export class MoviesGridComponent implements OnInit {
   getStyle(movie: Movie): SafeStyle {
     if (this.config !== undefined) {
       return this.sanitizer.bypassSecurityTrustStyle(
-        `background-image: url(${this.config.secure_base_url}w300${movie.poster})`
+        `background-image: url(${this.config.images.secure_base_url}w300${movie.poster})`
       );
     }
   }
