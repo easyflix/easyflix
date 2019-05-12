@@ -44,7 +44,7 @@ import {Cast, Crew} from '@app/models/movie-ext';
                 <dt>Original title</dt>
                 <dd>{{ movie.original_title }}</dd>
                 <dt>Release date</dt>
-                <dd>{{ movie.release_date }}</dd>
+                <dd>{{ movie.release_date | date:'mediumDate'}}</dd>
                 <dt>Directed by</dt>
                 <dd *ngIf="movieExt$ | async as details; else loading">
                   {{ getDirectors(details.credits.crew) }}
