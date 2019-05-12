@@ -102,6 +102,12 @@
     .people {
       @include mat-elevation(4);
     }
+    .profile {
+      background-color: mat-color($background, card);
+    }
+    .profile mat-icon {
+      color: mat-color($foreground, disabled-text);
+    }
     .name {
       background-color: mat-color($background, background);
     }

@@ -1,8 +1,8 @@
-import {AfterViewInit, Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {Movie, MovieExt} from '@app/models';
 import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
 import {CoreService} from '@app/services/core.service';
-import {Observable} from 'rxjs';
+import {EMPTY, Observable} from 'rxjs';
 import {filter, map, share, take} from 'rxjs/operators';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 import {Cast, Crew} from '@app/models/movie-ext';
@@ -93,7 +93,9 @@ import {Cast, Crew} from '@app/models/movie-ext';
           </div>
           <div class="cast" *ngIf="movieExt$ | async as details; else castLoading">
             <div class="people" *ngFor="let actor of details.credits.cast">
-              <div class="profile" [style]="getActorStyle(actor) | async"></div>
+              <div class="profile" [style]="getActorStyle(actor) | async">
+                <mat-icon *ngIf="!actor.profile_path">person</mat-icon>
+              </div>
               <div class="name">
                 {{ actor.name }}
               </div>
@@ -241,12 +243,19 @@ import {Cast, Crew} from '@app/models/movie-ext';
     .people {
       display: flex;
       flex-direction: column;
-      width: 140px;
+      width: 140px; /* 185 */
     }
     .profile {
+      display: flex;
+      align-items: center;
+      justify-content: center;
       height: 210px; /* 278 */
-       /* 185 */
       background-size: cover;
+    }
+    .profile mat-icon {
+      font-size: 6rem;
+      height: 6rem;
+      width: 6rem;
     }
     .name {
       font-weight: 400;
@@ -302,13 +311,16 @@ export class MovieComponent implements OnInit {
   }
 
   getActorStyle(actor: Cast): Observable<SafeStyle> {
-    return this.core.getConfig().pipe(
-      filter(s => !!s),
-      take(1),
-      map(config => this.sanitizer.bypassSecurityTrustStyle(
-        `background-image: url(${config.secure_base_url}w185${actor.profile_path})`
-      ))
-    );
+    if (actor.profile_path) {
+      return this.core.getConfig().pipe(
+        filter(s => !!s),
+        take(1),
+        map(config => this.sanitizer.bypassSecurityTrustStyle(
+          `background-image: url(${config.secure_base_url}w185${actor.profile_path})`
+        ))
+      );
+    }
+    return EMPTY;
   }
 
   getScore(movie: Movie) {
