@@ -20,6 +20,16 @@
         </mat-select>
       </mat-form-field>-->
       <mat-form-field floatLabel="never">
+        <mat-label>Rating</mat-label>
+        <mat-select>
+          <mat-option>All</mat-option>
+          <mat-option value="90">90% and above</mat-option>
+          <mat-option value="80">80% and above</mat-option>
+          <mat-option value="70">70% and above</mat-option>
+          <mat-option value="60">60% and above</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field floatLabel="never">
         <mat-label>Year</mat-label>
         <mat-select multiple>
           <mat-option *ngFor="let year of years$ | async" [value]="year">

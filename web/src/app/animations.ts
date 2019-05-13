@@ -45,7 +45,7 @@ const hideElements =
     style({
       display: 'none'
     })
-  ]);
+  ], { optional: true });
 
 const fadeInOut = [
   superimpose,

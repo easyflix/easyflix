@@ -6,6 +6,8 @@ import {EMPTY, Observable} from 'rxjs';
 import {filter, map, share, take} from 'rxjs/operators';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 import {Cast, Crew} from '@app/models/movie-ext';
+import {VideoService} from '@app/services/video.service';
+import {FilesService} from '@app/services/files.service';
 
 @Component({
   selector: 'app-movie',
@@ -30,7 +32,7 @@ import {Cast, Crew} from '@app/models/movie-ext';
                 </mat-progress-spinner>
                 <span>{{ getScore() }}%</span>
               </div>
-              <button class="play" mat-button mat-raised-button color="primary">
+              <button class="play" mat-button mat-raised-button color="primary" (click)="play()">
                 <mat-icon>play_arrow</mat-icon>
                 PLAY
               </button>
@@ -306,6 +308,8 @@ export class MovieComponent implements OnInit {
 
   constructor(
     private core: CoreService,
+    private files: FilesService,
+    private video: VideoService,
     private sanitizer: DomSanitizer,
     private socketClient: HttpSocketClientService
   ) { }
@@ -372,6 +376,12 @@ export class MovieComponent implements OnInit {
 
   getDirectors(crew: Crew[]) {
     return crew.map(director => director.name).join(', ');
+  }
+
+  play() {
+    this.files.getByPath(this.movie.file.path).subscribe(
+      file => this.video.playVideo(file)
+    );
   }
 
 }

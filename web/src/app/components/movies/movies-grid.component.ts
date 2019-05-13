@@ -12,7 +12,7 @@ import {Configuration} from '@app/models/configuration';
   template: `
     <a class="item"
        tabindex="0"
-       *ngFor="let movie of movies$ | async"
+       *ngFor="let movie of movies$ | async; trackBy: trackByFunc"
        [style]="getStyle(movie)"
        [routerLink]="['/movies', movie.id]">
     </a>
@@ -71,6 +71,10 @@ export class MoviesGridComponent implements OnInit {
         `background-image: url(${this.config.images.secure_base_url}w300${movie.poster})`
       );
     }
+  }
+
+  trackByFunc(index: number, movie: Movie) {
+    return movie.id;
   }
 
 }
