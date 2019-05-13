@@ -35,7 +35,7 @@ section {
   position: absolute;
   z-index: 1;
   top: 0;
-  height: 210px;
+  height: 255px;
   width: 50px;
   opacity: 0;
   transition: opacity 300ms ease;

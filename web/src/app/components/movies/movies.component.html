@@ -10,15 +10,15 @@
             routerLinkActive="active">
       <mat-icon class="material-icons-outlined">view_stream</mat-icon>
     </button>
-    <div class="filters">
-<!--      <mat-form-field floatLabel="never">
+   <!-- <div class="filters">
+     <mat-form-field floatLabel="never">
         <mat-label>Genre</mat-label>
         <mat-select multiple>
           <mat-option value="test">
             Test
           </mat-option>
         </mat-select>
-      </mat-form-field>-->
+      </mat-form-field>
       <mat-form-field floatLabel="never">
         <mat-label>Rating</mat-label>
         <mat-select>
@@ -53,7 +53,7 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-    </div>
+    </div>-->
   </header>
   <div class="animation-container" [@moviesAnimation]="getAnimationData(main)">
     <router-outlet #main="outlet"></router-outlet>

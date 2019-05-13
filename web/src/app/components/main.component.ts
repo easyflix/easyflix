@@ -84,10 +84,10 @@ import {map} from 'rxjs/operators';
     }
     main {
       flex-grow: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
+      position: relative;
     }
   `],
   animations: [mainAnimations],

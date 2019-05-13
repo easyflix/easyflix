@@ -10,26 +10,34 @@ import {Configuration} from '@app/models/configuration';
 @Component({
   selector: 'app-movies-grid',
   template: `
-    <a class="item"
-       tabindex="0"
-       *ngFor="let movie of movies$ | async; trackBy: trackByFunc"
-       [style]="getStyle(movie)"
-       [routerLink]="['/movies', movie.id]">
-    </a>
+    <nav>
+      <a class="item"
+         tabindex="0"
+         *ngFor="let movie of movies$ | async; trackBy: trackByFunc"
+         [style]="getStyle(movie)"
+         [routerLink]="['/movies', movie.id]">
+      </a>
+    </nav>
   `,
   styles: [`
     :host {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    nav {
       display: flex;
       flex-direction: row;
       flex-wrap: wrap;
-      padding-left: 60px;
-      padding-bottom: 30px;
+      overflow-y: auto;
+      padding: 60px 0 30px 60px;
     }
     .item {
       display: block;
       height: 255px; /* 450 */
       min-width: 170px; /* 300 */
-      margin: 60px 32px 15px 0;
+      margin: 0 32px 75px 0;
       box-sizing: border-box;
       transition: transform 300ms ease;
       background-size: cover;

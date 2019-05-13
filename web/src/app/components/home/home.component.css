@@ -1,6 +1,13 @@
 :host {
-  display: block;
-  padding-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.home {
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 section {

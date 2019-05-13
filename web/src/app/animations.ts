@@ -32,24 +32,20 @@ const superimpose =
       top: 0,
       left: 0,
       bottom: 0,
-      width: '100%',
-      minHeight: '100%',
-      overflow: 'hidden',
-      paddingTop: '60px',
-      boxSizing: 'border-box'
+      width: '100%'
     })
   ]);
 
-const hideElements =
+/*const hideElements =
   query(':enter .animation-hide, :leave .animation-hide', [
     style({
       display: 'none'
     })
-  ], { optional: true });
+  ], { optional: true });*/
 
 const fadeInOut = [
   superimpose,
-  hideElements,
+  // hideElements,
   query(':leave', animateChild()),
   group([
     fadeIn[0],
@@ -77,6 +73,7 @@ const slideRight = [
     query(':leave', animate(DEFAULT_TIMING + ' ease-in-out', style({ left: '100%' })))
   ])
 ];
+
 const slideLeft = [
   superimpose,
   query(':enter', [
