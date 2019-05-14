@@ -65,12 +65,18 @@ const slideRight = [
   superimpose,
   query(':enter', [
     style({
-      left: '-100%'
+      transform: 'translate(-100%)'
     })
   ]),
   group([
-    query(':enter', animate(DEFAULT_TIMING + ' ease-in-out', style({ left: 0 }))),
-    query(':leave', animate(DEFAULT_TIMING + ' ease-in-out', style({ left: '100%' })))
+    query('' +
+      ':enter',
+      animate(DEFAULT_TIMING + ' ease-in-out', style({ transform: 'translate(0)' }))
+    ),
+    query(
+      ':leave',
+      animate(DEFAULT_TIMING + ' ease-in-out', style({ transform: 'translate(100%)' }))
+    )
   ])
 ];
 
@@ -78,12 +84,18 @@ const slideLeft = [
   superimpose,
   query(':enter', [
     style({
-      left: '100%'
+      transform: 'translate(100%)'
     })
   ]),
   group([
-    query(':enter', animate(DEFAULT_TIMING + ' ease-in-out', style({ left: 0 }))),
-    query(':leave', animate(DEFAULT_TIMING + ' ease-in-out', style({ left: '-100%' })))
+    query(
+      ':enter',
+      animate(DEFAULT_TIMING + ' ease-in-out', style({ transform: 'translate(0)' }))
+    ),
+    query(
+      ':leave',
+      animate(DEFAULT_TIMING + ' ease-in-out', style({ transform: 'translate(-100%)' }))
+    )
   ])
 ];
 
