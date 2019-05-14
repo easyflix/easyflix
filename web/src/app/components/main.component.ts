@@ -1,6 +1,7 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
+import {Location} from '@angular/common';
 import {mainAnimations} from '../animations';
-import {RouterOutlet} from '@angular/router';
+import {Router, RouterOutlet} from '@angular/router';
 import {Observable} from 'rxjs';
 import {CoreService} from '@app/services/core.service';
 import {map} from 'rxjs/operators';
@@ -15,8 +16,30 @@ import {map} from 'rxjs/operators';
       <h1>Webflix</h1>
       <nav>
         <a [routerLink]="['/home']" routerLinkActive="active" queryParamsHandling="preserve">Home</a>
-        <a routerLink="/movies" routerLinkActive="active" queryParamsHandling="preserve">Movies</a>
+        <a routerLink="/movies" routerLinkActive="active" queryParamsHandling="preserve">
+          Movies
+        </a>
+        <nav>
+          <mat-icon>arrow_right</mat-icon>
+          <button mat-icon-button
+                  (click)="viewGrid = !viewGrid"
+                  [routerLink]="viewGrid ? '/movies/list' : '/movies'"
+                  queryParamsHandling="preserve"
+                  routerLinkActive="active">
+            <mat-icon>{{ viewGrid ? 'view_module' : 'view_stream' }}</mat-icon>
+          </button>
+        </nav>
         <a routerLink="/shows" routerLinkActive="active" queryParamsHandling="preserve">TV Shows</a>
+        <nav>
+          <mat-icon>arrow_right</mat-icon>
+          <button mat-icon-button
+                  (click)="viewGrid = !viewGrid"
+                  [routerLink]="viewGrid ? '/movies/list' : '/movies'"
+                  queryParamsHandling="preserve"
+                  routerLinkActive="active">
+            <mat-icon>{{ viewGrid ? 'view_module' : 'view_stream' }}</mat-icon>
+          </button>
+        </nav>
         <a routerLink="/shows" routerLinkActive="active" queryParamsHandling="preserve">Others</a>
       </nav>
       <!--<mat-icon (click)="searchInput.focus()">search</mat-icon>
@@ -51,6 +74,11 @@ import {map} from 'rxjs/operators';
       padding: 0 60px;
       z-index: 1;
     }
+    header > nav {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
     h1 {
       margin: 0 1rem 0 0;
     }
@@ -61,12 +89,20 @@ import {map} from 'rxjs/operators';
       box-sizing: border-box;
       text-align: center;
     }
-    a:not(:last-child) {
-      border-right: 1px solid;
+    a:not(:first-child) {
+      border-left: 1px solid;
     }
-    mat-icon {
-      margin-left: auto;
-      cursor: pointer;
+    nav nav {
+      display: inline-flex;
+      align-items: center;
+      width: 0;
+      overflow: hidden;
+      transition: width 300ms ease;
+      position: relative;
+      left: -7px;
+    }
+    a.active + nav {
+      width: 65px;
     }
     input {
       width: 0;
@@ -98,8 +134,19 @@ export class MainComponent implements OnInit {
   searchFocused = false;
   showMenuButton$: Observable<boolean>;
 
-  constructor(private core: CoreService) {
+  viewGrid = true;
+
+  route: string;
+
+  constructor(
+    private core: CoreService,
+    private router: Router,
+    private location: Location
+  ) {
     this.showMenuButton$ = core.getShowSidenav().pipe(map(b => !b));
+    router.events.subscribe(() => {
+      this.viewGrid = !location.path().startsWith('/movies/list');
+    });
   }
 
   ngOnInit() {
