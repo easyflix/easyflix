@@ -20,9 +20,7 @@ import {map} from 'rxjs/operators';
         <nav>
           <mat-icon>arrow_right</mat-icon>
           <button mat-icon-button
-                  [routerLink]="viewGrid ?
-                      ['/movies/list', {outlets: {movie: null}}] :
-                      ['/movies']"
+                  [routerLink]="viewGrid ? ['/movies/list'] : ['/movies']"
                   queryParamsHandling="preserve"
                   routerLinkActive="active">
             <mat-icon>{{ viewGrid ? 'view_module' : 'view_stream' }}</mat-icon>
@@ -69,12 +67,14 @@ import {map} from 'rxjs/operators';
       left: 10px;
     }
     header {
-      min-height: 60px;
+      height: 60px;
       display: flex;
       flex-direction: row;
       align-items: center;
       padding: 0 60px;
-      z-index: 1;
+      position: fixed;
+      width: 100%;
+      z-index: 10;
     }
     header > nav {
       display: flex;
@@ -126,6 +126,7 @@ import {map} from 'rxjs/operators';
       display: flex;
       flex-direction: column;
       position: relative;
+      padding-top: 60px;
     }
   `],
   animations: [mainAnimations, movieAnimations],

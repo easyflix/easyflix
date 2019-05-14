@@ -18,9 +18,10 @@ import {Movie} from '@app/models';
       flex-direction: column;
       overflow: auto;
       position: absolute;
+      top: 0;
       width: 100%;
       height: 100%;
-      z-index: 10;
+      z-index: 20;
     }
     app-movie {
       min-height: 900px;
@@ -31,8 +32,8 @@ import {Movie} from '@app/models';
     }
     button {
       position: absolute;
-      top: 1rem;
-      right: 1rem;
+      top: 10px;
+      right: .65rem;
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
