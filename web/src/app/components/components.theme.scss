@@ -39,6 +39,7 @@
   app-main {
     > header {
       @include mat-elevation(2);
+      background-color: mat-color($background, app-bar);
       a {
         color: mat-color($foreground, text);
         border-color: mat-color($foreground, disabled) !important;
