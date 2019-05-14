@@ -107,3 +107,9 @@ export const moviesAnimations = trigger('moviesAnimation', [
   transition('grid <=> details', fadeInOut),
   transition('list => grid', slideRight),
 ]);
+
+export const movieAnimations = trigger('movieAnimation', [
+  // transition(debug('movie'), []),
+  transition('void => details', fadeIn),
+  transition('details => void', fadeOut)
+]);

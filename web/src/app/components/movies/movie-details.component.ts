@@ -6,7 +6,9 @@ import {Movie} from '@app/models';
   selector: 'app-movie-details',
   template: `
     <app-movie [movie]="movie"></app-movie>
-    <button mat-icon-button routerLink="/movies" class="animation-hide">
+    <button mat-icon-button
+            [routerLink]="['/', {outlets: {movie: null}}]"
+            class="animation-hide">
       <mat-icon>close</mat-icon>
     </button>
   `,
@@ -14,15 +16,18 @@ import {Movie} from '@app/models';
     :host {
       display: flex;
       flex-direction: column;
-      min-height: 900px;
-      max-height: 1020px;
-      height: calc(100vh - 60px);
-      overflow: hidden;
-      position: relative;
-      justify-content: center;
+      overflow: auto;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
     }
     app-movie {
-      width: 100%;
+      min-height: 900px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: auto;
     }
     button {
       position: absolute;

@@ -15,7 +15,7 @@ import {Configuration} from '@app/models/configuration';
          tabindex="0"
          *ngFor="let movie of movies$ | async; trackBy: trackByFunc"
          [style]="getStyle(movie)"
-         [routerLink]="['/movies', movie.id]">
+         [routerLink]="['/', {outlets: {movie: [movie.id]}}]">
       </a>
     </nav>
   `,

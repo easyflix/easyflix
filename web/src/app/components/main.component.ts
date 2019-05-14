@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {Location} from '@angular/common';
-import {mainAnimations} from '../animations';
+import {mainAnimations, movieAnimations} from '../animations';
 import {Router, RouterOutlet} from '@angular/router';
 import {Observable} from 'rxjs';
 import {CoreService} from '@app/services/core.service';
@@ -16,21 +16,20 @@ import {map} from 'rxjs/operators';
       <h1>Webflix</h1>
       <nav>
         <a [routerLink]="['/home']" routerLinkActive="active" queryParamsHandling="preserve">Home</a>
-        <a routerLink="/movies" routerLinkActive="active" queryParamsHandling="preserve">
-          Movies
-        </a>
+        <a [routerLink]="['/movies']" routerLinkActive="active" queryParamsHandling="preserve">Movies</a>
         <nav>
           <mat-icon>arrow_right</mat-icon>
           <button mat-icon-button
-                  (click)="viewGrid = !viewGrid"
-                  [routerLink]="viewGrid ? '/movies/list' : '/movies'"
+                  [routerLink]="viewGrid ?
+                      ['/movies/list', {outlets: {movie: null}}] :
+                      ['/movies']"
                   queryParamsHandling="preserve"
                   routerLinkActive="active">
             <mat-icon>{{ viewGrid ? 'view_module' : 'view_stream' }}</mat-icon>
           </button>
         </nav>
         <a routerLink="/shows" routerLinkActive="active" queryParamsHandling="preserve">TV Shows</a>
-        <nav>
+        <!--<nav>
           <mat-icon>arrow_right</mat-icon>
           <button mat-icon-button
                   (click)="viewGrid = !viewGrid"
@@ -39,7 +38,7 @@ import {map} from 'rxjs/operators';
                   routerLinkActive="active">
             <mat-icon>{{ viewGrid ? 'view_module' : 'view_stream' }}</mat-icon>
           </button>
-        </nav>
+        </nav>-->
         <a routerLink="/shows" routerLinkActive="active" queryParamsHandling="preserve">Others</a>
       </nav>
       <!--<mat-icon (click)="searchInput.focus()">search</mat-icon>
@@ -51,6 +50,9 @@ import {map} from 'rxjs/operators';
              (blur)="searchFocused = false">-->
     </header>
     <main [@mainAnimation]="getAnimationData(main)">
+      <div [@movieAnimation]="getAnimationData(movie)">
+        <router-outlet name="movie" #movie="outlet"></router-outlet>
+      </div>
       <router-outlet #main="outlet"></router-outlet>
     </main>
   `,
@@ -126,7 +128,7 @@ import {map} from 'rxjs/operators';
       position: relative;
     }
   `],
-  animations: [mainAnimations],
+  animations: [mainAnimations, movieAnimations],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MainComponent implements OnInit {
@@ -135,8 +137,6 @@ export class MainComponent implements OnInit {
   showMenuButton$: Observable<boolean>;
 
   viewGrid = true;
-
-  route: string;
 
   constructor(
     private core: CoreService,

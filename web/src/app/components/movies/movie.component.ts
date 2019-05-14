@@ -121,9 +121,9 @@ import {FilesService} from '@app/services/files.service';
     .container {
       background-size: cover;
       background-position: 50% 50%;
-      height: 1080px;
       display: flex;
       flex-direction: column;
+      flex-grow: 1;
     }
     .container:focus {
       outline: none;
@@ -264,7 +264,6 @@ import {FilesService} from '@app/services/files.service';
       display: flex;
       flex-direction: row;
       justify-content: space-between;
-      flex-wrap: wrap;
       margin-top: 3rem;
     }
     .people {

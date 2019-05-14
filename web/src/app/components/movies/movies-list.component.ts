@@ -19,6 +19,11 @@ import {Movie} from '@app/models';
       display: flex;
       flex-direction: column;
     }
+    app-movie {
+      display: flex;
+      flex-direction: column;
+      height: 1080px;
+    }
     cdk-virtual-scroll-viewport {
       flex-grow: 1;
     }

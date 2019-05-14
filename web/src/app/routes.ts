@@ -21,24 +21,25 @@ const navOutletName = 'nav';
 
 export const routes: Routes = [
   // { path: '', redirectTo: '/browse(nav:library)', pathMatch: 'full' },
-  { path: '', component: HomeComponent, data: { animation: 'home' } },
+  { path: '', component: HomeComponent, data: { animation: 'home' }, pathMatch: 'full' },
   { path: 'home', component: HomeComponent, data: { animation: 'home' } },
   {
     path: 'movies',
     component: MoviesComponent,
     data: { animation: 'movies' },
     children: [
-      { path: '', component: MoviesGridComponent, data: { animation: 'grid' } },
+      { path: '', component: MoviesGridComponent, data: { animation: 'grid' }, pathMatch: 'full' },
       { path: 'list', component: MoviesListComponent, data: { animation: 'list' } },
-      {
-        path: ':id',
-        component: MovieDetailsComponent,
-        data: { animation: 'details' },
-        resolve: {
-          movie: MovieResolverService
-        },
-      },
     ],
+  },
+  {
+    path: ':id',
+    component: MovieDetailsComponent,
+    data: { animation: 'details' },
+    outlet: 'movie',
+    resolve: {
+      movie: MovieResolverService
+    },
   },
   { path: 'shows', component: ShowsComponent, data: { animation: 'shows' } },
   {
