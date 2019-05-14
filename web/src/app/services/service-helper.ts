@@ -1,6 +1,6 @@
 import {Actions, ofType} from '@ngrx/effects';
 import {asapScheduler, defer, Observable, scheduled} from 'rxjs';
-import {map, mergeMap, take} from 'rxjs/operators';
+import {map, switchMap, take} from 'rxjs/operators';
 import {Action, Store} from '@ngrx/store';
 import {State} from '@app/reducers';
 
@@ -10,7 +10,7 @@ export abstract class ServiceHelper {
 
   protected dispatchActionObservable<T>(action: Action, success: string, error: string): Observable<T> {
     return defer(() => scheduled([this.store.dispatch(action)], asapScheduler)).pipe(
-      mergeMap(() => this.actions$.pipe(
+      switchMap(() => this.actions$.pipe(
         ofType(success, error),
         take(1),
         map((result: any) => {

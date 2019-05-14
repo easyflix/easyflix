@@ -3,7 +3,7 @@ import {ActivatedRouteSnapshot, Resolve, Router, RouterStateSnapshot} from '@ang
 import {EMPTY, Observable, of} from 'rxjs';
 import {LibraryFile} from '@app/models';
 import {FilesService} from '@app/services/files.service';
-import {catchError, map, mergeMap, take} from 'rxjs/operators';
+import {catchError, map, switchMap, take} from 'rxjs/operators';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 
 @Injectable({
@@ -16,7 +16,7 @@ export class VideoResolverService implements Resolve<LibraryFile> {
     const id = route.paramMap.get('id');
     return this.files.getById(id).pipe(
       take(1),
-      mergeMap((video: LibraryFile) => {
+      switchMap((video: LibraryFile) => {
         if (video === undefined) {
           return this.socketClient.get('/api/videos/' + encodeURIComponent(id)).pipe(
             map((file: LibraryFile) => { file.id = id; return file; }),

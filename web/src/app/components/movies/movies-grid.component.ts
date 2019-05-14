@@ -4,10 +4,12 @@ import {MoviesService} from '@app/services/movies.service';
 import {Observable} from 'rxjs';
 import {Movie} from '@app/models';
 import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
-import {filter, take} from 'rxjs/operators';
+import {filter, map, switchMap, take} from 'rxjs/operators';
 import {Configuration} from '@app/models/configuration';
 import {FilesService} from '@app/services/files.service';
 import {VideoService} from '@app/services/video.service';
+import {FilterService} from '@app/services/filter.service';
+import {FiltersComponent} from '@app/components/filters.component';
 
 @Component({
   selector: 'app-movies-grid',
@@ -84,10 +86,10 @@ export class MoviesGridComponent implements OnInit {
     private files: FilesService,
     private video: VideoService,
     private movies: MoviesService,
+    private filters: FilterService,
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef
   ) {
-    this.movies$ = movies.getAll();
     this.core.getConfig().pipe(filter(s => !!s), take(1)).subscribe(
       conf => {
         this.config = conf;
@@ -97,7 +99,16 @@ export class MoviesGridComponent implements OnInit {
   }
 
   ngOnInit() {
-
+    this.movies$ = this.movies.getAll().pipe(
+      switchMap(movies => this.filters.getFilters().pipe(
+        map(filters => movies.filter(movie =>
+          FiltersComponent.isWithinRating(movie, filters) &&
+          FiltersComponent.isWithinTags(movie, filters) &&
+          FiltersComponent.isWithinLanguages(movie, filters) &&
+          FiltersComponent.isWithinYears(movie, filters)
+        ))
+      ))
+    );
   }
 
   getStyle(movie: Movie): SafeStyle {

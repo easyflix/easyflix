@@ -1,4 +1,5 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
+import {FilterService} from '@app/services/filter.service';
 
 @Component({
   selector: 'app-home',
@@ -8,9 +9,12 @@ import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 })
 export class HomeComponent implements OnInit {
 
-  constructor() { }
+  constructor(
+    private filters: FilterService
+  ) { }
 
   ngOnInit() {
+    this.filters.hideFilters();
   }
 
 }

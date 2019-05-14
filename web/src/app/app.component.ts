@@ -5,7 +5,7 @@ import {playerAnimations} from '@app/animations';
 import {RouterOutlet} from '@angular/router';
 import {FilesService} from '@app/services/files.service';
 import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
-import {map, mergeMap} from 'rxjs/operators';
+import {map, switchMap} from 'rxjs/operators';
 import {LibrariesService} from '@app/services/libraries.service';
 import {ThemesUtils} from '@app/utils/themes.utils';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
@@ -48,7 +48,7 @@ export class AppComponent implements OnInit {
       () => console.log('complete')
     );*/
     this.libraries.load().pipe(
-      mergeMap(libraries => concat(...libraries.map(lib => this.files.load(lib))))
+      switchMap(libraries => concat(...libraries.map(lib => this.files.load(lib))))
     ).subscribe(
       () => {},
       error => console.log(error),

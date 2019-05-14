@@ -46,6 +46,7 @@ import {map} from 'rxjs/operators';
              [class.active]="searchFocused"
              (focus)="searchFocused = true"
              (blur)="searchFocused = false">-->
+      <app-filters></app-filters>
     </header>
     <main [@mainAnimation]="getAnimationData(main)">
       <div [@movieAnimation]="getAnimationData(movie)">
@@ -75,6 +76,7 @@ import {map} from 'rxjs/operators';
       position: fixed;
       width: 100%;
       z-index: 10;
+      box-sizing: border-box;
     }
     header > nav {
       display: flex;
@@ -90,6 +92,7 @@ import {map} from 'rxjs/operators';
       padding: 0 1rem;
       box-sizing: border-box;
       text-align: center;
+      white-space: nowrap;
     }
     a:not(:first-child) {
       border-left: 1px solid;
@@ -106,7 +109,7 @@ import {map} from 'rxjs/operators';
     a.active + nav {
       width: 65px;
     }
-    input {
+    /*input {
       width: 0;
       padding: 0.5rem 0;
       margin: 0 0 0 0.25rem;
@@ -119,6 +122,12 @@ import {map} from 'rxjs/operators';
     input:focus {
       width: 250px;
       padding: 0.5rem 0.25rem;
+    }*/
+    app-filters {
+      margin-left: auto;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
     }
     main {
       flex-grow: 1;
@@ -150,8 +159,7 @@ export class MainComponent implements OnInit {
     });
   }
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
   openSidenav() {
     this.core.openSidenav();

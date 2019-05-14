@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, ElementRef, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {EMPTY, Observable} from 'rxjs';
-import {map, mergeMap} from 'rxjs/operators';
+import {map, switchMap} from 'rxjs/operators';
 import {Library} from '@app/models';
 import {AnimatableComponent} from '@app/components/library/library.component';
 import {LibrariesService} from '@app/services/libraries.service';
@@ -297,7 +297,7 @@ export class LibraryListComponent implements OnInit, AnimatableComponent {
       );
 
     dialogRef.afterClosed().pipe(
-      mergeMap(confirmed => {
+      switchMap(confirmed => {
         if (confirmed) {
           return this.libraries.remove(library);
         } else {

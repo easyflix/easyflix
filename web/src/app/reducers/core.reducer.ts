@@ -1,6 +1,3 @@
-/**
- * State
- */
 import {CoreActionsUnion, CoreActionTypes} from '../actions/core.actions';
 import {Theme, ThemesUtils} from '@app/utils/themes.utils';
 import {Configuration} from '@app/models/configuration';
@@ -8,6 +5,9 @@ import {Configuration} from '@app/models/configuration';
 export type SidenavModeType = 'over' | 'push' | 'side';
 export type SidenavWidthType = 'wide' | 'normal' |'narrow';
 
+/**
+ * State
+ */
 export interface State {
   showSidenav: boolean;
   sidenavMode: SidenavModeType;

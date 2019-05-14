@@ -3,6 +3,9 @@ import {CoreService} from '@app/services/core.service';
 import {MoviesService} from '@app/services/movies.service';
 import {Observable} from 'rxjs';
 import {Movie} from '@app/models';
+import {map, switchMap} from 'rxjs/operators';
+import {FiltersComponent} from '@app/components/filters.component';
+import {FilterService} from '@app/services/filter.service';
 
 @Component({
   selector: 'app-movies-list',
@@ -36,12 +39,22 @@ export class MoviesListComponent implements OnInit {
 
   constructor(
     private core: CoreService,
-    private movies: MoviesService
+    private movies: MoviesService,
+    private filters: FilterService
   ) {
-    this.movies$ = movies.getAll();
   }
 
   ngOnInit() {
+    this.movies$ = this.movies.getAll().pipe(
+      switchMap(movies => this.filters.getFilters().pipe(
+        map(filters => movies.filter(movie =>
+          FiltersComponent.isWithinRating(movie, filters) &&
+          FiltersComponent.isWithinTags(movie, filters) &&
+          FiltersComponent.isWithinLanguages(movie, filters) &&
+          FiltersComponent.isWithinYears(movie, filters)
+        ))
+      ))
+    );
   }
 
   trackByFunc(index: number, movie: Movie) {

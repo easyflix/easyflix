@@ -15,7 +15,7 @@ import {asapScheduler, combineLatest, EMPTY, scheduled, Subscription} from 'rxjs
 import {LibraryListComponent} from './library-list.component';
 import {LibraryFile} from '@app/models';
 import {ActivatedRoute, Router} from '@angular/router';
-import {mergeMap, take, tap} from 'rxjs/operators';
+import {switchMap, take, tap} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 
@@ -131,7 +131,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
 
     this.librariesSub =
       this.librariesComponent.instance.openLibrary.pipe(
-        mergeMap(library => this.files.getByPath(library.name).pipe(take(1)))
+        switchMap(library => this.files.getByPath(library.name).pipe(take(1)))
       ).subscribe((folder: LibraryFile) => this.goTo(folder));
 
     this.panels.viewContainerRef.insert(this.librariesComponent.hostView, 0);
@@ -142,13 +142,13 @@ export class LibraryComponent implements OnInit, OnDestroy {
 
     this.routeSub = this.activatedRoute.queryParamMap.pipe(
       take(1),
-      mergeMap(route => {
+      switchMap(route => {
         const param = route.get('path');
         if (param === null) { return EMPTY; }
         const foldersIds = param.split(':');
         return combineLatest(foldersIds.map(id =>
           this.files.getById(id).pipe(
-            mergeMap(file => {
+            switchMap(file => {
               if (file !== undefined) {
                 return scheduled([file], asapScheduler);
               } else {
