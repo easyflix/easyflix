@@ -80,12 +80,15 @@
   }
 
   app-video-list, app-movies-grid {
-    .item {
+    .poster {
       background-color: mat-color($background, card);
       @include mat-elevation(2);
     }
-    .item:hover, .item:focus {
+    .item:hover .poster, .item:focus .poster {
       @include mat-elevation(8);
+    }
+    .item:focus .poster {
+      outline-color: mat-color($primary) !important;
     }
   }
 

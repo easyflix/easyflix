@@ -27,8 +27,14 @@ section {
 }
 
 .item:hover, .item:focus {
-  transform: scale(1.3);
+  transform: scale(1.25);
   z-index: 1;
+}
+
+.poster {
+  height: 255px; /* 450 */
+  width: 170px; /* 300 */
+  background-size: cover;
 }
 
 .button {

@@ -15,8 +15,8 @@ import {VideoService} from '@app/services/video.service';
     <nav>
       <div class="item"
            *ngFor="let movie of movies$ | async; trackBy: trackByFunc" tabindex="0"
-           [style]="getStyle(movie)"
            [routerLink]="['/', {outlets: {movie: [movie.id]}}]">
+        <div class="poster" [style]="getStyle(movie)"></div>
         <button class="play" mat-mini-fab color="primary" (click)="$event.stopPropagation(); play(movie);" tabindex="-1">
           <mat-icon>play_arrow</mat-icon>
         </button>
@@ -35,22 +35,19 @@ import {VideoService} from '@app/services/video.service';
       flex-direction: row;
       flex-wrap: wrap;
       overflow-y: auto;
-      padding: 60px 0 30px 60px;
+      padding: 22px 0 60px 44px;
     }
     .item {
-      display: block;
-      height: 255px; /* 450 */
-      min-width: 170px; /* 300 */
-      box-sizing: border-box;
-      background-size: cover;
+      box-sizing: content-box;
       position: relative;
-      margin: 0 32px 75px 0;
       transition: transform 300ms ease;
       cursor: pointer;
+      padding: 38px 16px;
     }
     .item:hover, .item:focus {
-      transform: scale(1.3);
+      transform: scale(1.25);
       z-index: 2;
+      outline: none;
     }
     .item:hover {
       z-index: 1;
@@ -58,10 +55,18 @@ import {VideoService} from '@app/services/video.service';
     .item:hover .play, .item:focus .play {
       opacity: 1;
     }
+    .item:focus .poster {
+      outline: 1px solid;
+    }
+    .poster {
+      height: 255px; /* 450 */
+      width: 170px; /* 300 */
+      background-size: cover;
+    }
     .play {
       position: absolute;
-      bottom: 8px;
-      right: 8px;
+      bottom: 46px;
+      right: 24px;
       opacity: 0;
       transition: opacity ease 300ms;
       transform: scale(0.77);
