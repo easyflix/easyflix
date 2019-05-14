@@ -109,9 +109,7 @@ import {FilesService} from '@app/services/files.service';
             </div>
           </div>
           <ng-template #castLoading>
-            <div class="cast loading">
-              <h2>Casting</h2>
-            </div>
+            <!--TODO -->
           </ng-template>
         </div>
       </div>

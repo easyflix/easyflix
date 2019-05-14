@@ -6,17 +6,21 @@ import {Movie} from '@app/models';
 import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
 import {filter, take} from 'rxjs/operators';
 import {Configuration} from '@app/models/configuration';
+import {FilesService} from '@app/services/files.service';
+import {VideoService} from '@app/services/video.service';
 
 @Component({
   selector: 'app-movies-grid',
   template: `
     <nav>
-      <a class="item"
-         tabindex="0"
-         *ngFor="let movie of movies$ | async; trackBy: trackByFunc"
-         [style]="getStyle(movie)"
-         [routerLink]="['/', {outlets: {movie: [movie.id]}}]">
-      </a>
+      <div class="item"
+           *ngFor="let movie of movies$ | async; trackBy: trackByFunc" tabindex="0"
+           [style]="getStyle(movie)"
+           [routerLink]="['/', {outlets: {movie: [movie.id]}}]">
+        <button class="play" mat-mini-fab color="primary" (click)="$event.stopPropagation(); play(movie);" tabindex="-1">
+          <mat-icon>play_arrow</mat-icon>
+        </button>
+      </div>
     </nav>
   `,
   styles: [`
@@ -37,14 +41,30 @@ import {Configuration} from '@app/models/configuration';
       display: block;
       height: 255px; /* 450 */
       min-width: 170px; /* 300 */
-      margin: 0 32px 75px 0;
       box-sizing: border-box;
-      transition: transform 300ms ease;
       background-size: cover;
+      position: relative;
+      margin: 0 32px 75px 0;
+      transition: transform 300ms ease;
+      cursor: pointer;
     }
     .item:hover, .item:focus {
       transform: scale(1.3);
+      z-index: 2;
+    }
+    .item:hover {
       z-index: 1;
+    }
+    .item:hover .play, .item:focus .play {
+      opacity: 1;
+    }
+    .play {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      opacity: 0;
+      transition: opacity ease 300ms;
+      transform: scale(0.77);
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -56,6 +76,8 @@ export class MoviesGridComponent implements OnInit {
 
   constructor(
     private core: CoreService,
+    private files: FilesService,
+    private video: VideoService,
     private movies: MoviesService,
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef
@@ -83,6 +105,12 @@ export class MoviesGridComponent implements OnInit {
 
   trackByFunc(index: number, movie: Movie) {
     return movie.id;
+  }
+
+  play(movie: Movie) {
+    this.files.getByPath(movie.file.path).subscribe(
+      file => this.video.playVideo(file)
+    );
   }
 
 }
