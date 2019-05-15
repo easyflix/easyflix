@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Input, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, Input, OnInit, ViewChild} from '@angular/core';
 import {Movie, MovieExt} from '@app/models';
 import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
 import {CoreService} from '@app/services/core.service';
@@ -14,7 +14,7 @@ import {Router} from '@angular/router';
 @Component({
   selector: 'app-movie',
   template: `
-    <div class="container" [style]="getBackdropStyle() | async" tabindex="0">
+    <div class="container" [style]="getBackdropStyle() | async" #container tabindex="0">
       <div class="filter">
         <div class="movie">
           <div class="poster" [style]="getPosterStyle() | async"></div>
@@ -60,8 +60,8 @@ import {Router} from '@angular/router';
                   <dd>{{ movie.release_date | date:'mediumDate'}}</dd>
                   <dt>Directed by</dt>
                   <dd *ngIf="movieExt$ | async as details; else loading">
-                    <ng-container *ngFor="let director of getDirectors(details.credits.crew)">
-                      <a class="search" (click)="searchPeople(director)">{{director}}</a>&nbsp;
+                    <ng-container *ngFor="let director of getDirectors(details.credits.crew); last as isLast">
+                      <a class="search" (click)="searchPeople(director)">{{director}}</a>{{ isLast ? '' : ', ' }}
                     </ng-container>
                   </dd>
                   <dt>Runtime</dt>
@@ -78,8 +78,8 @@ import {Router} from '@angular/router';
                   </dd>
                   <dt>Genres</dt>
                   <dd *ngIf="movieExt$ | async as details; else loading">
-                    <ng-container *ngFor="let genre of getGenre(details)">
-                      <a class="search" (click)="searchGenre(genre)">{{genre}}</a>&nbsp;
+                    <ng-container *ngFor="let genre of getGenre(details); last as isLast">
+                      <a class="search" (click)="searchGenre(genre)">{{genre}}</a>{{ isLast ? '' : ', ' }}
                     </ng-container>
                   </dd>
                   <dt>Budget</dt>
@@ -131,6 +131,7 @@ import {Router} from '@angular/router';
         </div>
       </div>
     </div>
+    <ng-content></ng-content>
   `,
   styles: [`
     .container {
@@ -327,6 +328,8 @@ export class MovieComponent implements OnInit {
 
   movieExt$: Observable<MovieExt>;
 
+  @ViewChild('container') container: ElementRef;
+
   constructor(
     private core: CoreService,
     private files: FilesService,
@@ -445,6 +448,10 @@ export class MovieComponent implements OnInit {
         this.filters.setTags([tag]);
       }
     );
+  }
+
+  focus() {
+    this.container.nativeElement.focus();
   }
 
 }

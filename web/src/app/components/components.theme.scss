@@ -137,6 +137,9 @@
     .name {
       background-color: mat-color($background, background);
     }
+    .play:focus {
+      background-color: mat-color($accent);
+    }
   }
 
 
