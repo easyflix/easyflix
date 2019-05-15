@@ -10,6 +10,5 @@ export interface Movie {
   backdrop?: string;
   overview: string;
   vote_average: number;
-  tags: string[];
   file: LibraryFile;
 }

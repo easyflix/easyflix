@@ -110,7 +110,7 @@ export class FiltersComponent implements OnInit {
 
   static isWithinTags(movie: Movie, filters: MovieFilters): boolean {
     return filters.tags.length === 0 ||
-      filters.tags.every(tag => movie.tags.indexOf(tag) > -1);
+      filters.tags.every(tag => movie.file.tags.indexOf(tag) > -1);
   }
 
   constructor(
@@ -169,7 +169,7 @@ export class FiltersComponent implements OnInit {
           FiltersComponent.isWithinYears(movie, filters) &&
           FiltersComponent.isWithinTags(movie, filters)
         )),
-        map(movies => movies.map(movie => movie.tags).reduce((previous, current) => [...previous, ...current], [])),
+        map(movies => movies.map(movie => movie.file.tags).reduce((previous, current) => [...previous, ...current], [])),
         map(tags => Array.from(new Set(tags)).sort())
       ))
     );

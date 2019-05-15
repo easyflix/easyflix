@@ -107,7 +107,7 @@ import {Router} from '@angular/router';
                   <dt>Tags</dt>
                   <dd class="tags">
                     <mat-chip-list [selectable]="false" [disabled]="true">
-                      <mat-chip *ngFor="let tag of movie.tags" (click)="searchTag(tag)">
+                      <mat-chip *ngFor="let tag of movie.file.tags" (click)="searchTag(tag)">
                         {{ tag }}
                       </mat-chip>
                     </mat-chip-list>

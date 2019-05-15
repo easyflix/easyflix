@@ -7,4 +7,5 @@ export interface LibraryFile {
   size: number;
   lastModified: number;
   libraryName: string;
+  tags?: string[];
 }

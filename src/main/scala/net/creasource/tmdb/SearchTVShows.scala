@@ -1,5 +1,7 @@
 package net.creasource.tmdb
 
+import java.net.URLEncoder
+
 import net.creasource.json.JsonSupport
 import spray.json.RootJsonFormat
 
@@ -8,6 +10,19 @@ import spray.json.RootJsonFormat
 case class SearchTVShows(page: Int, results: List[SearchTVShows.TVListResult], total_results: Int, total_pages: Int)
 
 object SearchTVShows extends JsonSupport {
+
+  def get(
+      api_key: String,
+      query: String,
+      language: Option[String] = Some("en-US"),
+      page: Option[Int] = Some(1),
+      first_air_date_year: Option[Int] = None): String = {
+
+    s"/3/search/tv?api_key=$api_key&query=${URLEncoder.encode(query, "UTF-8")}" +
+      language.toParam("language") +
+      page.toParam("page") +
+      first_air_date_year.toParam("first_air_date_year")
+  }
 
   implicit val format: RootJsonFormat[SearchTVShows] = jsonFormat4(SearchTVShows.apply)
 
