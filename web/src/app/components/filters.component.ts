@@ -58,6 +58,7 @@ import {Movie} from '@app/models';
     mat-form-field {
       margin: 0 0 0 1rem;
       height: 90px;
+      width: 180px;
     }
     .clear {
       text-decoration: underline;
