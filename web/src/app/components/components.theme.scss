@@ -50,6 +50,12 @@
     }
   }
 
+  app-filters {
+    input {
+      @include cdk-text-field-autofill-color(transparent, mat-color($foreground, text))
+    }
+  }
+
   app-library {
     .path, .subtext {
       color: mat-color($foreground, secondary-text);

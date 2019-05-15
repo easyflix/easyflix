@@ -20,7 +20,7 @@ import {Movie} from '@app/models';
     </mat-form-field>-->
     <ng-container *ngIf="showMovieFilters$ | async">
       <mat-form-field appearance="standard">
-        <input [formControl]="search" matInput name="movie-search" placeholder="Search" />
+        <input [formControl]="search" matInput name="movie-search" placeholder="Search" spellcheck="false" />
       </mat-form-field>
       <mat-form-field appearance="standard">
         <mat-select [formControl]="rating" placeholder="Rating">
