@@ -12,6 +12,7 @@ import {
   State
 } from '@app/reducers';
 import {
+  ClearFilters,
   HideFilters,
   SetLanguages,
   SetRating,
@@ -96,6 +97,10 @@ export class FilterService {
         tags: array[4],
       }))
     );
+  }
+
+  clear(): void {
+    this.store.dispatch(new ClearFilters());
   }
 
 }

@@ -26,7 +26,7 @@ export class CoreService extends ServiceHelper {
     super(store, actions$);
   }
 
-  getShowSidenav() {
+  getShowSidenav(): Observable<boolean> {
     return this.store.select(fromStore.getShowSidenav);
   }
 

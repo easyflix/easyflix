@@ -72,6 +72,12 @@ export function reducer(
         tags: action.payload
       };
 
+    case FiltersActionTypes.ClearFilters:
+      return {
+        ...initialState,
+        show: state.show
+      };
+
     default:
       return state;
   }

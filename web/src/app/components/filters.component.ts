@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
-import {Observable} from 'rxjs';
+import {Observable, of} from 'rxjs';
 import {filter, map, switchMap, take} from 'rxjs/operators';
 import {CoreService} from '@app/services/core.service';
 import {MoviesService} from '@app/services/movies.service';
@@ -52,12 +52,25 @@ import {Movie} from '@app/models';
           </mat-option>
         </mat-select>
       </mat-form-field>
+      <a class="clear" *ngIf="showClear$ | async" (click)="clearFilters()">clear</a>
     </ng-container>
   `,
   styles: [`
+    :host {
+      display: flex;
+      align-items: center;
+    }
     mat-form-field {
       margin: 0 0 0 1rem;
       height: 60px;
+    }
+    .clear {
+      text-decoration: underline;
+      position: absolute;
+      right: 16px;
+      cursor: pointer;
+      font-weight: 300;
+      font-size: 14px;
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -75,6 +88,8 @@ export class FiltersComponent implements OnInit {
   years$: Observable<string[]>;
   languages$: Observable<{ code: string; name: string }[]>;
   tags$: Observable<string[]>;
+
+  showClear$: Observable<boolean>;
 
   static isWithinRating(movie: Movie, filters: MovieFilters): boolean {
     return movie.vote_average * 10 >= (filters.rating || 0);
@@ -98,10 +113,21 @@ export class FiltersComponent implements OnInit {
     private movies: MoviesService,
     private filters: FilterService
   ) {
-    this.showMovieFilters$ = this.filters.getShowFilters();
+    this.showMovieFilters$ = this.core.getShowSidenav().pipe(
+      switchMap(open => open ? of(false) : this.filters.getShowFilters())
+    );
   }
 
   ngOnInit(): void {
+    this.showClear$ = this.filters.getFilters().pipe(
+      map(filters => filters.tags.length > 0 ||
+        filters.rating !== 0 ||
+        filters.languages.length > 0 ||
+        filters.years.length > 0 ||
+        filters.search !== ''
+      )
+    );
+
     this.ratings$ = this.filters.getFilters().pipe(
       switchMap(filters => this.movies.getAll().pipe(
         map(movies => movies.filter(movie =>
@@ -191,6 +217,10 @@ export class FiltersComponent implements OnInit {
         this.tags.setValue(val) : {}
     );
 
+  }
+
+  clearFilters(): void {
+    this.filters.clear();
   }
 
 }
