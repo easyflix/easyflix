@@ -10,7 +10,7 @@ import {FilterService} from '@app/services/filter.service';
 @Component({
   selector: 'app-movies-list',
   template: `
-    <cdk-virtual-scroll-viewport itemSize="1080" minBufferPx="1080" maxBufferPx="2160">
+    <cdk-virtual-scroll-viewport itemSize="1020" minBufferPx="1020" maxBufferPx="2040">
       <app-movie *cdkVirtualFor="let movie of movies$ | async; trackBy: trackByFunc; templateCacheSize: 0"
                  [movie]="movie">
       </app-movie>
@@ -25,7 +25,7 @@ import {FilterService} from '@app/services/filter.service';
     app-movie {
       display: flex;
       flex-direction: column;
-      height: 1080px;
+      height: 1020px;
     }
     cdk-virtual-scroll-viewport {
       flex-grow: 1;
