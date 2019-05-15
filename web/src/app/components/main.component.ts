@@ -109,25 +109,14 @@ import {map} from 'rxjs/operators';
     a.active + nav {
       width: 65px;
     }
-    /*input {
-      width: 0;
-      padding: 0.5rem 0;
-      margin: 0 0 0 0.25rem;
-      border: none;
-      border-bottom: 1px solid black;
-      outline: none;
-      background: transparent;
-      transition: width 300ms ease;
-    }
-    input:focus {
-      width: 250px;
-      padding: 0.5rem 0.25rem;
-    }*/
     app-filters {
       margin-left: auto;
       display: flex;
       flex-direction: row;
+      align-items: center;
       flex-wrap: nowrap;
+      height: 60px;
+      overflow: hidden;
     }
     main {
       flex-grow: 1;

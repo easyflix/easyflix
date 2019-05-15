@@ -19,34 +19,33 @@ import {Movie} from '@app/models';
       </mat-select>
     </mat-form-field>-->
     <ng-container *ngIf="showMovieFilters$ | async">
-      <mat-form-field floatLabel="never">
-        <mat-label>Rating</mat-label>
-        <mat-select [formControl]="rating">
+      <mat-form-field appearance="standard">
+        <input [formControl]="search" matInput name="movie-search" placeholder="Search" />
+      </mat-form-field>
+      <mat-form-field appearance="standard">
+        <mat-select [formControl]="rating" placeholder="Rating">
           <mat-option>All</mat-option>
           <mat-option *ngFor="let rating of ratings$ | async" [value]="rating">
             Above {{rating}}%
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <mat-form-field floatLabel="never">
-        <mat-label>Year</mat-label>
-        <mat-select multiple [formControl]="years">
+      <mat-form-field appearance="standard">
+        <mat-select multiple [formControl]="years" placeholder="Year">
           <mat-option *ngFor="let year of years$ | async" [value]="year">
             {{ year }}
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <mat-form-field floatLabel="never">
-        <mat-label>Language</mat-label>
-        <mat-select multiple [formControl]="languages">
+      <mat-form-field appearance="standard">
+        <mat-select multiple [formControl]="languages" placeholder="Language">
           <mat-option *ngFor="let language of languages$ | async" [value]="language.code">
             {{ language.name }}
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <mat-form-field floatLabel="never">
-        <mat-label>Tags</mat-label>
-        <mat-select multiple [formControl]="tags">
+      <mat-form-field appearance="standard">
+        <mat-select multiple [formControl]="tags" placeholder="Tags">
           <mat-option *ngFor="let tag of tags$ | async" [value]="tag">
             {{ tag }}
           </mat-option>
@@ -56,13 +55,9 @@ import {Movie} from '@app/models';
     </ng-container>
   `,
   styles: [`
-    :host {
-      display: flex;
-      align-items: center;
-    }
     mat-form-field {
       margin: 0 0 0 1rem;
-      height: 60px;
+      height: 90px;
     }
     .clear {
       text-decoration: underline;
@@ -79,10 +74,11 @@ export class FiltersComponent implements OnInit {
 
   showMovieFilters$: Observable<boolean>;
 
-  rating = new FormControl('');
-  years = new FormControl('');
-  languages = new FormControl('');
-  tags = new FormControl('');
+  search = new FormControl();
+  rating = new FormControl();
+  years = new FormControl();
+  languages = new FormControl();
+  tags = new FormControl();
 
   ratings$: Observable<number[]>;
   years$: Observable<string[]>;
@@ -90,6 +86,13 @@ export class FiltersComponent implements OnInit {
   tags$: Observable<string[]>;
 
   showClear$: Observable<boolean>;
+
+  static isWithinSearch(movie: Movie, filters: MovieFilters): boolean {
+    return filters.search === '' || filters.search
+      .split(' ')
+      .map(term => term.trim().toLowerCase())
+      .every(term => JSON.stringify(movie).toLowerCase().includes(term));
+  }
 
   static isWithinRating(movie: Movie, filters: MovieFilters): boolean {
     return movie.vote_average * 10 >= (filters.rating || 0);
@@ -131,6 +134,7 @@ export class FiltersComponent implements OnInit {
     this.ratings$ = this.filters.getFilters().pipe(
       switchMap(filters => this.movies.getAll().pipe(
         map(movies => movies.filter(movie =>
+          FiltersComponent.isWithinSearch(movie, filters) &&
           FiltersComponent.isWithinLanguages(movie, filters) &&
           FiltersComponent.isWithinYears(movie, filters) &&
           FiltersComponent.isWithinTags(movie, filters)
@@ -143,6 +147,7 @@ export class FiltersComponent implements OnInit {
     this.years$ = this.filters.getFilters().pipe(
       switchMap(filters => this.movies.getAll().pipe(
         map(movies => movies.filter(movie =>
+          FiltersComponent.isWithinSearch(movie, filters) &&
           FiltersComponent.isWithinRating(movie, filters) &&
           FiltersComponent.isWithinLanguages(movie, filters) &&
           FiltersComponent.isWithinTags(movie, filters)
@@ -154,6 +159,7 @@ export class FiltersComponent implements OnInit {
     this.tags$ = this.filters.getFilters().pipe(
       switchMap(filters => this.movies.getAll().pipe(
         map(movies => movies.filter(movie =>
+          FiltersComponent.isWithinSearch(movie, filters) &&
           FiltersComponent.isWithinRating(movie, filters) &&
           FiltersComponent.isWithinLanguages(movie, filters) &&
           FiltersComponent.isWithinYears(movie, filters) &&
@@ -169,6 +175,7 @@ export class FiltersComponent implements OnInit {
       switchMap(config => this.filters.getFilters().pipe(
         switchMap(filters => this.movies.getAll().pipe(
           map(movies => movies.filter(movie =>
+            FiltersComponent.isWithinSearch(movie, filters) &&
             FiltersComponent.isWithinRating(movie, filters) &&
             FiltersComponent.isWithinTags(movie, filters) &&
             FiltersComponent.isWithinYears(movie, filters)
@@ -187,6 +194,9 @@ export class FiltersComponent implements OnInit {
       ))
     );
 
+    this.search.valueChanges.subscribe(
+      val => this.filters.setSearch(val)
+    );
     this.rating.valueChanges.subscribe(
       val => this.filters.setRating(val)
     );
@@ -200,6 +210,10 @@ export class FiltersComponent implements OnInit {
       val => this.filters.setTags(val)
     );
 
+    this.filters.getSearch().subscribe(
+      val => this.search.value !== val ?
+        this.search.setValue(val) : {}
+    );
     this.filters.getRating().subscribe(
       val => this.rating.value !== val ?
         this.rating.setValue(val) : {}

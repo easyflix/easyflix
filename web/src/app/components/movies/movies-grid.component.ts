@@ -102,6 +102,7 @@ export class MoviesGridComponent implements OnInit {
     this.movies$ = this.movies.getAll().pipe(
       switchMap(movies => this.filters.getFilters().pipe(
         map(filters => movies.filter(movie =>
+          FiltersComponent.isWithinSearch(movie, filters) &&
           FiltersComponent.isWithinRating(movie, filters) &&
           FiltersComponent.isWithinTags(movie, filters) &&
           FiltersComponent.isWithinLanguages(movie, filters) &&
