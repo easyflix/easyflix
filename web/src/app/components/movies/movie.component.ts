@@ -39,6 +39,7 @@ import {Router} from '@angular/router';
                 </mat-progress-spinner>
                 <span>{{ getScore() }}%</span>
               </div>
+              <span class="user-score">User Score</span>
               <button class="play" mat-button mat-raised-button color="primary" (click)="play()">
                 <mat-icon>play_arrow</mat-icon>
                 PLAY
@@ -201,6 +202,13 @@ import {Router} from '@angular/router';
       position: absolute;
       top: 18px;
       left: 14px;
+    }
+    .user-score {
+      display: inline-block;
+      width: 2.4rem;
+      font-size: 14px;
+      font-weight: 500;
+      margin-left: 0.5rem;
     }
     .play {
       padding-left: 0.6rem;
