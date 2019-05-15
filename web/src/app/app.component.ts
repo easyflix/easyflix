@@ -13,8 +13,51 @@ import {MoviesService} from '@app/services/movies.service';
 
 @Component({
   selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.sass'],
+  template: `
+    <div class="container" [ngClass]="themeCssClass$ | async">
+      <mat-sidenav-container>
+        <mat-sidenav [mode]="sidenavMode$ | async"
+                     [ngClass]="sidenavWidth$ | async"
+                     [opened]="showSidenav$ | async"
+                     [cdkTrapFocus]="showSidenav$ | async"
+                     (closedStart)="closeSidenav()">
+          <app-sidenav (closeSidenav)="closeSidenav()"></app-sidenav>
+        </mat-sidenav>
+        <mat-sidenav-content [@playerAnimation]="getAnimationData(player)">
+          <app-main></app-main>
+          <router-outlet name="player" #player="outlet"></router-outlet>
+        </mat-sidenav-content>
+      </mat-sidenav-container>
+    </div>
+  `,
+  styles: [`
+    :host {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+    .container {
+      height: 100%;
+    }
+    mat-sidenav-container {
+      height: 100%;
+    }
+    mat-sidenav {
+      width: 400px;
+    }
+    mat-sidenav.normal {
+      width: 600px;
+    }
+    mat-sidenav.wide {
+      width: 800px;
+    }
+    mat-sidenav-content {
+      position: relative;
+      overflow-x: hidden;
+    }
+  `],
   animations: [playerAnimations],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -38,15 +81,7 @@ export class AppComponent implements OnInit {
     this.showSidenav$ = this.core.getShowSidenav();
     this.sidenavMode$ = this.core.getSidenavMode();
     this.sidenavWidth$ = this.core.getSidenavWidth();
-    /*concat(
-      this.libraries.load(),
-      this.files.load(),
-      this.mediaTypes.load()
-    ).subscribe(
-      () => {},
-      error => console.log(error),
-      () => console.log('complete')
-    );*/
+
     this.libraries.load().pipe(
       switchMap(libraries => concat(...libraries.map(lib => this.files.load(lib))))
     ).subscribe(
