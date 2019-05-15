@@ -10,6 +10,7 @@ import {FilesService} from '@app/services/files.service';
 import {VideoService} from '@app/services/video.service';
 import {FilterService} from '@app/services/filter.service';
 import {FiltersComponent} from '@app/components/filters.component';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-movies-grid',
@@ -18,6 +19,8 @@ import {FiltersComponent} from '@app/components/filters.component';
       <div class="item"
            *ngFor="let movie of movies$ | async; trackBy: trackByFunc" tabindex="0"
            [routerLink]="['/', {outlets: {movie: [movie.id]}}]"
+           (keydown.enter)="openMovie(movie)"
+           (keydown.space)="openMovie(movie)"
            queryParamsHandling="preserve">
         <div class="poster" [style]="getStyle(movie)"></div>
         <button class="play" mat-mini-fab color="primary" (click)="$event.stopPropagation(); play(movie);" tabindex="-1">
@@ -88,6 +91,7 @@ export class MoviesGridComponent implements OnInit {
     private video: VideoService,
     private movies: MoviesService,
     private filters: FilterService,
+    private router: Router,
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef
   ) {
@@ -129,6 +133,10 @@ export class MoviesGridComponent implements OnInit {
     this.files.getByPath(movie.file.path).subscribe(
       file => this.video.playVideo(file)
     );
+  }
+
+  openMovie(movie: Movie): void {
+    this.router.navigate(['/', {outlets: {movie: [movie.id]}}], { queryParamsHandling: 'preserve' });
   }
 
 }
