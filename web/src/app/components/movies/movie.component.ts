@@ -60,7 +60,9 @@ import {Router} from '@angular/router';
                   <dd>{{ movie.release_date | date:'mediumDate'}}</dd>
                   <dt>Directed by</dt>
                   <dd *ngIf="movieExt$ | async as details; else loading">
-                    {{ getDirectors(details.credits.crew) }}
+                    <ng-container *ngFor="let director of getDirectors(details.credits.crew)">
+                      <a class="search" (click)="searchPeople(director)">{{director}}</a>&nbsp;
+                    </ng-container>
                   </dd>
                   <dt>Runtime</dt>
                   <dd *ngIf="movieExt$ | async as details; else loading">
@@ -76,7 +78,9 @@ import {Router} from '@angular/router';
                   </dd>
                   <dt>Genres</dt>
                   <dd *ngIf="movieExt$ | async as details; else loading">
-                    {{ getGenre(details) }}
+                    <ng-container *ngFor="let genre of getGenre(details)">
+                      <a class="search" (click)="searchGenre(genre)">{{genre}}</a>&nbsp;
+                    </ng-container>
                   </dd>
                   <dt>Budget</dt>
                   <dd *ngIf="movieExt$ | async as details; else loading">
@@ -102,7 +106,9 @@ import {Router} from '@angular/router';
                   <dt>Tags</dt>
                   <dd class="tags">
                     <mat-chip-list [selectable]="false" [disabled]="true">
-                      <mat-chip *ngFor="let tag of movie.tags">{{ tag }}</mat-chip>
+                      <mat-chip *ngFor="let tag of movie.tags" (click)="searchTag(tag)">
+                        {{ tag }}
+                      </mat-chip>
                     </mat-chip-list>
                   </dd>
                 </dl>
@@ -115,7 +121,7 @@ import {Router} from '@angular/router';
                 <mat-icon *ngIf="!actor.profile_path">person</mat-icon>
               </div>
               <div class="name">
-                {{ actor.name }}
+                <a class="search" (click)="searchPeople(actor.name)">{{ actor.name }}</a>
               </div>
             </div>
           </div>
@@ -267,6 +273,7 @@ import {Router} from '@angular/router';
       margin-bottom: 0;
       opacity: 1 !important;
       font-weight: 300;
+      cursor: pointer;
     }
     .cast {
       grid-area: cast;
@@ -386,12 +393,12 @@ export class MovieComponent implements OnInit {
     return Math.floor(this.movie.vote_average * 10);
   }
 
-  getGenre(details: MovieExt) {
-    return details.genres.map(genre => genre.name).join(', ');
+  getGenre(details: MovieExt): string[] {
+    return details.genres.map(genre => genre.name);
   }
 
-  getDirectors(crew: Crew[]) {
-    return crew.map(director => director.name).join(', ');
+  getDirectors(crew: Crew[]): string[] {
+    return crew.map(director => director.name);
   }
 
   play() {
@@ -414,6 +421,28 @@ export class MovieComponent implements OnInit {
       () => {
         this.filters.clear();
         this.filters.setLanguages([language]);
+      }
+    );
+  }
+
+  searchGenre(genre: string) {
+
+  }
+
+  searchPeople(person: string) {
+    this.router.navigate(['/', {outlets: {movie: null}}]).then(
+      () => {
+        this.filters.clear();
+        this.filters.setSearch(person);
+      }
+    );
+  }
+
+  searchTag(tag: string) {
+    this.router.navigate(['/', {outlets: {movie: null}}]).then(
+      () => {
+        this.filters.clear();
+        this.filters.setTags([tag]);
       }
     );
   }
