@@ -98,8 +98,6 @@ export class FilterService {
     );
   }
 
-
-
 }
 
 export interface MovieFilters {

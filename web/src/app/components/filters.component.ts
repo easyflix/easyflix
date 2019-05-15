@@ -23,10 +23,9 @@ import {Movie} from '@app/models';
         <mat-label>Rating</mat-label>
         <mat-select [formControl]="rating">
           <mat-option>All</mat-option>
-          <mat-option value="90">90% and above</mat-option>
-          <mat-option value="80">80% and above</mat-option>
-          <mat-option value="70">70% and above</mat-option>
-          <mat-option value="60">60% and above</mat-option>
+          <mat-option *ngFor="let rating of ratings$ | async" [value]="rating">
+            Above {{rating}}%
+          </mat-option>
         </mat-select>
       </mat-form-field>
       <mat-form-field floatLabel="never">
@@ -72,6 +71,7 @@ export class FiltersComponent implements OnInit {
   languages = new FormControl('');
   tags = new FormControl('');
 
+  ratings$: Observable<number[]>;
   years$: Observable<string[]>;
   languages$: Observable<{ code: string; name: string }[]>;
   tags$: Observable<string[]>;
@@ -102,6 +102,18 @@ export class FiltersComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.ratings$ = this.filters.getFilters().pipe(
+      switchMap(filters => this.movies.getAll().pipe(
+        map(movies => movies.filter(movie =>
+          FiltersComponent.isWithinLanguages(movie, filters) &&
+          FiltersComponent.isWithinYears(movie, filters) &&
+          FiltersComponent.isWithinTags(movie, filters)
+        )),
+        map(movies => [90, 80, 70, 60, 50].filter(
+          rating => movies.some(movie => movie.vote_average * 10 >= rating)
+        ))
+      ))
+    );
     this.years$ = this.filters.getFilters().pipe(
       switchMap(filters => this.movies.getAll().pipe(
         map(movies => movies.filter(movie =>
