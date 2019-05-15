@@ -8,6 +8,8 @@ import {HttpSocketClientService} from '@app/services/http-socket-client.service'
 import {Cast, Crew} from '@app/models/movie-ext';
 import {VideoService} from '@app/services/video.service';
 import {FilesService} from '@app/services/files.service';
+import {FilterService} from '@app/services/filter.service';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-movie',
@@ -17,7 +19,12 @@ import {FilesService} from '@app/services/files.service';
         <div class="movie">
           <div class="poster" [style]="getPosterStyle() | async"></div>
           <div class="meta">
-            <h1 class="title">{{ movie.title }} <span class="year">({{ movie.release_date.substr(0, 4) }})</span></h1>
+            <h1 class="title">
+              {{ movie.title }}
+              <span class="year">
+                (<a class="search" (click)="searchYear(movie.release_date.substr(0, 4))">{{ movie.release_date.substr(0, 4) }}</a>)
+              </span>
+            </h1>
             <h2 class="tagline" *ngIf="movieExt$ | async as details; else taglineLoading">
               {{ details.tagline ? details.tagline : '&nbsp;' }}
             </h2>
@@ -62,7 +69,11 @@ import {FilesService} from '@app/services/files.service';
                 </dl>
                 <dl class="right">
                   <dt>Language</dt>
-                  <dd>{{ getLanguage(movie.original_language) | async }}</dd>
+                  <dd>
+                    <a class="search" (click)="searchLanguage(movie.original_language)">
+                      {{ getLanguage(movie.original_language) | async }}
+                    </a>
+                  </dd>
                   <dt>Genres</dt>
                   <dd *ngIf="movieExt$ | async as details; else loading">
                     {{ getGenre(details) }}
@@ -292,6 +303,12 @@ import {FilesService} from '@app/services/files.service';
       text-align: center;
       padding: 0 .5rem;
     }
+    a.search {
+      cursor: pointer;
+    }
+    a.search:hover {
+      text-decoration: underline;
+    }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -307,6 +324,8 @@ export class MovieComponent implements OnInit {
     private core: CoreService,
     private files: FilesService,
     private video: VideoService,
+    private filters: FilterService,
+    private router: Router,
     private sanitizer: DomSanitizer,
     private socketClient: HttpSocketClientService
   ) { }
@@ -378,6 +397,24 @@ export class MovieComponent implements OnInit {
   play() {
     this.files.getByPath(this.movie.file.path).subscribe(
       file => this.video.playVideo(file)
+    );
+  }
+
+  searchYear(year: string) {
+    this.router.navigate(['/', {outlets: {movie: null}}]).then(
+      () => {
+        this.filters.clear();
+        this.filters.setYears([year]);
+      }
+    );
+  }
+
+  searchLanguage(language: string) {
+    this.router.navigate(['/', {outlets: {movie: null}}]).then(
+      () => {
+        this.filters.clear();
+        this.filters.setLanguages([language]);
+      }
     );
   }
 
