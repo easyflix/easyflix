@@ -21,6 +21,7 @@ import {FilterService} from '@app/services/filter.service';
       flex-grow: 1;
       display: flex;
       flex-direction: column;
+      height: 100%;
     }
   `],
   animations: [moviesAnimations],
