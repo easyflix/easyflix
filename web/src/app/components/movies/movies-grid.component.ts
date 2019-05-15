@@ -17,7 +17,8 @@ import {FiltersComponent} from '@app/components/filters.component';
     <nav>
       <div class="item"
            *ngFor="let movie of movies$ | async; trackBy: trackByFunc" tabindex="0"
-           [routerLink]="['/', {outlets: {movie: [movie.id]}}]">
+           [routerLink]="['/', {outlets: {movie: [movie.id]}}]"
+           queryParamsHandling="preserve">
         <div class="poster" [style]="getStyle(movie)"></div>
         <button class="play" mat-mini-fab color="primary" (click)="$event.stopPropagation(); play(movie);" tabindex="-1">
           <mat-icon>play_arrow</mat-icon>

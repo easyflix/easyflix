@@ -8,6 +8,7 @@ import {Movie} from '@app/models';
     <app-movie [movie]="movie"></app-movie>
     <button mat-icon-button
             [routerLink]="['/', {outlets: {movie: null}}]"
+            queryParamsHandling="preserve"
             class="animation-hide">
       <mat-icon>close</mat-icon>
     </button>

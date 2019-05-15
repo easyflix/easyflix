@@ -408,7 +408,7 @@ export class MovieComponent implements OnInit {
   }
 
   searchYear(year: string) {
-    this.router.navigate(['/', {outlets: {movie: null}}]).then(
+    this.router.navigate(['/', {outlets: {movie: null}}], {queryParamsHandling: 'preserve'}).then(
       () => {
         this.filters.clear();
         this.filters.setYears([year]);
@@ -417,7 +417,7 @@ export class MovieComponent implements OnInit {
   }
 
   searchLanguage(language: string) {
-    this.router.navigate(['/', {outlets: {movie: null}}]).then(
+    this.router.navigate(['/', {outlets: {movie: null}}], {queryParamsHandling: 'preserve'}).then(
       () => {
         this.filters.clear();
         this.filters.setLanguages([language]);
@@ -430,7 +430,7 @@ export class MovieComponent implements OnInit {
   }
 
   searchPeople(person: string) {
-    this.router.navigate(['/', {outlets: {movie: null}}]).then(
+    this.router.navigate(['/', {outlets: {movie: null}}], {queryParamsHandling: 'preserve'}).then(
       () => {
         this.filters.clear();
         this.filters.setSearch(person);
@@ -439,7 +439,7 @@ export class MovieComponent implements OnInit {
   }
 
   searchTag(tag: string) {
-    this.router.navigate(['/', {outlets: {movie: null}}]).then(
+    this.router.navigate(['/', {outlets: {movie: null}}], {queryParamsHandling: 'preserve'}).then(
       () => {
         this.filters.clear();
         this.filters.setTags([tag]);

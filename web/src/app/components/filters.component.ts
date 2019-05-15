@@ -1,11 +1,12 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {Observable, of} from 'rxjs';
-import {filter, map, switchMap, take} from 'rxjs/operators';
+import {filter, map, skip, switchMap, take} from 'rxjs/operators';
 import {CoreService} from '@app/services/core.service';
 import {MoviesService} from '@app/services/movies.service';
 import {FormControl} from '@angular/forms';
 import {FilterService, MovieFilters} from '@app/services/filter.service';
 import {Movie} from '@app/models';
+import {ActivatedRoute, Router} from '@angular/router';
 
 @Component({
   selector: 'app-filters',
@@ -115,7 +116,9 @@ export class FiltersComponent implements OnInit {
   constructor(
     private core: CoreService,
     private movies: MoviesService,
-    private filters: FilterService
+    private filters: FilterService,
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.showMovieFilters$ = this.core.getShowSidenav().pipe(
       switchMap(open => open ? of(false) : this.filters.getShowFilters())
@@ -232,6 +235,46 @@ export class FiltersComponent implements OnInit {
         this.tags.setValue(val) : {}
     );
 
+    this.filters.getFilters().pipe(skip(1)).subscribe(
+      filters => this.router.navigate(
+        [],
+        {
+          queryParams: {
+            movie_search: filters.search !== '' ? filters.search : undefined,
+            rating: filters.rating > 0 ? filters.rating : undefined,
+            years: filters.years.length > 0 ? filters.years.join(',') : undefined,
+            languages: filters.languages.length > 0 ? filters.languages.join(',') : undefined,
+            tags: filters.tags.length > 0 ? filters.tags.join(',') : undefined,
+          },
+          queryParamsHandling: 'merge'
+        })
+    );
+
+    this.route.queryParamMap.pipe(
+      skip(1), // TODO: Not sure why, figure this out
+      take(1)
+    ).subscribe(params => {
+      const search = params.get('movie_search');
+      const rating = params.get('rating');
+      const years = params.get('years');
+      const languages = params.get('languages');
+      const tags = params.get('tags');
+      if (search !== null) {
+        this.filters.setSearch(search);
+      }
+      if (rating !== null) {
+        this.filters.setRating(+rating);
+      }
+      if (years !== null) {
+        this.filters.setYears(years.split(','));
+      }
+      if (languages !== null) {
+        this.filters.setLanguages(languages.split(','));
+      }
+      if (tags !== null) {
+        this.filters.setTags(tags.split(','));
+      }
+    });
   }
 
   clearFilters(): void {
