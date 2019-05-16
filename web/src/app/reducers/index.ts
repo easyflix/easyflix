@@ -185,3 +185,8 @@ export const getTagsFilter = createSelector(
   getFiltersState,
   fromFilters.getTags
 );
+
+export const getGenresFilter = createSelector(
+  getFiltersState,
+  fromFilters.getGenres
+);

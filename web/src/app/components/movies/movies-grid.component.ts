@@ -111,7 +111,8 @@ export class MoviesGridComponent implements OnInit {
           FiltersComponent.isWithinRating(movie, filters) &&
           FiltersComponent.isWithinTags(movie, filters) &&
           FiltersComponent.isWithinLanguages(movie, filters) &&
-          FiltersComponent.isWithinYears(movie, filters)
+          FiltersComponent.isWithinYears(movie, filters) &&
+          FiltersComponent.isWithinGenres(movie, filters)
         ))
       ))
     );

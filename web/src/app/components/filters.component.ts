@@ -52,6 +52,13 @@ import {ActivatedRoute, Router} from '@angular/router';
           </mat-option>
         </mat-select>
       </mat-form-field>
+      <mat-form-field appearance="standard">
+        <mat-select multiple [formControl]="genres" placeholder="Genres">
+          <mat-option *ngFor="let genre of genres$ | async" [value]="genre">
+            {{ genre }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
       <a class="clear" *ngIf="showClear$ | async" (click)="clearFilters()">clear</a>
     </ng-container>
   `,
@@ -81,11 +88,13 @@ export class FiltersComponent implements OnInit {
   years = new FormControl();
   languages = new FormControl();
   tags = new FormControl();
+  genres = new FormControl();
 
   ratings$: Observable<number[]>;
   years$: Observable<string[]>;
   languages$: Observable<{ code: string; name: string }[]>;
   tags$: Observable<string[]>;
+  genres$: Observable<string[]>;
 
   showClear$: Observable<boolean>;
 
@@ -113,6 +122,13 @@ export class FiltersComponent implements OnInit {
       filters.tags.every(tag => movie.file.tags.indexOf(tag) > -1);
   }
 
+  static isWithinGenres(movie: Movie, filters: MovieFilters): boolean {
+    return filters.genres.length === 0 ||
+      filters.genres.every(genre =>
+        movie.details && movie.details.genres.map(obj => obj.name).indexOf(genre) > -1
+      );
+  }
+
   constructor(
     private core: CoreService,
     private movies: MoviesService,
@@ -131,7 +147,9 @@ export class FiltersComponent implements OnInit {
         filters.rating !== 0 ||
         filters.languages.length > 0 ||
         filters.years.length > 0 ||
-        filters.search !== ''
+        filters.search !== '' ||
+        filters.tags.length > 0 ||
+        filters.genres.length > 0
       )
     );
 
@@ -141,7 +159,8 @@ export class FiltersComponent implements OnInit {
           FiltersComponent.isWithinSearch(movie, filters) &&
           FiltersComponent.isWithinLanguages(movie, filters) &&
           FiltersComponent.isWithinYears(movie, filters) &&
-          FiltersComponent.isWithinTags(movie, filters)
+          FiltersComponent.isWithinTags(movie, filters) &&
+          FiltersComponent.isWithinGenres(movie, filters)
         )),
         map(movies => [90, 80, 70, 60, 50].filter(
           rating => movies.some(movie => movie.vote_average * 10 >= rating)
@@ -154,7 +173,8 @@ export class FiltersComponent implements OnInit {
           FiltersComponent.isWithinSearch(movie, filters) &&
           FiltersComponent.isWithinRating(movie, filters) &&
           FiltersComponent.isWithinLanguages(movie, filters) &&
-          FiltersComponent.isWithinTags(movie, filters)
+          FiltersComponent.isWithinTags(movie, filters) &&
+          FiltersComponent.isWithinGenres(movie, filters)
         )),
         map(movies => movies.map(movie => movie.release_date.substr(0, 4))),
         map(years => Array.from(new Set(years)).sort().reverse())
@@ -167,7 +187,8 @@ export class FiltersComponent implements OnInit {
           FiltersComponent.isWithinRating(movie, filters) &&
           FiltersComponent.isWithinLanguages(movie, filters) &&
           FiltersComponent.isWithinYears(movie, filters) &&
-          FiltersComponent.isWithinTags(movie, filters)
+          FiltersComponent.isWithinTags(movie, filters) &&
+          FiltersComponent.isWithinGenres(movie, filters)
         )),
         map(movies => movies.map(movie => movie.file.tags).reduce((previous, current) => [...previous, ...current], [])),
         map(tags => Array.from(new Set(tags)).sort())
@@ -182,7 +203,8 @@ export class FiltersComponent implements OnInit {
             FiltersComponent.isWithinSearch(movie, filters) &&
             FiltersComponent.isWithinRating(movie, filters) &&
             FiltersComponent.isWithinTags(movie, filters) &&
-            FiltersComponent.isWithinYears(movie, filters)
+            FiltersComponent.isWithinYears(movie, filters) &&
+            FiltersComponent.isWithinGenres(movie, filters)
           )),
           map(movies => movies.map(movie => movie.original_language)),
           map(codes => codes.map(code => {
@@ -195,6 +217,21 @@ export class FiltersComponent implements OnInit {
             ).sort((a, b) => a.name.localeCompare(b.name))
           )
         ))
+      ))
+    );
+    this.genres$ = this.filters.getFilters().pipe(
+      switchMap(filters => this.movies.getAll().pipe(
+        map(movies => movies.filter(movie =>
+          FiltersComponent.isWithinSearch(movie, filters) &&
+          FiltersComponent.isWithinRating(movie, filters) &&
+          FiltersComponent.isWithinLanguages(movie, filters) &&
+          FiltersComponent.isWithinYears(movie, filters) &&
+          FiltersComponent.isWithinTags(movie, filters) &&
+          FiltersComponent.isWithinGenres(movie, filters)
+        )),
+        map(movies => movies.map(movie => movie.details.genres).reduce((previous, current) => [...previous, ...current], [])),
+        map(genres => genres.map(g => g.name)),
+        map(tags => Array.from(new Set(tags)).sort())
       ))
     );
 
@@ -212,6 +249,9 @@ export class FiltersComponent implements OnInit {
     );
     this.tags.valueChanges.subscribe(
       val => this.filters.setTags(val)
+    );
+    this.genres.valueChanges.subscribe(
+      val => this.filters.setGenres(val)
     );
 
     this.filters.getSearch().subscribe(
@@ -234,6 +274,10 @@ export class FiltersComponent implements OnInit {
       val => this.tags.value !== val ?
         this.tags.setValue(val) : {}
     );
+    this.filters.getGenres().subscribe(
+      val => this.genres.value !== val ?
+        this.genres.setValue(val) : {}
+    );
 
     this.filters.getFilters().pipe(skip(1)).subscribe(
       filters => this.router.navigate(
@@ -245,6 +289,7 @@ export class FiltersComponent implements OnInit {
             years: filters.years.length > 0 ? filters.years.join(',') : undefined,
             languages: filters.languages.length > 0 ? filters.languages.join(',') : undefined,
             tags: filters.tags.length > 0 ? filters.tags.join(',') : undefined,
+            genres: filters.genres.length > 0 ? filters.genres.join(',') : undefined,
           },
           queryParamsHandling: 'merge'
         })
@@ -259,6 +304,7 @@ export class FiltersComponent implements OnInit {
       const years = params.get('years');
       const languages = params.get('languages');
       const tags = params.get('tags');
+      const genres = params.get('genres');
       if (search !== null) {
         this.filters.setSearch(search);
       }
@@ -273,6 +319,9 @@ export class FiltersComponent implements OnInit {
       }
       if (tags !== null) {
         this.filters.setTags(tags.split(','));
+      }
+      if (genres !== null) {
+        this.filters.setGenres(genres.split(','));
       }
     });
   }

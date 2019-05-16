@@ -434,7 +434,12 @@ export class MovieComponent implements OnInit {
   }
 
   searchGenre(genre: string) {
-
+    this.router.navigate(['/', {outlets: {movie: null}}], {queryParamsHandling: 'preserve'}).then(
+      () => {
+        this.filters.clear();
+        this.filters.setGenres([genre]);
+      }
+    );
   }
 
   searchPeople(person: string) {

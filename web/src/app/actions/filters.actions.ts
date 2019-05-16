@@ -8,6 +8,7 @@ export enum FiltersActionTypes {
   SetYears = 'filters/years',
   SetLanguages = 'filters/languages',
   SetTags = 'filters/tags',
+  SetGenres = 'filters/genres',
   ClearFilters = 'filters/clear',
 }
 
@@ -44,6 +45,11 @@ export class SetTags implements Action {
   constructor(public payload: string[]) {}
 }
 
+export class SetGenres implements Action {
+  readonly type = FiltersActionTypes.SetGenres;
+  constructor(public payload: string[]) {}
+}
+
 export class ClearFilters implements Action {
   readonly type = FiltersActionTypes.ClearFilters;
 }
@@ -56,4 +62,5 @@ export type FiltersActionsUnion =
   SetYears |
   SetLanguages |
   SetTags |
+  SetGenres |
   ClearFilters;

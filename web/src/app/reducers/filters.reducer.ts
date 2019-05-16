@@ -10,6 +10,7 @@ export interface State {
   years: string[];
   languages: string[];
   tags: string[];
+  genres: string[];
 }
 
 const initialState: State = {
@@ -19,6 +20,7 @@ const initialState: State = {
   years: [],
   languages: [],
   tags: [],
+  genres: [],
 };
 
 /**
@@ -72,6 +74,12 @@ export function reducer(
         tags: action.payload
       };
 
+    case FiltersActionTypes.SetGenres:
+      return {
+        ...state,
+        genres: action.payload
+      };
+
     case FiltersActionTypes.ClearFilters:
       return {
         ...initialState,
@@ -92,3 +100,4 @@ export const getRating = (state: State) => state.rating;
 export const getYears = (state: State) => state.years;
 export const getLanguages = (state: State) => state.languages;
 export const getTags = (state: State) => state.tags;
+export const getGenres = (state: State) => state.genres;

@@ -3,6 +3,7 @@ import {combineLatest, Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {Store} from '@ngrx/store';
 import {
+  getGenresFilter,
   getLanguagesFilter,
   getRatingFilter,
   getSearchFilter,
@@ -13,7 +14,7 @@ import {
 } from '@app/reducers';
 import {
   ClearFilters,
-  HideFilters,
+  HideFilters, SetGenres,
   SetLanguages,
   SetRating,
   SetSearch,
@@ -61,6 +62,10 @@ export class FilterService {
     this.store.dispatch(new SetTags(values));
   }
 
+  setGenres(values: string[]): void {
+    this.store.dispatch(new SetGenres(values));
+  }
+
   getSearch(): Observable<string> {
     return this.store.select(getSearchFilter);
   }
@@ -81,13 +86,18 @@ export class FilterService {
     return this.store.select(getTagsFilter);
   }
 
+  getGenres(): Observable<string[]> {
+    return this.store.select(getGenresFilter);
+  }
+
   getFilters(): Observable<MovieFilters> {
     return combineLatest([
       this.getSearch(),
       this.getRating(),
       this.getYears(),
       this.getLanguages(),
-      this.getTags()
+      this.getTags(),
+      this.getGenres()
     ]).pipe(
       map(array => ({
         search: array[0],
@@ -95,6 +105,7 @@ export class FilterService {
         years: array[2],
         languages: array[3],
         tags: array[4],
+        genres: array[5]
       }))
     );
   }
@@ -111,4 +122,5 @@ export interface MovieFilters {
   years: string[];
   languages: string[];
   tags: string[];
+  genres: string[];
 }
