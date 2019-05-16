@@ -31,6 +31,13 @@ export function reducer(
       return adapter.upsertMany(action.payload, state);
     }
 
+    case MoviesActionTypes.UpdateMovies: {
+      return adapter.updateMany(
+        action.payload.map(details => ({ id: details.id, changes: { details } })),
+        state
+      );
+    }
+
     default: return state;
   }
 }

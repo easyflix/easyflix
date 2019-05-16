@@ -11,7 +11,7 @@ import net.creasource.json.JsonSupport
 import net.creasource.webflix.LibraryFile.Id
 import net.creasource.webflix.actors.LibrarySupervisor._
 import net.creasource.webflix.actors.TMDBActor
-import net.creasource.webflix.{Configuration, Library, LibraryFile, Movie, MovieExt}
+import net.creasource.webflix.{Configuration, Library, LibraryFile, Movie}
 import spray.json._
 
 import scala.collection.immutable.Seq
@@ -107,13 +107,6 @@ object APIRoutes extends Directives with JsonSupport {
                   }
                 }
               }
-            }
-          }
-        },
-        pathPrefix("movies-ext") {
-          path(Segment) { id =>
-            get {
-              onSuccess((app.tmdb ? TMDBActor.GetMovieExt(id.toInt))(30.seconds).mapTo[MovieExt])(complete(_))
             }
           }
         },

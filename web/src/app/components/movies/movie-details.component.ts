@@ -1,19 +1,25 @@
-import {ChangeDetectionStrategy, Component, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {Movie} from '@app/models';
-import {MovieComponent} from '@app/components/movies/movie.component';
+import {Observable} from 'rxjs';
+import {switchMap} from 'rxjs/operators';
 
 @Component({
   selector: 'app-movie-details',
   template: `
-    <app-movie [movie]="movie" cdkTrapFocus>
-      <button mat-icon-button
-              [routerLink]="['/', {outlets: {movie: null}}]"
-              queryParamsHandling="preserve"
-              class="animation-hide">
-        <mat-icon>close</mat-icon>
-      </button>
-    </app-movie>
+    <ng-container *ngIf="movie$ | async as movie; else loading">
+      <app-movie [movie]="movie" cdkTrapFocus [focusOnLoad]="true">
+        <button mat-icon-button
+                [routerLink]="['/', {outlets: {movie: null}}]"
+                queryParamsHandling="preserve"
+                class="animation-hide">
+          <mat-icon>close</mat-icon>
+        </button>
+      </app-movie>
+    </ng-container>
+    <ng-template #loading>
+      <div class="loading-movie">Loading...</div>
+    </ng-template>
   `,
   styles: [`
     :host {
@@ -33,6 +39,12 @@ import {MovieComponent} from '@app/components/movies/movie.component';
       flex-direction: column;
       overflow: auto;
     }
+    .loading-movie {
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
     button {
       position: absolute;
       top: 10px;
@@ -43,19 +55,14 @@ import {MovieComponent} from '@app/components/movies/movie.component';
 })
 export class MovieDetailsComponent implements OnInit {
 
-  movie: Movie;
+  movie$: Observable<Movie>;
 
-  @ViewChild(MovieComponent) movieComponent;
-
-  constructor(
-    private route: ActivatedRoute
-  ) { }
+  constructor(private route: ActivatedRoute) {}
 
   ngOnInit() {
-    this.route.data
-      .subscribe((data: { movie: Movie }) => this.movie = data.movie);
-
-    this.movieComponent.focus();
+    this.movie$ = this.route.data.pipe(
+      switchMap((data: { movie$: Observable<Movie> }) => data.movie$)
+    );
   }
 
 }

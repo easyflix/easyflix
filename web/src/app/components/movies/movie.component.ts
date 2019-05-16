@@ -1,11 +1,10 @@
 import {ChangeDetectionStrategy, Component, ElementRef, Input, OnInit, ViewChild} from '@angular/core';
-import {Movie, MovieExt} from '@app/models';
+import {Movie} from '@app/models';
 import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
 import {CoreService} from '@app/services/core.service';
 import {EMPTY, Observable} from 'rxjs';
-import {filter, map, share, take} from 'rxjs/operators';
-import {HttpSocketClientService} from '@app/services/http-socket-client.service';
-import {Cast, Crew} from '@app/models/movie-ext';
+import {filter, map, take} from 'rxjs/operators';
+import {Cast, Crew, MovieDetails} from '@app/models/movie';
 import {VideoService} from '@app/services/video.service';
 import {FilesService} from '@app/services/files.service';
 import {FilterService} from '@app/services/filter.service';
@@ -25,7 +24,7 @@ import {Router} from '@angular/router';
                 (<a class="search" (click)="searchYear(movie.release_date.substr(0, 4))">{{ movie.release_date.substr(0, 4) }}</a>)
               </span>
             </h1>
-            <h2 class="tagline" *ngIf="movieExt$ | async as details; else taglineLoading">
+            <h2 class="tagline" *ngIf="movie.details as details; else taglineLoading">
               {{ details.tagline ? details.tagline : '&nbsp;' }}
             </h2>
             <ng-template #taglineLoading>
@@ -60,13 +59,13 @@ import {Router} from '@angular/router';
                   <dt>Release date</dt>
                   <dd>{{ movie.release_date | date:'mediumDate'}}</dd>
                   <dt>Directed by</dt>
-                  <dd *ngIf="movieExt$ | async as details; else loading">
+                  <dd *ngIf="movie.details as details; else loading">
                     <ng-container *ngFor="let director of getDirectors(details.credits.crew); last as isLast">
                       <a class="search" (click)="searchPeople(director)">{{director}}</a>{{ isLast ? '' : ', ' }}
                     </ng-container>
                   </dd>
                   <dt>Runtime</dt>
-                  <dd *ngIf="movieExt$ | async as details; else loading">
+                  <dd *ngIf="movie.details as details; else loading">
                     {{ details.runtime | sgTime }}
                   </dd>
                 </dl>
@@ -78,17 +77,17 @@ import {Router} from '@angular/router';
                     </a>
                   </dd>
                   <dt>Genres</dt>
-                  <dd *ngIf="movieExt$ | async as details; else loading">
+                  <dd *ngIf="movie.details as details; else loading">
                     <ng-container *ngFor="let genre of getGenre(details); last as isLast">
                       <a class="search" (click)="searchGenre(genre)">{{genre}}</a>{{ isLast ? '' : ', ' }}
                     </ng-container>
                   </dd>
                   <dt>Budget</dt>
-                  <dd *ngIf="movieExt$ | async as details; else loading">
+                  <dd *ngIf="movie.details as details; else loading">
                     {{ details.budget | currency:'USD':'symbol':'1.0' }}
                   </dd>
                   <dt>Revenue</dt>
-                  <dd *ngIf="movieExt$ | async as details; else loading">
+                  <dd *ngIf="movie.details as details; else loading">
                     {{ details.revenue | currency:'USD':'symbol':'1.0' }}
                   </dd>
                   <ng-template #loading>
@@ -116,7 +115,7 @@ import {Router} from '@angular/router';
               </section>
             </div>
           </div>
-          <div class="cast" *ngIf="movieExt$ | async as details; else castLoading">
+          <div class="cast" *ngIf="movie.details as details; else castLoading">
             <div class="people" *ngFor="let actor of details.credits.cast">
               <div class="profile" [style]="getActorStyle(actor) | async">
                 <mat-icon *ngIf="!actor.profile_path">person</mat-icon>
@@ -332,11 +331,11 @@ export class MovieComponent implements OnInit {
 
   @Input() movie: Movie;
 
+  @Input() focusOnLoad = false;
+
   showFileInfo = false;
 
-  movieExt$: Observable<MovieExt>;
-
-  @ViewChild('container') container: ElementRef;
+  @ViewChild('container', {static: true}) container: ElementRef;
 
   constructor(
     private core: CoreService,
@@ -345,14 +344,12 @@ export class MovieComponent implements OnInit {
     private filters: FilterService,
     private router: Router,
     private sanitizer: DomSanitizer,
-    private socketClient: HttpSocketClientService
   ) { }
 
   ngOnInit() {
-    this.movieExt$ = this.socketClient.get('/api/movies-ext/' + this.movie.id).pipe(
-      map((response: MovieExt) => response),
-      share()
-    );
+    if (this.focusOnLoad) {
+      this.focus();
+    }
   }
 
   getPosterStyle(): Observable<SafeStyle> {
@@ -404,7 +401,7 @@ export class MovieComponent implements OnInit {
     return Math.floor(this.movie.vote_average * 10);
   }
 
-  getGenre(details: MovieExt): string[] {
+  getGenre(details: MovieDetails): string[] {
     return details.genres.map(genre => genre.name);
   }
 

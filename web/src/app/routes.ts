@@ -38,7 +38,7 @@ export const routes: Routes = [
     data: { animation: 'details' },
     outlet: 'movie',
     resolve: {
-      movie: MovieResolverService
+      movie$: MovieResolverService
     },
   },
   { path: 'shows', component: ShowsComponent, data: { animation: 'shows' } },

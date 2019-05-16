@@ -142,5 +142,11 @@
     }
   }
 
+  app-movie-details {
+    .loading-movie {
+      background-color: mat-color($background, background);
+    }
+  }
+
 
 }
