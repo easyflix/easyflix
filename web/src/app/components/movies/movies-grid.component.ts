@@ -132,7 +132,7 @@ export class MoviesGridComponent implements OnInit {
   }
 
   play(movie: Movie) {
-    this.files.getByPath(movie.file.path).subscribe(
+    this.files.getByPath(movie.files[0].path).subscribe( // TODO present a dialog with file choice
       file => this.video.playVideo(file)
     );
   }

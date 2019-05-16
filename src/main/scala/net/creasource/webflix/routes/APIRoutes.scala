@@ -112,8 +112,13 @@ object APIRoutes extends Directives with JsonSupport {
         },
         pathPrefix("movies") {
           path(Segment) { id =>
-            get {
-              onSuccess((app.tmdb ? TMDBActor.GetMovie(id.toInt))(30.seconds).mapTo[Movie])(complete(_))
+            extractExecutionContext { implicit executor =>
+              completeOrRecoverWith {
+                (app.tmdb ? TMDBActor.GetMovie(id.toInt))(30.seconds).mapTo[Movie].map(StatusCodes.OK -> _)
+              } {
+                case NotFoundException(message) => complete(StatusCodes.NotFound, message.toJson)
+                case exception: Exception => complete(StatusCodes.InternalServerError, exception.getMessage.toJson)
+              }
             }
           } ~
             get {

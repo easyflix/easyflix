@@ -49,10 +49,12 @@ import {Router} from '@angular/router';
             </p>
             <div class="information">
               <header>
-                <h3 (click)="showFileInfo = false" [class.selected]="!showFileInfo">Movie Info</h3>
-                <h3 (click)="showFileInfo = true" [class.selected]="showFileInfo">File Info</h3>
+                <h3 (click)="tabIndex = 0" [class.selected]="tabIndex === 0">Movie Info</h3>
+                <h3 (click)="tabIndex = i + 1" [class.selected]="tabIndex === i + 1" *ngFor="let file of movie.files; index as i">
+                  File Info <ng-container *ngIf="movie.files.length > 1">({{ i + 1 }})</ng-container>
+                </h3>
               </header>
-              <section class="movie-info" *ngIf="!showFileInfo">
+              <section class="movie-info" *ngIf="tabIndex === 0">
                 <dl class="left">
                   <dt>Original title</dt>
                   <dd>{{ movie.original_title }}</dd>
@@ -95,18 +97,18 @@ import {Router} from '@angular/router';
                   </ng-template>
                 </dl>
               </section>
-              <section class="file-info" *ngIf="showFileInfo">
+              <section class="file-info" *ngFor="let file of movie.files; index as i" [class.hidden]="tabIndex !== (i + 1)">
                 <dl>
                   <dt>Library</dt>
-                  <dd>{{ movie.file.libraryName }}</dd>
+                  <dd>{{ file.libraryName }}</dd>
                   <dt>File name</dt>
-                  <dd>{{ movie.file.name }}</dd>
+                  <dd>{{ file.name }}</dd>
                   <dt>File size</dt>
-                  <dd>{{ movie.file.size | sgFileSize }}</dd>
+                  <dd>{{ file.size | sgFileSize }}</dd>
                   <dt>Tags</dt>
                   <dd class="tags">
                     <mat-chip-list [selectable]="false" [disabled]="true">
-                      <mat-chip *ngFor="let tag of movie.file.tags" (click)="searchTag(tag)">
+                      <mat-chip *ngFor="let tag of file.tags" (click)="searchTag(tag)">
                         {{ tag }}
                       </mat-chip>
                     </mat-chip-list>
@@ -161,7 +163,7 @@ import {Router} from '@angular/router';
         "poster meta"
         "cast cast";
       justify-items: stretch;
-      padding: 0 2rem;
+      padding: 2rem;
       box-sizing: border-box;
     }
     .poster {
@@ -212,10 +214,6 @@ import {Router} from '@angular/router';
     .play {
       padding-left: 0.6rem;
       margin-left: 2rem;
-    }
-    h2 {
-      margin-top: 0;
-      margin-bottom: 1rem;
     }
     .overview {
       font-weight: 300;
@@ -324,6 +322,9 @@ import {Router} from '@angular/router';
     a.search:hover {
       text-decoration: underline;
     }
+    .hidden {
+      display: none;
+    }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -334,6 +335,8 @@ export class MovieComponent implements OnInit {
   @Input() focusOnLoad = false;
 
   showFileInfo = false;
+
+  tabIndex = 0;
 
   @ViewChild('container', {static: true}) container: ElementRef;
 
@@ -410,7 +413,7 @@ export class MovieComponent implements OnInit {
   }
 
   play() {
-    this.files.getByPath(this.movie.file.path).subscribe(
+    this.files.getByPath(this.movie.files[0].path).subscribe( // TODO present a dialog to select file to play
       file => this.video.playVideo(file)
     );
   }

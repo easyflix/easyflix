@@ -119,7 +119,7 @@ export class FiltersComponent implements OnInit {
 
   static isWithinTags(movie: Movie, filters: MovieFilters): boolean {
     return filters.tags.length === 0 ||
-      filters.tags.every(tag => movie.file.tags.indexOf(tag) > -1);
+      filters.tags.every(tag => movie.files[0].tags.indexOf(tag) > -1); // TODO check other files
   }
 
   static isWithinGenres(movie: Movie, filters: MovieFilters): boolean {
@@ -190,7 +190,8 @@ export class FiltersComponent implements OnInit {
           FiltersComponent.isWithinTags(movie, filters) &&
           FiltersComponent.isWithinGenres(movie, filters)
         )),
-        map(movies => movies.map(movie => movie.file.tags).reduce((previous, current) => [...previous, ...current], [])),
+        // TODO get other files tags
+        map(movies => movies.map(movie => movie.files[0].tags).reduce((previous, current) => [...previous, ...current], [])),
         map(tags => Array.from(new Set(tags)).sort())
       ))
     );

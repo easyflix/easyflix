@@ -1,9 +1,9 @@
 import {Injectable} from '@angular/core';
 import {ActivatedRouteSnapshot, Resolve, Router, RouterStateSnapshot} from '@angular/router';
-import {concat, Observable, of} from 'rxjs';
+import {concat, EMPTY, Observable, of} from 'rxjs';
 import {Movie} from '@app/models';
 import {FilesService} from '@app/services/files.service';
-import {filter, map, switchMap, take} from 'rxjs/operators';
+import {catchError, filter, map, switchMap, take} from 'rxjs/operators';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 import {MoviesService} from '@app/services/movies.service';
 
@@ -28,6 +28,12 @@ export class MovieResolverService implements Resolve<Observable<Movie>> {
             switchMap((mov: Movie) => concat(
               of(mov),
               this.movies.getById(+id).pipe(filter(m => !!m)))
+            ),
+            catchError(
+              () => {
+                this.router.navigate(['/', { outlets: { movie: null } }]); // TODO show 404
+                return EMPTY;
+              }
             )
           );
         } else {
