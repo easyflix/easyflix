@@ -23,9 +23,9 @@ object TMDBActor {
 
   case object GetConfig
   case object GetMovies
-  case object GetTVShows
+  case object GetShows
   case class GetMovie(id: Int)
-  case class GetTVShow(id: Int)
+  case class GetShow(id: Int)
 
   def props()(implicit application: Application): Props = Props(new TMDBActor)
 
@@ -120,6 +120,9 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
             logger.info("Received search results for: " + movie.title)
             tmdbActor ! createRequest(MovieDetailsContext(movie.id))
             application.bus.publish(MovieAdded(movie))
+            movieSearches -= searchContext
+          } else {
+            // TODO deal with empty search results
           }
         )
       case details: Movie.Details =>
@@ -142,8 +145,8 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
     var showSearches: Map[TVSearchContext, Seq[LibraryFile with Tags]] = Map.empty
     override def receive: Receive = {
       // Public actor API
-      case GetTVShows => sender() ! shows.values.toSeq
-      case GetTVShow(id) =>
+      case GetShows => sender() ! shows.values.toSeq
+      case GetShow(id) =>
         shows.get(id) match {
           case Some(show) => sender() ! show
           case _ => sender() ! Status.Failure(NotFoundException("TV show not found"))
@@ -187,6 +190,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
               tmdbActor ! createRequest(TVEpisodeContext())
             )*/
             application.bus.publish(ShowAdded(show))
+            showSearches -= searchContext
           }
         )
       case details: Show.Details =>
@@ -282,25 +286,6 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
           parseEntity[tmdb.SearchTVShows](entity).foreach(tvActor ! (searchContext, _))
         case _: TVDetailsContext =>
           parseEntity[Show.Details](entity).foreach(tvActor ! _)
-        /*case TVSearchContext(_, files) =>
-          parseEntity[tmdb.SearchTVShows](entity).foreach { search =>
-            if (search.total_results > 0) {
-              val head = search.results.head
-              self ! TVShow(
-                id = head.id,
-                poster_path = head.poster_path,
-                backdrop_path = head.backdrop_path,
-                vote_average = head.vote_average,
-                overview = head.overview,
-                first_air_date = head.first_air_date,
-                original_language = head.original_language,
-                origin_country = head.origin_country,
-                name = head.name,
-                original_name = head.original_name,
-                files = files
-              )
-            }
-          }*/
         case _ =>
           entity.discardBytes()
           ???
@@ -326,14 +311,8 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
     case GetConfig => sender() ! config
     case GetMovies => movieActor forward GetMovies
     case GetMovie(id) => movieActor forward GetMovie(id)
-
-    // Internal (self-sent messages)
-/*  case show: TVShow => {
-      logger.info("Received search results for: " + show.name)
-      // tmdbActor ! createRequest(TVDetailsContext(show.id))
-      // application.bus.publish(MovieAdded(movie))
-      context become behavior(config, movies, shows + (show.id -> show), tvSearchContexts)
-    }*/
+    case GetShows => tvActor forward GetShows
+    case GetShow(id) => tvActor forward GetShow(id)
 
   }
 
