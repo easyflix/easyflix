@@ -230,9 +230,13 @@ export class FiltersComponent implements OnInit {
           FiltersComponent.isWithinTags(movie, filters) &&
           FiltersComponent.isWithinGenres(movie, filters)
         )),
-        map(movies => movies.map(movie => movie.details.genres).reduce((previous, current) => [...previous, ...current], [])),
-        map(genres => genres.map(g => g.name)),
-        map(tags => Array.from(new Set(tags)).sort())
+        map(movies => movies
+          .filter(movie => movie.details !== undefined)
+          .map(movie => movie.details.genres)
+          .reduce((previous, current) => [...previous, ...current], [])
+          .map(g => g.name)
+        ),
+        map(genres => Array.from(new Set(genres)).sort())
       ))
     );
 
