@@ -9,7 +9,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import net.creasource.Application
 import net.creasource.json.{JsonMessage, JsonSupport}
-import net.creasource.webflix.events.{FileAdded, LibraryUpdate, MovieAdded, MovieUpdate}
+import net.creasource.webflix.events.{FileAdded, LibraryUpdate, MovieAdded, MovieUpdate, ShowAdded, ShowUpdate}
 import spray.json._
 
 import scala.concurrent.Future
@@ -39,16 +39,17 @@ class SocketActor(xhrRoutes: Route)(implicit materializer: ActorMaterializer, ap
   app.bus.subscribe(self, classOf[LibraryUpdate])
   app.bus.subscribe(self, classOf[MovieAdded])
   app.bus.subscribe(self, classOf[MovieUpdate])
+  app.bus.subscribe(self, classOf[ShowAdded])
+  app.bus.subscribe(self, classOf[ShowUpdate])
 
   override def receive: Receive = {
 
-    case FileAdded(file) => client ! JsonMessage("FileAdded", 0, file.toJson).toJson
-
-    case LibraryUpdate(lib) => client ! JsonMessage("LibraryUpdate", 0, lib.toJson).toJson
-
-    case MovieAdded(movie) => client ! JsonMessage("MovieAdded", 0, movie.toJson).toJson
-
+    case FileAdded(file) =>     client ! JsonMessage("FileAdded", 0, file.toJson).toJson
+    case LibraryUpdate(lib) =>  client ! JsonMessage("LibraryUpdate", 0, lib.toJson).toJson
+    case MovieAdded(movie) =>   client ! JsonMessage("MovieAdded", 0, movie.toJson).toJson
     case MovieUpdate(update) => client ! JsonMessage("MovieUpdate", 0, update.toJson).toJson
+    case ShowAdded(show) =>     client ! JsonMessage("ShowAdded", 0, show.toJson).toJson
+    case ShowUpdate(update) =>  client ! JsonMessage("ShowUpdate", 0, update.toJson).toJson
 
     case value: JsValue =>
       handleMessages.applyOrElse(value, (v: JsValue) => logger.warning("Unhandled client Json message:\n{}", v.prettyPrint))

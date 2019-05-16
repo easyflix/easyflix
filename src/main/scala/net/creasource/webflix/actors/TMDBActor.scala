@@ -11,7 +11,7 @@ import akka.util.ByteString
 import net.creasource.{Application, tmdb}
 import net.creasource.exceptions.NotFoundException
 import net.creasource.webflix.LibraryFile.Tags
-import net.creasource.webflix.events.{FileAdded, MovieAdded, MovieUpdate}
+import net.creasource.webflix.events.{FileAdded, MovieAdded, MovieUpdate, ShowAdded, ShowUpdate}
 import net.creasource.webflix.{Configuration, LibraryFile, Movie, Show}
 import spray.json.DefaultJsonProtocol._
 
@@ -186,13 +186,13 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
             /*show.files.foreach(file =>
               tmdbActor ! createRequest(TVEpisodeContext())
             )*/
-//            application.bus.publish(MovieAdded(movie))
+            application.bus.publish(ShowAdded(show))
           }
         )
       case details: Show.Details =>
         shows.get(details.id).foreach { show =>
           logger.info("Received show details for: " + show.name)
-          // application.bus.publish(MovieUpdate(cleanedDetails))
+          application.bus.publish(ShowUpdate(details))
           shows += show.id -> show.withDetails(details)
         }
     }
