@@ -11,7 +11,7 @@ import net.creasource.json.JsonSupport
 import net.creasource.webflix.LibraryFile.Id
 import net.creasource.webflix.actors.LibrarySupervisor._
 import net.creasource.webflix.actors.TMDBActor
-import net.creasource.webflix.{Configuration, Library, LibraryFile, Movie}
+import net.creasource.webflix.{Configuration, Library, LibraryFile, Movie, Show}
 import spray.json._
 
 import scala.collection.immutable.Seq
@@ -123,6 +123,21 @@ object APIRoutes extends Directives with JsonSupport {
           } ~
             get {
               onSuccess((app.tmdb ? TMDBActor.GetMovies).mapTo[Seq[Movie]])(complete(_))
+            }
+        },
+        pathPrefix("shows") {
+          path(Segment) { id =>
+            extractExecutionContext { implicit executor =>
+              completeOrRecoverWith {
+                (app.tmdb ? TMDBActor.GetShow(id.toInt))(30.seconds).mapTo[Show].map(StatusCodes.OK -> _)
+              } {
+                case NotFoundException(message) => complete(StatusCodes.NotFound, message.toJson)
+                case exception: Exception => complete(StatusCodes.InternalServerError, exception.getMessage.toJson)
+              }
+            }
+          } ~
+            get {
+              onSuccess((app.tmdb ? TMDBActor.GetShows).mapTo[Seq[Show]])(complete(_))
             }
         },
         pathPrefix("config") {
