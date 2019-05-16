@@ -12,7 +12,7 @@ import net.creasource.{Application, tmdb}
 import net.creasource.exceptions.NotFoundException
 import net.creasource.webflix.LibraryFile.Tags
 import net.creasource.webflix.events.{FileAdded, MovieAdded, MovieUpdate}
-import net.creasource.webflix.{Configuration, LibraryFile, Movie, TVShow}
+import net.creasource.webflix.{Configuration, LibraryFile, Movie, Show}
 import spray.json.DefaultJsonProtocol._
 
 import scala.concurrent.Future
@@ -138,7 +138,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
   }))
 
   val tvActor: ActorRef = context.actorOf(Props(new Actor {
-    var shows: Map[Int, TVShow] = Map.empty
+    var shows: Map[Int, Show] = Map.empty
     var showSearches: Map[TVSearchContext, Seq[LibraryFile with Tags]] = Map.empty
     override def receive: Receive = {
       // Public actor API
@@ -165,7 +165,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
             val show = shows.get(head.id)
               .map(show => show.copy(files = show.files ++ files))
               .getOrElse(
-                TVShow(
+                Show(
                   id = head.id,
                   name = head.name,
                   original_name = head.original_name,
@@ -176,7 +176,8 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
                   backdrop = head.backdrop_path,
                   overview = head.overview,
                   vote_average = head.vote_average,
-                  files = files
+                  files = files,
+                  details = None
                 )
               )
             shows += head.id -> show
@@ -188,13 +189,12 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
 //            application.bus.publish(MovieAdded(movie))
           }
         )
-      case details: tmdb.TVDetails =>
+      case details: Show.Details =>
         shows.get(details.id).foreach { show =>
           logger.info("Received show details for: " + show.name)
           // application.bus.publish(MovieUpdate(cleanedDetails))
-          shows += show.id -> show // .withDetails(cleanedDetails)
+          shows += show.id -> show.withDetails(details)
         }
-      case _ => ???
     }
   }))
 
@@ -281,7 +281,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
         case searchContext: TVSearchContext =>
           parseEntity[tmdb.SearchTVShows](entity).foreach(tvActor ! (searchContext, _))
         case _: TVDetailsContext =>
-          parseEntity[tmdb.TVDetails](entity).foreach(tvActor ! _)
+          parseEntity[Show.Details](entity).foreach(tvActor ! _)
         /*case TVSearchContext(_, files) =>
           parseEntity[tmdb.SearchTVShows](entity).foreach { search =>
             if (search.total_results > 0) {
