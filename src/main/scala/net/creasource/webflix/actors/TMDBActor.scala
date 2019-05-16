@@ -12,7 +12,7 @@ import net.creasource.{Application, tmdb}
 import net.creasource.exceptions.NotFoundException
 import net.creasource.webflix.LibraryFile.Tags
 import net.creasource.webflix.events.{FileAdded, MovieAdded, MovieUpdate}
-import net.creasource.webflix.{Configuration, LibraryFile, Movie}
+import net.creasource.webflix.{Configuration, LibraryFile, Movie, TVShow}
 import spray.json.DefaultJsonProtocol._
 
 import scala.concurrent.Future
@@ -25,6 +25,7 @@ object TMDBActor {
   case object GetMovies
   case object GetTVShows
   case class GetMovie(id: Int)
+  case class GetTVShow(id: Int)
 
   def props()(implicit application: Application): Props = Props(new TMDBActor)
 
@@ -75,7 +76,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
 
   val movieActor: ActorRef = context.actorOf(Props(new Actor {
     var movies: Map[Int, Movie] = Map.empty
-    var movieSearches: Map[MovieSearchContext, Set[LibraryFile with Tags]] = Map.empty
+    var movieSearches: Map[MovieSearchContext, Seq[LibraryFile with Tags]] = Map.empty
     override def receive: Receive = {
       // Public actor API
       case GetMovies => sender() ! movies.values.toSeq
@@ -85,13 +86,14 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
           case _ => sender() ! Status.Failure(NotFoundException("Movie not found"))
         }
       // From parent
-      case (searchContext: MovieSearchContext, file: LibraryFile with Tags) =>
+      case (MovieMetadata(name, year, _), file: LibraryFile with Tags) =>
+        val searchContext = MovieSearchContext(name, year)
         movieSearches.get(searchContext) match {
           case Some(files) =>
-            movieSearches += searchContext -> (files + file)
+            movieSearches += searchContext -> (files :+ file)
           case None =>
             tmdbActor ! createRequest(searchContext)
-            movieSearches += searchContext -> Set(file)
+            movieSearches += searchContext -> Seq(file)
         }
       case (searchContext: MovieSearchContext, result: tmdb.SearchMovies) =>
         movieSearches.get(searchContext).foreach(files =>
@@ -132,12 +134,66 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
           application.bus.publish(MovieUpdate(cleanedDetails))
           movies += movie.id -> movie.withDetails(cleanedDetails)
         }
-      case _ => ???
     }
   }))
 
   val tvActor: ActorRef = context.actorOf(Props(new Actor {
+    var shows: Map[Int, TVShow] = Map.empty
+    var showSearches: Map[TVSearchContext, Seq[LibraryFile with Tags]] = Map.empty
     override def receive: Receive = {
+      // Public actor API
+      case GetTVShows => sender() ! shows.values.toSeq
+      case GetTVShow(id) =>
+        shows.get(id) match {
+          case Some(show) => sender() ! show
+          case _ => sender() ! Status.Failure(NotFoundException("TV show not found"))
+        }
+      //
+      case (TVEpisodeMetadata(name, _, _, _), file: LibraryFile with Tags) =>
+        val searchContext = TVSearchContext(name)
+        showSearches.get(searchContext) match {
+          case Some(files) =>
+            showSearches += searchContext -> (files :+ file)
+          case None =>
+            tmdbActor ! createRequest(searchContext)
+            showSearches += searchContext -> Seq(file)
+        }
+      case (searchContext: TVSearchContext, result: tmdb.SearchTVShows) =>
+        showSearches.get(searchContext).foreach(files =>
+          if (result.total_results > 0) {
+            val head = result.results.head
+            val show = shows.get(head.id)
+              .map(show => show.copy(files = show.files ++ files))
+              .getOrElse(
+                TVShow(
+                  id = head.id,
+                  name = head.name,
+                  original_name = head.original_name,
+                  original_language = head.original_language,
+                  origin_country = head.origin_country,
+                  first_air_date = head.first_air_date,
+                  poster = head.poster_path,
+                  backdrop = head.backdrop_path,
+                  overview = head.overview,
+                  vote_average = head.vote_average,
+                  files = files
+                )
+              )
+            shows += head.id -> show
+            logger.info("Received search results for show: " + show.name)
+            tmdbActor ! createRequest(TVDetailsContext(show.id))
+            /*show.files.foreach(file =>
+              tmdbActor ! createRequest(TVEpisodeContext())
+            )*/
+//            application.bus.publish(MovieAdded(movie))
+          }
+        )
+      case details: tmdb.TVDetails =>
+        shows.get(details.id).foreach { show =>
+          logger.info("Received show details for: " + show.name)
+          // application.bus.publish(MovieUpdate(cleanedDetails))
+          shows += show.id -> show // .withDetails(cleanedDetails)
+        }
       case _ => ???
     }
   }))
@@ -208,20 +264,11 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
         // .filter(file => !movies.values.map(_.file.path).toSeq.contains(file.path)) // TODO
         .map(extractMeta)
         .foreach {
-          case MovieMetadata(name, year, tags) => movieActor ! (MovieSearchContext(name, year), file.withTags(tags))
-          case _ =>
-          /*case TVEpisodeMetadata(name, _, _, tags) =>
-            tvSearchContexts.keys.find(_ == name) match {
-              case Some(query) =>
-                val searchContext = tvSearchContexts(query)
-                val updated = searchContext.copy(files = searchContext.files :+ file.withTags(tags))
-                context.become(behavior(config, movies, shows, tvSearchContexts + (name -> updated)))
-              case None =>
-                val searchContext = TVSearchContext(name, Seq(file.withTags(tags)))
-                tmdbActor ! createRequest(searchContext)
-                context.become(behavior(config, movies, shows, tvSearchContexts + (name -> searchContext)))
-            }
-          case UnknownMetadata(tags) =>*/
+          case meta @ MovieMetadata(_, _, tags) =>
+            movieActor ! (meta, file.withTags(tags))
+          case meta @ TVEpisodeMetadata(_ ,_, _, tags) =>
+            tvActor ! (meta, file.withTags(tags))
+          case UnknownMetadata(tags) =>
         }
 
     // TMDB responses
@@ -231,6 +278,10 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
           parseEntity[tmdb.SearchMovies](entity).foreach(movieActor ! (searchContext, _))
         case _: MovieDetailsContext =>
           parseEntity[Movie.Details](entity).foreach(movieActor ! _)
+        case searchContext: TVSearchContext =>
+          parseEntity[tmdb.SearchTVShows](entity).foreach(tvActor ! (searchContext, _))
+        case _: TVDetailsContext =>
+          parseEntity[tmdb.TVDetails](entity).foreach(tvActor ! _)
         /*case TVSearchContext(_, files) =>
           parseEntity[tmdb.SearchTVShows](entity).foreach { search =>
             if (search.total_results > 0) {
@@ -264,9 +315,9 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
       logger.info(s"Rescheduling request in $retryIn seconds: " + requestContext.log)
       system.scheduler.scheduleOnce(FiniteDuration(retryIn, SECONDS))(tmdbActor ! createRequest(requestContext))
 
-    case (Success(HttpResponse(_, _, entity, _)), _) =>
+    case (Success(HttpResponse(code, _, entity, _)), _) =>
       entity.discardBytes()
-      logger.warning("Unhandled response")
+      logger.warning(s"Unhandled response: $code")
 
     case (Failure(exception), requestContext) =>
       logger.error("An error occurred for context: " + requestContext, exception)
@@ -317,8 +368,10 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
     }
 
     clean(file.name) match {
-      case show(title, _, season, episode, rest) => TVEpisodeMetadata(title.trim, season.toInt, episode.toInt, extractTags(rest))
-      case movie(title, year, _, rest) => MovieMetadata(title.trim, year.toInt, extractTags(rest))
+      case show(title, _, season, episode, rest) =>
+        TVEpisodeMetadata(title.trim.toLowerCase, season.toInt, episode.toInt, extractTags(rest))
+      case movie(title, year, _, rest) =>
+        MovieMetadata(title.trim.toLowerCase, year.toInt, extractTags(rest))
       case _ => UnknownMetadata(extractTags(file.name))
     }
   }
@@ -339,8 +392,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
     case TVSearchContext(query) =>
       tmdb.SearchTVShows.get(api_key, query)
     case TVDetailsContext(id) =>
-      // tmdb.TVEpisodeDetails.get()
-      ???
+      tmdb.TVDetails.get(id, api_key)
     case TVSeasonContext(id, season) =>
       ???
     case TVEpisodeContext(id, season, episode) =>
@@ -351,7 +403,9 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
   def parseEntity[T](entity: ResponseEntity)(implicit reader: spray.json.RootJsonReader[T]): Future[T] = {
     import spray.json._
     entity.dataBytes.runFold(ByteString(""))(_ ++ _).flatMap { body =>
-      Future(body.utf8String.parseJson.convertTo[T])
+      val f = Future(body.utf8String.parseJson.convertTo[T])
+      f.failed.foreach(exception => logger.error(exception, "Error parsing response entity: " + body.utf8String))
+      f
     }
   }
 
