@@ -1,6 +1,7 @@
 package net.creasource.tmdb
 
 import net.creasource.json.JsonSupport
+import net.creasource.tmdb.common.Genre
 import spray.json.RootJsonFormat
 
 // https://developers.themoviedb.org/3/movies/get-movie-details
@@ -10,7 +11,7 @@ case class MovieDetails(
     adult: Boolean,
     backdrop_path: Option[String],
     budget: Int,
-    genres: List[MovieDetails.Genre],
+    genres: List[Genre],
     id: Int,
     imdb_id: Option[String],
     original_language: String,
@@ -44,11 +45,6 @@ object MovieDetails extends JsonSupport {
   }
 
   implicit val format: RootJsonFormat[MovieDetails] = jsonFormat22(MovieDetails.apply)
-
-  case class Genre(id: Int, name: String)
-  object Genre {
-    implicit val format: RootJsonFormat[Genre] = jsonFormat2(Genre.apply)
-  }
 
   case class Company(name: String, id: Int, logo_path: Option[String], origin_country: String)
   object Company {

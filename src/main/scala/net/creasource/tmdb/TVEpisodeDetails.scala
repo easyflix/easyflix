@@ -1,10 +1,12 @@
 package net.creasource.tmdb
 
+import net.creasource.tmdb.common.{Cast, Crew}
+
 case class TVEpisodeDetails(
     air_date: String,
-    crew: List[Credits.Crew],
+    crew: List[Crew],
     episode_number: Int,
-    guest_stars: List[Credits.Cast],
+    guest_stars: List[Cast],
     name: String,
     overview: String,
     id: Int,

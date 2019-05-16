@@ -1,0 +1,18 @@
+package net.creasource.tmdb.common
+
+import net.creasource.json.JsonSupport
+import spray.json.RootJsonFormat
+
+case class Cast(
+    cast_id: Int,
+    character: String,
+    credit_id: String,
+    gender: Option[Int],
+    id: Int,
+    name: String,
+    order: Int,
+    profile_path: Option[String])
+
+object Cast extends JsonSupport {
+  implicit val format: RootJsonFormat[Cast] = jsonFormat8(Cast.apply)
+}

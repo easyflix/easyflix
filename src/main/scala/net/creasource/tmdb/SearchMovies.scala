@@ -7,7 +7,11 @@ import spray.json.RootJsonFormat
 
 // https://developers.themoviedb.org/3/search/search-movies
 
-case class SearchMovies(page: Int, results: List[SearchMovies.MovieListResult], total_results: Int, total_pages: Int)
+case class SearchMovies(
+    page: Int,
+    results: List[SearchMovies.MovieListResult],
+    total_results: Int,
+    total_pages: Int)
 
 object SearchMovies extends JsonSupport {
 
