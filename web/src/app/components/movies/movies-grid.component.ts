@@ -68,6 +68,7 @@ import {Router} from '@angular/router';
       height: 255px; /* 450 */
       width: 170px; /* 300 */
       background-size: cover;
+      transition: box-shadow 300ms ease;
     }
     .play {
       position: absolute;
