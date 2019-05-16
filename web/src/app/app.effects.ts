@@ -26,6 +26,8 @@ import {OverlayContainer} from '@angular/cdk/overlay';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 import {LoadMoviesError, LoadMoviesSuccess, MoviesActionTypes} from '@app/actions/movies.actions';
 import {Configuration} from '@app/models/configuration';
+import {LoadShowsError, LoadShowsSuccess, ShowsActionTypes} from '@app/actions/shows.actions';
+import {Show} from '@app/models/show';
 
 @Injectable()
 export class AppEffects {
@@ -69,6 +71,21 @@ export class AppEffects {
         this.socketClient.get('/api/movies').pipe(
           map((movies: Movie[]) => new LoadMoviesSuccess(movies)),
           catchError((error: HttpErrorResponse) => scheduled([new LoadMoviesError(error.message)], asapScheduler))
+        )
+      )
+    );
+
+  /**
+   * Load shows
+   */
+  @Effect()
+  loadShows$: Observable<Action> =
+    this.actions$.pipe(
+      ofType(ShowsActionTypes.LoadShows),
+      switchMap(() =>
+        this.socketClient.get('/api/shows').pipe(
+          map((shows: Show[]) => new LoadShowsSuccess(shows)),
+          catchError((error: HttpErrorResponse) => scheduled([new LoadShowsError(error.message)], asapScheduler))
         )
       )
     );

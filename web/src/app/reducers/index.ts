@@ -7,6 +7,7 @@ import * as fromVideo from './video.reducer';
 import * as fromFiles from './files.reducer';
 import * as fromLibraries from './libraries.reducer';
 import * as fromMovies from './movies.reducer';
+import * as fromShows from './shows.reducer';
 import * as fromFilters from './filters.reducer';
 
 import {Library, LibraryFile} from '@app/models';
@@ -18,6 +19,7 @@ export interface State {
   files: fromFiles.State;
   libraries: fromLibraries.State;
   movies: fromMovies.State;
+  shows: fromShows.State;
   filters: fromFilters.State;
 }
 
@@ -27,6 +29,7 @@ export const reducers: ActionReducerMap<State> = {
   files: fromFiles.reducer,
   libraries: fromLibraries.reducer,
   movies: fromMovies.reducer,
+  shows: fromShows.reducer,
   filters: fromFilters.reducer,
 };
 
@@ -37,6 +40,7 @@ export const getVideoState = (state: State) => state.video;
 export const getFilesState = (state: State) => state.files;
 export const getLibrariesState = (state: State) => state.libraries;
 export const getMoviesState = (state: State) => state.movies;
+export const getShowsState = (state: State) => state.shows;
 export const getFiltersState = (state: State) => state.filters;
 
 export const getShowSidenav = createSelector(
@@ -153,6 +157,16 @@ export const {
 
 export const getMovieById = createSelector(
   getAllMoviesEntities,
+  (entities, id) => entities[id]
+);
+
+export const {
+  selectEntities: getAllShowsEntities,
+  selectAll: getAllShows,
+} = fromShows.adapter.getSelectors(getShowsState);
+
+export const getShowById = createSelector(
+  getAllShowsEntities,
   (entities, id) => entities[id]
 );
 
