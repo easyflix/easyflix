@@ -75,9 +75,6 @@
   }
 
   app-library-creation-dialog {
-    .library-type {
-      border-color: mat-color($foreground, divider) !important;
-    }
     .library-type:hover {
       background-color: mat-color($background, hover);
     }
