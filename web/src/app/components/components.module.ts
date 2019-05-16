@@ -24,6 +24,7 @@ import {ConfirmDialogComponent} from '@app/components/dialogs/confirm-dialog.com
 import {MovieComponent} from '@app/components/movies/movie.component';
 import {MovieDetailsComponent} from '@app/components/movies/movie-details.component';
 import {FiltersComponent} from '@app/components/filters.component';
+import {ShowsGridComponent} from '@app/components/shows/shows-grid.component';
 
 const COMPONENTS = [
   FileListComponent,
@@ -49,7 +50,8 @@ const COMPONENTS = [
   ConfirmDialogComponent,
   MovieComponent,
   MovieDetailsComponent,
-  FiltersComponent
+  FiltersComponent,
+  ShowsGridComponent
 ];
 
 @NgModule({

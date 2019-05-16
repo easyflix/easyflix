@@ -10,6 +10,7 @@ import {LibrariesService} from '@app/services/libraries.service';
 import {ThemesUtils} from '@app/utils/themes.utils';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 import {MoviesService} from '@app/services/movies.service';
+import {ShowsService} from '@app/services/shows.service';
 
 @Component({
   selector: 'app-root',
@@ -73,6 +74,7 @@ export class AppComponent implements OnInit {
     private files: FilesService,
     private libraries: LibrariesService,
     private movies: MoviesService,
+    private shows: ShowsService,
     private socketClient: HttpSocketClientService
   ) { }
 
@@ -96,6 +98,8 @@ export class AppComponent implements OnInit {
     this.socketClient.getSocket().subscribe();
 
     this.movies.load().subscribe();
+
+    this.shows.load().subscribe();
 
     this.core.loadConfig().subscribe();
 

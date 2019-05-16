@@ -25,6 +25,7 @@ import {LibrariesService} from '@app/services/libraries.service';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 import {MoviesService} from '@app/services/movies.service';
 import {FilterService} from '@app/services/filter.service';
+import {ShowsService} from '@app/services/shows.service';
 
 @NgModule({
   declarations: [
@@ -53,6 +54,7 @@ import {FilterService} from '@app/services/filter.service';
     FilesService,
     LibrariesService,
     MoviesService,
+    ShowsService,
     VideoGuard,
     // FilesLoadedGuard,
     LibrariesLoadedGuard,

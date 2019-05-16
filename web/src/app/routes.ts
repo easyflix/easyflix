@@ -16,6 +16,7 @@ import {GlobalComponent} from '@app/components/settings/global/global.component'
 import {LocalComponent} from '@app/components/settings/local/local.component';
 import {MovieDetailsComponent} from '@app/components/movies/movie-details.component';
 import {MovieResolverService} from '@app/guards/movie-resolver.service';
+import {ShowsGridComponent} from '@app/components/shows/shows-grid.component';
 
 const navOutletName = 'nav';
 
@@ -33,6 +34,15 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'shows',
+    component: ShowsComponent,
+    data: { animation: 'shows' },
+    children: [
+      { path: '', component: ShowsGridComponent, data: { animation: 'grid' }, pathMatch: 'full' },
+      // { path: 'list', component: MoviesListComponent, data: { animation: 'list' } },
+    ],
+  },
+  {
     path: ':id',
     component: MovieDetailsComponent,
     data: { animation: 'details' },
@@ -41,7 +51,6 @@ export const routes: Routes = [
       movie$: MovieResolverService
     },
   },
-  { path: 'shows', component: ShowsComponent, data: { animation: 'shows' } },
   {
     path: ':id',
     component: VideoComponent,
