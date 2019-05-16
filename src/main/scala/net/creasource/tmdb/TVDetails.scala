@@ -1,7 +1,9 @@
 package net.creasource.tmdb
 
+import net.creasource.json.JsonSupport
 import net.creasource.tmdb.TVDetails.{Creator, Network, Season}
 import net.creasource.tmdb.common.Genre
+import spray.json.RootJsonFormat
 
 // https://developers.themoviedb.org/3/tv/get-tv-details
 
@@ -15,7 +17,7 @@ case class TVDetails(
     id: Int,
     in_production: Boolean,
     languages: List[String],
-    last_air_date: String,
+    last_air_date: Option[String],
     name: String,
     networks: List[Network],
     number_of_episodes: Int,
@@ -30,7 +32,7 @@ case class TVDetails(
     vote_average: Float,
     vote_count: Int)
 
-object TVDetails {
+object TVDetails extends JsonSupport {
 
   def get(
       tv_id: Int,
@@ -43,26 +45,40 @@ object TVDetails {
       append_to_response.toParam("append_to_response")
   }
 
+  implicit val format: RootJsonFormat[TVDetails] = jsonFormat22(TVDetails.apply)
+
   case class Creator(
       id: Int,
       credit_id: String,
       name: String,
-      gender: Int,
-      profile_path: String)
+      gender: Option[Int],
+      profile_path: Option[String])
+
+  object Creator {
+    implicit val format: RootJsonFormat[Creator] = jsonFormat5(Creator.apply)
+  }
 
   case class Network(
       name: String,
       id: Int,
-      logo_path: String,
+      logo_path: Option[String],
       origin_country: String)
 
+  object Network {
+    implicit val format: RootJsonFormat[Network] = jsonFormat4(Network.apply)
+  }
+
   case class Season(
-      air_date: String,
+      air_date: Option[String],
       episode_count: Int,
       id: Int,
       name: String,
-      overview: String,
-      poster_path: String,
+      overview: Option[String],
+      poster_path: Option[String],
       season_number: Int)
+
+  object Season {
+    implicit val format: RootJsonFormat[Season] = jsonFormat7(Season.apply)
+  }
 
 }
