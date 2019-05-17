@@ -4,7 +4,7 @@ import net.creasource.json.JsonSupport
 import spray.json.RootJsonFormat
 
 case class Cast(
-    cast_id: Int,
+    cast_id: Option[Int],
     character: String,
     credit_id: String,
     gender: Option[Int],

@@ -1,5 +1,5 @@
 import {LibraryFile} from '@app/models/library-file';
-import {Genre} from '@app/models/movie';
+import {Cast, Crew, Genre} from '@app/models/movie';
 
 export interface Creator {
   id: number;
@@ -34,6 +34,10 @@ export interface ShowDetails {
   number_of_episodes: number;
   number_of_seasons: number;
   seasons: Season[];
+  credits: {
+    cast: Cast[];
+    crew: Crew[];
+  };
 }
 
 export interface Show {

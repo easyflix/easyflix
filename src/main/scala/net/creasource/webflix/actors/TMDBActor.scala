@@ -196,8 +196,14 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
       case details: Show.Details =>
         shows.get(details.id).foreach { show =>
           logger.info("Received show details for: " + show.name)
-          application.bus.publish(ShowUpdate(details))
-          shows += show.id -> show.withDetails(details)
+          val cleanedDetails = details.copy(
+            credits = details.credits.copy(
+              crew = List.empty,
+              cast = details.credits.cast.take(7)
+            )
+          )
+          application.bus.publish(ShowUpdate(cleanedDetails))
+          shows += show.id -> show.withDetails(cleanedDetails)
         }
     }
   }))
@@ -371,7 +377,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
     case TVSearchContext(query) =>
       tmdb.SearchTVShows.get(api_key, query)
     case TVDetailsContext(id) =>
-      tmdb.TVDetails.get(id, api_key)
+      tmdb.TVDetails.get(id, api_key, append_to_response = Some("credits"))
     case TVSeasonContext(id, season) =>
       ???
     case TVEpisodeContext(id, season, episode) =>

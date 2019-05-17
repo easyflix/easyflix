@@ -2,7 +2,7 @@ package net.creasource.webflix
 
 import net.creasource.json.JsonSupport
 import net.creasource.tmdb.TVDetails.{Creator, Network, Season}
-import net.creasource.tmdb.common.Genre
+import net.creasource.tmdb.common.{Credits, Genre}
 import spray.json.RootJsonFormat
 
 case class Show(
@@ -34,11 +34,12 @@ object Show extends JsonSupport {
       networks: List[Network],
       number_of_episodes: Int,
       number_of_seasons: Int,
-      seasons: List[Season])
+      seasons: List[Season],
+      credits: Credits)
 
   object Details {
 
-    implicit val format: RootJsonFormat[Details] = jsonFormat7(Details.apply)
+    implicit val format: RootJsonFormat[Details] = jsonFormat8(Details.apply)
 
   }
 

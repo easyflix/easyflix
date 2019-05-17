@@ -4,7 +4,7 @@ import {DomSanitizer, SafeStyle, SafeUrl} from '@angular/platform-browser';
 import {CoreService} from '@app/services/core.service';
 import {EMPTY, Observable} from 'rxjs';
 import {filter, map, take} from 'rxjs/operators';
-import {Cast, Crew} from '@app/models/movie';
+import {Cast} from '@app/models/movie';
 import {VideoService} from '@app/services/video.service';
 import {FilesService} from '@app/services/files.service';
 import {FilterService} from '@app/services/filter.service';
@@ -108,7 +108,7 @@ import {Router} from '@angular/router';
               </section>
             </div>
           </div>
-          <!--<div class="cast" *ngIf="show.details as details; else castLoading">
+          <div class="cast" *ngIf="show.details as details; else castLoading">
             <div class="people" *ngFor="let actor of details.credits.cast">
               <div class="profile" [style]="getActorStyle(actor) | async">
                 <mat-icon *ngIf="!actor.profile_path">person</mat-icon>
@@ -119,8 +119,8 @@ import {Router} from '@angular/router';
             </div>
           </div>
           <ng-template #castLoading>
-            &lt;!&ndash;TODO &ndash;&gt;
-          </ng-template>-->
+            <!--TODO -->
+          </ng-template>
         </div>
       </div>
     </div>
@@ -160,6 +160,7 @@ import {Router} from '@angular/router';
     .poster {
       grid-area: poster;
       min-height: 450px;
+      font-size: 0;
     }
     .meta {
       grid-area: meta;

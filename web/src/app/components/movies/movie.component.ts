@@ -171,6 +171,7 @@ import {Router} from '@angular/router';
     .poster {
       grid-area: poster;
       min-height: 450px;
+      font-size: 0;
     }
     .meta {
       grid-area: meta;

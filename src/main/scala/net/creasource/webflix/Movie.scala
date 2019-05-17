@@ -1,8 +1,7 @@
 package net.creasource.webflix
 
 import net.creasource.json.JsonSupport
-import net.creasource.tmdb.common.Genre
-import net.creasource.tmdb.MovieCredits
+import net.creasource.tmdb.common.{Credits, Genre}
 import spray.json.RootJsonFormat
 
 case class Movie(
@@ -33,7 +32,7 @@ object Movie extends JsonSupport {
       revenue: Int,
       runtime: Option[Int],
       tagline: Option[String],
-      credits: MovieCredits)
+      credits: Credits)
 
   object Details {
 
