@@ -10,7 +10,6 @@ import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.util.ByteString
 import net.creasource.{Application, tmdb}
 import net.creasource.exceptions.NotFoundException
-import net.creasource.webflix.LibraryFile.Tags
 import net.creasource.webflix.events.{FileAdded, MovieAdded, MovieUpdate, ShowAdded, ShowUpdate}
 import net.creasource.webflix.{Configuration, LibraryFile, Movie, Show}
 import spray.json.DefaultJsonProtocol._
@@ -42,9 +41,9 @@ object TMDBActor {
   case class TVEpisodeContext(id: Int, season: Int, episode: Int) extends RuntimeContext(s"TV Episode: $id - S$season/E$episode")
 
   sealed trait Metadata
-  case class MovieMetadata(name: String, year: Int, tags: List[String]) extends Metadata
-  case class TVEpisodeMetadata(name: String, season: Int, episode: Int, tags: List[String]) extends Metadata
-  case class UnknownMetadata(tags: List[String]) extends Metadata
+  case class MovieMetadata(name: String, year: Int, file: LibraryFile) extends Metadata
+  case class TVEpisodeMetadata(name: String, season: Int, episode: Int, file: LibraryFile) extends Metadata
+  case class UnknownMetadata(file: LibraryFile) extends Metadata
 }
 
 class TMDBActor()(implicit application: Application) extends Actor with Stash {
@@ -76,7 +75,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
 
   val movieActor: ActorRef = context.actorOf(Props(new Actor {
     var movies: Map[Int, Movie] = Map.empty
-    var movieSearches: Map[MovieSearchContext, Seq[LibraryFile with Tags]] = Map.empty
+    var movieSearches: Map[MovieSearchContext, Seq[LibraryFile]] = Map.empty
     override def receive: Receive = {
       // Public actor API
       case GetMovies => sender() ! movies.values.toSeq
@@ -86,7 +85,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
           case _ => sender() ! Status.Failure(NotFoundException("Movie not found"))
         }
       // From parent
-      case (MovieMetadata(name, year, _), file: LibraryFile with Tags) =>
+      case MovieMetadata(name, year, file) =>
         val searchContext = MovieSearchContext(name, year)
         movieSearches.get(searchContext) match {
           case Some(files) =>
@@ -142,7 +141,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
 
   val tvActor: ActorRef = context.actorOf(Props(new Actor {
     var shows: Map[Int, Show] = Map.empty
-    var showSearches: Map[TVSearchContext, Seq[LibraryFile with Tags]] = Map.empty
+    var showSearches: Map[TVSearchContext, Seq[LibraryFile]] = Map.empty
     override def receive: Receive = {
       // Public actor API
       case GetShows => sender() ! shows.values.toSeq
@@ -152,7 +151,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
           case _ => sender() ! Status.Failure(NotFoundException("TV show not found"))
         }
       //
-      case (TVEpisodeMetadata(name, _, _, _), file: LibraryFile with Tags) =>
+      case TVEpisodeMetadata(name, _, _, file) =>
         val searchContext = TVSearchContext(name)
         showSearches.get(searchContext) match {
           case Some(files) =>
@@ -274,11 +273,11 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
         // .filter(file => !movies.values.map(_.file.path).toSeq.contains(file.path)) // TODO
         .map(extractMeta)
         .foreach {
-          case meta @ MovieMetadata(_, _, tags) =>
-            movieActor ! (meta, file.withTags(tags))
-          case meta @ TVEpisodeMetadata(_ ,_, _, tags) =>
-            tvActor ! (meta, file.withTags(tags))
-          case UnknownMetadata(tags) =>
+          case meta: MovieMetadata =>
+            movieActor ! meta
+          case meta: TVEpisodeMetadata =>
+            tvActor ! meta
+          case UnknownMetadata(file) =>
         }
 
     // TMDB responses
@@ -354,10 +353,21 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
 
     clean(file.name) match {
       case show(title, _, season, episode, rest) =>
-        TVEpisodeMetadata(title.trim.toLowerCase, season.toInt, episode.toInt, extractTags(rest))
+        TVEpisodeMetadata(
+          title.trim.toLowerCase,
+          season.toInt,
+          episode.toInt,
+          file.withTags(extractTags(rest))
+            .withSeasonNumber(season.toInt)
+            .withEpisodeNumber(episode.toInt)
+        )
       case movie(title, year, _, rest) =>
-        MovieMetadata(title.trim.toLowerCase, year.toInt, extractTags(rest))
-      case _ => UnknownMetadata(extractTags(file.name))
+        MovieMetadata(
+          title.trim.toLowerCase,
+          year.toInt,
+          file.withTags(extractTags(rest))
+        )
+      case _ => UnknownMetadata(file.withTags(extractTags(file.name)))
     }
   }
 

@@ -16,7 +16,7 @@ case class Show(
     backdrop: Option[String],
     overview: String,
     vote_average: Float,
-    files: Seq[LibraryFile with LibraryFile.Tags],
+    files: Seq[LibraryFile],
     details: Option[Show.Details]) {
 
   def withDetails(details: Show.Details): Show = copy(details = Some(details))

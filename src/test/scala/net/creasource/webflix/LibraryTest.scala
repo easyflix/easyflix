@@ -63,7 +63,7 @@ class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer  {
       val files = future.futureValue
 
       files.length should be (1)
-      files.head should matchPattern { case (LibraryFile(`fileName`, _, false, _, _, "name"), DirectoryChange.Creation) => }
+      files.head should matchPattern { case (LibraryFile(`fileName`, _, false, _, _, "name", _, _, _), DirectoryChange.Creation) => }
     }
 
     "watch root directory for file deletion" in {
@@ -86,7 +86,7 @@ class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer  {
       val files = future.futureValue
 
       files.length should be (2) // Modification and Deletion
-      files.last should matchPattern { case (LibraryFile(`fileName`, _, false, _, _, "name"), DirectoryChange.Deletion) => }
+      files.last should matchPattern { case (LibraryFile(`fileName`, _, false, _, _, "name", _, _, _), DirectoryChange.Deletion) => }
     }
 
     "watch a sub directory" in {
@@ -108,7 +108,7 @@ class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer  {
       val files = future.futureValue
 
       files.length should be (1)
-      files.head should matchPattern { case (LibraryFile(`fileName`, _, false, _, _, "name"), DirectoryChange.Creation) => }
+      files.head should matchPattern { case (LibraryFile(`fileName`, _, false, _, _, "name", _, _, _), DirectoryChange.Creation) => }
     }
 
 /*    "fail to create with an invalid name" in {
