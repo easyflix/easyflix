@@ -33,7 +33,6 @@ import {switchMap} from 'rxjs/operators';
       z-index: 20;
     }
     app-show {
-      min-height: 900px;
       flex-grow: 1;
       display: flex;
       flex-direction: column;

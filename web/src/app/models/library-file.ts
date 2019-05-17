@@ -8,4 +8,6 @@ export interface LibraryFile {
   lastModified: number;
   libraryName: string;
   tags?: string[];
+  seasonNumber?: number;
+  episodeNumber?: number;
 }

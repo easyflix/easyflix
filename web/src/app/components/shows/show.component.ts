@@ -9,6 +9,7 @@ import {VideoService} from '@app/services/video.service';
 import {FilesService} from '@app/services/files.service';
 import {FilterService} from '@app/services/filter.service';
 import {Router} from '@angular/router';
+import {ThemePalette} from '@angular/material';
 
 @Component({
   selector: 'app-show',
@@ -50,27 +51,37 @@ import {Router} from '@angular/router';
               <header>
                 <h3 (click)="tabIndex = 0" [class.selected]="tabIndex === 0">Show Info</h3>
                 <h3 (click)="tabIndex = i + 1" [class.selected]="tabIndex === i + 1"
-                    *ngFor="let season of getSeasons(show); index as i">
-                  Season {{ season.season_number }}
+                    *ngFor="let season of getSeasons(show); index as i"
+                    [class.hidden]="getAvailableEpisodesCount(season) === 0 && !showAll">
+                  <span [matBadge]="getAvailableEpisodesCount(season).toString()"
+                        matBadgeOverlap="false"
+                        matBadgeSize="medium"
+                        [matBadgeColor]="getBadgeColor(season)">
+                    Season {{ season.season_number }}
+                  </span>
                 </h3>
               </header>
               <section class="show-info" *ngIf="tabIndex === 0">
                 <dl class="left">
                   <dt>Original name</dt>
-                  <dd>{{ show.original_name }}</dd>
+                  <dd><span class="overflow-ellipsis">{{ show.original_name }}</span></dd>
                   <dt>First air date</dt>
                   <dd>{{ show.first_air_date | date:'mediumDate'}}</dd>
                   <dt>Created by</dt>
                   <dd *ngIf="show.details as details; else loading">
-                    <ng-container *ngFor="let creator of getCreatedBy(details.created_by); last as isLast">
-                      <a class="search" (click)="searchPeople(creator)">{{creator}}</a>{{ isLast ? '' : ', ' }}
-                    </ng-container>
+                    <span class="overflow-ellipsis">
+                      <ng-container *ngFor="let creator of getCreatedBy(details.created_by); last as isLast">
+                        <a class="search" (click)="searchPeople(creator)">{{creator}}</a>{{ isLast ? '' : ',&nbsp;' }}
+                      </ng-container>
+                    </span>
                   </dd>
                   <dt>Networks</dt>
                   <dd *ngIf="show.details as details; else loading">
-                    <ng-container *ngFor="let network of getNetworks(details.networks); last as isLast">
-                      <a class="search" (click)="searchNetwork(network)">{{network}}</a>{{ isLast ? '' : ', ' }}
-                    </ng-container>
+                    <span class="overflow-ellipsis">
+                      <ng-container *ngFor="let network of getNetworks(details.networks); last as isLast">
+                        <a class="search" (click)="searchNetwork(network)">{{network}}</a>{{ isLast ? '' : ',&nbsp;' }}
+                      </ng-container>
+                    </span>
                   </dd>
                 </dl>
                 <dl class="right">
@@ -82,17 +93,30 @@ import {Router} from '@angular/router';
                   </dd>
                   <dt>Genres</dt>
                   <dd *ngIf="show.details as details; else loading">
-                    <ng-container *ngFor="let genre of getGenre(details); last as isLast">
-                      <a class="search" (click)="searchGenre(genre)">{{genre}}</a>{{ isLast ? '' : ', ' }}
-                    </ng-container>
+                    <span class="overflow-ellipsis">
+                      <ng-container *ngFor="let genre of getGenres(details); last as isLast">
+                        <a class="search" (click)="searchGenre(genre)">{{genre}}</a>{{ isLast ? '' : ',&nbsp;' }}
+                      </ng-container>
+                    </span>
                   </dd>
                   <dt>Seasons</dt>
                   <dd *ngIf="show.details as details; else loading">
-                    {{ details.number_of_seasons }}
+                    <span *ngIf="getAvailableSeasons().length !== details.number_of_seasons">
+                      {{ getAvailableSeasons().length }}&nbsp;/&nbsp;
+                    </span>
+                    <span>{{ details.number_of_seasons }}</span>
+                    <mat-checkbox class="show-all"
+                                  [(ngModel)]="showAll"
+                                  *ngIf="getAvailableSeasons().length !== details.number_of_seasons">
+                      Show all
+                    </mat-checkbox>
                   </dd>
                   <dt>Episodes</dt>
                   <dd *ngIf="show.details as details; else loading">
-                    {{ details.number_of_episodes }}
+                    <span *ngIf="getTotalAvailableEpisodesCount() < details.number_of_episodes">
+                      {{ getTotalAvailableEpisodesCount() }}/
+                    </span>
+                    <span>{{ details.number_of_episodes }}</span>
                   </dd>
                   <ng-template #loading>
                     <dd class="loading">Loading...</dd>
@@ -100,14 +124,17 @@ import {Router} from '@angular/router';
                 </dl>
               </section>
               <section class="season" *ngFor="let season of getSeasons(show); index as i"
-                       [class.hidden]="tabIndex !== (i + 1)">
-                <!--<img *ngIf="season.poster_path" [src]="getPosterSource(season.poster_path) | async" />-->
-                <p>{{ season.air_date ? season.air_date.substring(0, 4) : '' }} |
-                  {{ season.episode_count }} episodes</p>
+                       [class.hidden]="tabIndex !== i + 1">
+                <p>
+                  {{ season.air_date ? season.air_date.substring(0, 4) : '' }} |
+                  {{ season.episode_count }} episodes
+                </p>
                 <p class="overview">{{ season.overview }}</p>
               </section>
             </div>
           </div>
+        </div>
+        <ng-container *ngIf="tabIndex === 0">
           <div class="cast" *ngIf="show.details as details; else castLoading">
             <div class="people" *ngFor="let actor of details.credits.cast">
               <div class="profile" [style]="getActorStyle(actor) | async">
@@ -121,7 +148,7 @@ import {Router} from '@angular/router';
           <ng-template #castLoading>
             <!--TODO -->
           </ng-template>
-        </div>
+        </ng-container>
       </div>
     </div>
     <ng-content></ng-content>
@@ -147,15 +174,13 @@ import {Router} from '@angular/router';
     }
     .show {
       display: grid;
-      max-width: 1300px;
       grid-template-columns: 300px auto;
-      grid-template-rows: auto 306px;
-      grid-template-areas:
-        "poster meta"
-        "cast cast";
+      grid-template-rows: auto;
+      grid-template-areas: "poster meta";
       justify-items: stretch;
-      padding: 2rem;
       box-sizing: border-box;
+      max-width: 1300px;
+      padding: 2rem;
     }
     .poster {
       grid-area: poster;
@@ -227,6 +252,12 @@ import {Router} from '@angular/router';
       padding: .75rem 0;
       cursor: pointer;
     }
+    .information h3 .mat-badge-content {
+      display: none;
+    }
+    .information h3:hover .mat-badge-content {
+      display: unset;
+    }
     .information h3.selected {
       border-bottom: 2px solid;
     }
@@ -237,7 +268,6 @@ import {Router} from '@angular/router';
       font-weight: 300;
       margin: 0;
       width: 100%;
-      min-height: 120px;
     }
     dl.left, dl.right {
       width: 50%;
@@ -246,15 +276,25 @@ import {Router} from '@angular/router';
       width: 9rem;
       padding-right: 1rem;
       box-sizing: border-box;
-      margin: .3rem 0;
-      text-align: right;
+      height: 28px;
       font-weight: 400;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      margin: 0;
     }
     dd {
       width: calc(100% - 9rem);
-      margin: .3rem 0;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      margin: 0;
+    }
+    .overflow-ellipsis {
       white-space: nowrap;
-      overflow: hidden;
+      max-width: 100%;
+      overflow-x: hidden;
+      overflow-y: visible;
       text-overflow: ellipsis;
     }
     .right dt {
@@ -263,12 +303,8 @@ import {Router} from '@angular/router';
     .right dd {
       width: calc(100% - 7rem);
     }
-    .tags mat-chip {
-      margin-top: 0;
-      margin-bottom: 0;
-      opacity: 1 !important;
-      font-weight: 300;
-      cursor: pointer;
+    .show-all {
+      margin-left: 1rem;
     }
     .season img {
       float: left;
@@ -276,11 +312,14 @@ import {Router} from '@angular/router';
       margin-right: 1rem;
     }
     .cast {
-      grid-area: cast;
       display: flex;
       flex-direction: row;
       justify-content: space-between;
-      margin-top: 3rem;
+      max-width: 1300px;
+      width: 100%;
+      height: 258px;
+      box-sizing: border-box;
+      padding: 0 2rem 2rem 2rem;
     }
     .people {
       display: flex;
@@ -329,6 +368,7 @@ export class ShowComponent implements OnInit {
   @Input() focusOnLoad = false;
 
   tabIndex = 0;
+  showAll = false;
 
   @ViewChild('container', {static: true}) container: ElementRef;
 
@@ -409,7 +449,7 @@ export class ShowComponent implements OnInit {
     return Math.floor(this.show.vote_average * 10);
   }
 
-  getGenre(details: ShowDetails): string[] {
+  getGenres(details: ShowDetails): string[] {
     return details.genres.map(genre => genre.name);
   }
 
@@ -423,6 +463,32 @@ export class ShowComponent implements OnInit {
 
   getNetworks(networks: Network[]): string[] {
     return networks.map(network => network.name);
+  }
+
+  getAvailableEpisodesCount(season: Season): number {
+    return Array.from(new Set(
+      this.show.files
+        .filter(file => file.seasonNumber === season.season_number)
+        .map(file => `s${file.seasonNumber}e${file.episodeNumber}`)
+    )).map(id =>
+      this.show.files.find(file => `s${file.seasonNumber}e${file.episodeNumber}` === id)
+    ).length;
+  }
+
+  getTotalAvailableEpisodesCount(): number {
+    return Array.from(
+      new Set(this.show.files.map(file => `s${file.seasonNumber}e${file.episodeNumber}`))
+    ).length;
+  }
+
+  getAvailableSeasons(): Season[] {
+    const seasonNumbers = Array.from(new Set(this.show.files.map(file => file.seasonNumber)));
+    return this.show.details.seasons.filter(season => seasonNumbers.includes(season.season_number));
+  }
+
+  getBadgeColor(season: Season): ThemePalette {
+    return this.getAvailableEpisodesCount(season) >= season.episode_count ? 'primary' :
+      this.getAvailableEpisodesCount(season) === 0 ? 'warn' : 'accent';
   }
 
   play() {
