@@ -102,11 +102,11 @@
     }
   }
 
-  app-movie {
+  app-movie, app-show {
     .filter {
       background-color: mat-color($background, background, 0.85);
     }
-    .poster {
+    .poster img {
       @include mat-elevation(4);
     }
     .year {

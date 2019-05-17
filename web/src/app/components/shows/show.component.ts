@@ -1,41 +1,38 @@
 import {ChangeDetectionStrategy, Component, ElementRef, Input, OnInit, ViewChild} from '@angular/core';
-import {Movie} from '@app/models';
+import {Creator, Network, Season, Show, ShowDetails} from '@app/models/show';
 import {DomSanitizer, SafeStyle, SafeUrl} from '@angular/platform-browser';
 import {CoreService} from '@app/services/core.service';
 import {EMPTY, Observable} from 'rxjs';
 import {filter, map, take} from 'rxjs/operators';
-import {Cast, Crew, MovieDetails} from '@app/models/movie';
+import {Cast, Crew} from '@app/models/movie';
 import {VideoService} from '@app/services/video.service';
 import {FilesService} from '@app/services/files.service';
 import {FilterService} from '@app/services/filter.service';
 import {Router} from '@angular/router';
 
 @Component({
-  selector: 'app-movie',
+  selector: 'app-show',
   template: `
     <div class="container" [style]="getBackdropStyle() | async" #container tabindex="0">
       <div class="filter">
-        <div class="movie">
+        <div class="show">
           <div class="poster">
-            <img [src]="getPosterSource() | async" />
+            <img [src]="getShowPosterSource() | async" *ngIf="tabIndex === 0" />
+            <ng-container *ngFor="let season of getSeasons(show); index as i">
+              <img [src]="getSeasonPosterSource(season) | async" *ngIf="tabIndex === i + 1" />
+            </ng-container>
           </div>
           <div class="meta">
             <h1 class="title">
-              {{ movie.title }}
+              {{ show.name }}
               <span class="year">
-                (<a class="search" (click)="searchYear(movie.release_date.substr(0, 4))">{{ movie.release_date.substr(0, 4) }}</a>)
+                (<a class="search" (click)="searchYear(show.first_air_date.substr(0, 4))">{{ show.first_air_date.substr(0, 4) }}</a>)
               </span>
             </h1>
-            <h2 class="tagline" *ngIf="movie.details as details; else taglineLoading">
-              {{ details.tagline ? details.tagline : '&nbsp;' }}
-            </h2>
-            <ng-template #taglineLoading>
-              <h2 class="tagline loading">Loading...</h2>
-            </ng-template>
             <div class="actions">
               <div class="score">
                 <mat-progress-spinner mode="determinate"
-                                      [value]="movie.vote_average * 10"
+                                      [value]="show.vote_average * 10"
                                       diameter="55" color="accent">
                 </mat-progress-spinner>
                 <span>{{ getScore() }}%</span>
@@ -47,79 +44,71 @@ import {Router} from '@angular/router';
               </button>
             </div>
             <p class="overview">
-              {{ movie.overview }}
+              {{ show.overview }}
             </p>
             <div class="information">
               <header>
-                <h3 (click)="tabIndex = 0" [class.selected]="tabIndex === 0">Movie Info</h3>
-                <h3 (click)="tabIndex = i + 1" [class.selected]="tabIndex === i + 1" *ngFor="let file of movie.files; index as i">
-                  File Info <ng-container *ngIf="movie.files.length > 1">({{ i + 1 }})</ng-container>
+                <h3 (click)="tabIndex = 0" [class.selected]="tabIndex === 0">Show Info</h3>
+                <h3 (click)="tabIndex = i + 1" [class.selected]="tabIndex === i + 1"
+                    *ngFor="let season of getSeasons(show); index as i">
+                  Season {{ season.season_number }}
                 </h3>
               </header>
-              <section class="movie-info" *ngIf="tabIndex === 0">
+              <section class="show-info" *ngIf="tabIndex === 0">
                 <dl class="left">
-                  <dt>Original title</dt>
-                  <dd>{{ movie.original_title }}</dd>
-                  <dt>Release date</dt>
-                  <dd>{{ movie.release_date | date:'mediumDate'}}</dd>
-                  <dt>Directed by</dt>
-                  <dd *ngIf="movie.details as details; else loading">
-                    <ng-container *ngFor="let director of getDirectors(details.credits.crew); last as isLast">
-                      <a class="search" (click)="searchPeople(director)">{{director}}</a>{{ isLast ? '' : ', ' }}
+                  <dt>Original name</dt>
+                  <dd>{{ show.original_name }}</dd>
+                  <dt>First air date</dt>
+                  <dd>{{ show.first_air_date | date:'mediumDate'}}</dd>
+                  <dt>Created by</dt>
+                  <dd *ngIf="show.details as details; else loading">
+                    <ng-container *ngFor="let creator of getCreatedBy(details.created_by); last as isLast">
+                      <a class="search" (click)="searchPeople(creator)">{{creator}}</a>{{ isLast ? '' : ', ' }}
                     </ng-container>
                   </dd>
-                  <dt>Runtime</dt>
-                  <dd *ngIf="movie.details as details; else loading">
-                    {{ details.runtime | sgTime }}
+                  <dt>Networks</dt>
+                  <dd *ngIf="show.details as details; else loading">
+                    <ng-container *ngFor="let network of getNetworks(details.networks); last as isLast">
+                      <a class="search" (click)="searchNetwork(network)">{{network}}</a>{{ isLast ? '' : ', ' }}
+                    </ng-container>
                   </dd>
                 </dl>
                 <dl class="right">
                   <dt>Language</dt>
                   <dd>
-                    <a class="search" (click)="searchLanguage(movie.original_language)">
-                      {{ getLanguage(movie.original_language) | async }}
+                    <a class="search" (click)="searchLanguage(show.original_language)">
+                      {{ getLanguage(show.original_language) | async }}
                     </a>
                   </dd>
                   <dt>Genres</dt>
-                  <dd *ngIf="movie.details as details; else loading">
+                  <dd *ngIf="show.details as details; else loading">
                     <ng-container *ngFor="let genre of getGenre(details); last as isLast">
                       <a class="search" (click)="searchGenre(genre)">{{genre}}</a>{{ isLast ? '' : ', ' }}
                     </ng-container>
                   </dd>
-                  <dt>Budget</dt>
-                  <dd *ngIf="movie.details as details; else loading">
-                    {{ details.budget | currency:'USD':'symbol':'1.0' }}
+                  <dt>Seasons</dt>
+                  <dd *ngIf="show.details as details; else loading">
+                    {{ details.number_of_seasons }}
                   </dd>
-                  <dt>Revenue</dt>
-                  <dd *ngIf="movie.details as details; else loading">
-                    {{ details.revenue | currency:'USD':'symbol':'1.0' }}
+                  <dt>Episodes</dt>
+                  <dd *ngIf="show.details as details; else loading">
+                    {{ details.number_of_episodes }}
                   </dd>
                   <ng-template #loading>
                     <dd class="loading">Loading...</dd>
                   </ng-template>
                 </dl>
               </section>
-              <section class="file-info" *ngFor="let file of movie.files; index as i" [class.hidden]="tabIndex !== (i + 1)">
-                <dl>
-                  <dt>Library</dt>
-                  <dd>{{ file.libraryName }}</dd>
-                  <dt>File name</dt>
-                  <dd>{{ file.name }}</dd>
-                  <dt>File size</dt>
-                  <dd>{{ file.size | sgFileSize }}</dd>
-                  <dt>Tags</dt>
-                  <dd class="tags">
-                    <mat-chip-list [selectable]="false" [disabled]="true">
-                      <mat-chip *ngFor="let tag of file.tags" (click)="searchTag(tag)">
-                        {{ tag }}
-                      </mat-chip>
-                    </mat-chip-list>
-                  </dd>
-                </dl>
+              <section class="season" *ngFor="let season of getSeasons(show); index as i"
+                       [class.hidden]="tabIndex !== (i + 1)">
+                <!--<img *ngIf="season.poster_path" [src]="getPosterSource(season.poster_path) | async" />-->
+                <p>{{ season.air_date ? season.air_date.substring(0, 4) : '' }} |
+                  {{ season.episode_count }} episodes</p>
+                <p class="overview">{{ season.overview }}</p>
               </section>
             </div>
           </div>
-          <div class="cast" *ngIf="movie.details as details; else castLoading">
+          <!--<div class="cast" *ngIf="show.details as details; else castLoading">
             <div class="people" *ngFor="let actor of details.credits.cast">
               <div class="profile" [style]="getActorStyle(actor) | async">
                 <mat-icon *ngIf="!actor.profile_path">person</mat-icon>
@@ -130,8 +119,8 @@ import {Router} from '@angular/router';
             </div>
           </div>
           <ng-template #castLoading>
-            <!--TODO -->
-          </ng-template>
+            &lt;!&ndash;TODO &ndash;&gt;
+          </ng-template>-->
         </div>
       </div>
     </div>
@@ -156,7 +145,7 @@ import {Router} from '@angular/router';
       justify-content: center;
       align-items: center;
     }
-    .movie {
+    .show {
       display: grid;
       max-width: 1300px;
       grid-template-columns: 300px auto;
@@ -181,11 +170,6 @@ import {Router} from '@angular/router';
       font-size: 3rem;
       margin: 0 0 .5rem 0;
       font-weight: 500;
-    }
-    .tagline {
-      margin: 0;
-      font-weight: 300;
-      font-size: 1.25rem;
     }
     .year {
       font-size: 2rem;
@@ -273,15 +257,17 @@ import {Router} from '@angular/router';
     .right dd {
       width: calc(100% - 7rem);
     }
-    .tags {
-      overflow: visible;
-    }
     .tags mat-chip {
       margin-top: 0;
       margin-bottom: 0;
       opacity: 1 !important;
       font-weight: 300;
       cursor: pointer;
+    }
+    .season img {
+      float: left;
+      width: 120px;
+      margin-right: 1rem;
     }
     .cast {
       grid-area: cast;
@@ -330,9 +316,9 @@ import {Router} from '@angular/router';
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MovieComponent implements OnInit {
+export class ShowComponent implements OnInit {
 
-  @Input() movie: Movie;
+  @Input() show: Show;
 
   @Input() focusOnLoad = false;
 
@@ -355,24 +341,35 @@ export class MovieComponent implements OnInit {
     }
   }
 
-  getPosterSource(): Observable<SafeUrl> {
-    // TODO: can be null
+  getShowPosterSource(): Observable<SafeUrl> {
+    // TODO poster can be null
     return this.core.getConfig().pipe(
       filter(s => !!s),
       take(1),
-      map(config => this.sanitizer.bypassSecurityTrustUrl(
-        `${config.images.secure_base_url}w300${this.movie.poster}`
+      map(config => this.sanitizer.bypassSecurityTrustResourceUrl(
+        `${config.images.secure_base_url}w300${this.show.poster}`
       ))
     );
   }
 
   getBackdropStyle(): Observable<SafeStyle> {
-    // TODO: can be null
+    // TODO: backdrop can be null
     return this.core.getConfig().pipe(
       filter(s => !!s),
       take(1),
       map(config => this.sanitizer.bypassSecurityTrustStyle(
-        `background-image: url(${config.images.secure_base_url}original${this.movie.backdrop})`
+        `background-image: url(${config.images.secure_base_url}original${this.show.backdrop})`
+      ))
+    );
+  }
+
+  getSeasonPosterSource(season: Season) {
+    // TODO: poster path can be empty
+    return this.core.getConfig().pipe(
+      filter(s => !!s),
+      take(1),
+      map(config => this.sanitizer.bypassSecurityTrustResourceUrl(
+        `${config.images.secure_base_url}w300${season.poster_path}`
       ))
     );
   }
@@ -403,25 +400,34 @@ export class MovieComponent implements OnInit {
   }
 
   getScore() {
-    return Math.floor(this.movie.vote_average * 10);
+    return Math.floor(this.show.vote_average * 10);
   }
 
-  getGenre(details: MovieDetails): string[] {
+  getGenre(details: ShowDetails): string[] {
     return details.genres.map(genre => genre.name);
   }
 
-  getDirectors(crew: Crew[]): string[] {
-    return crew.map(director => director.name);
+  getCreatedBy(creators: Creator[]): string[] {
+    return creators.map(creator => creator.name);
+  }
+
+  getSeasons(show: Show): Season[] {
+    return show.details ? show.details.seasons.filter(season => season.season_number !== 0) : [];
+  }
+
+  getNetworks(networks: Network[]): string[] {
+    return networks.map(network => network.name);
   }
 
   play() {
-    this.files.getByPath(this.movie.files[0].path).subscribe( // TODO present a dialog to select file to play
+    // TODO present a dialog to select file to play
+    this.files.getByPath(this.show.files[0].path).subscribe(
       file => this.video.playVideo(file)
     );
   }
 
   searchYear(year: string) {
-    this.router.navigate(['/', {outlets: {movie: null}}], {queryParamsHandling: 'preserve'}).then(
+    this.router.navigate(['/', {outlets: {show: null}}], {queryParamsHandling: 'preserve'}).then(
       () => {
         this.filters.clear();
         this.filters.setYears([year]);
@@ -430,7 +436,7 @@ export class MovieComponent implements OnInit {
   }
 
   searchLanguage(language: string) {
-    this.router.navigate(['/', {outlets: {movie: null}}], {queryParamsHandling: 'preserve'}).then(
+    this.router.navigate(['/', {outlets: {show: null}}], {queryParamsHandling: 'preserve'}).then(
       () => {
         this.filters.clear();
         this.filters.setLanguages([language]);
@@ -439,7 +445,7 @@ export class MovieComponent implements OnInit {
   }
 
   searchGenre(genre: string) {
-    this.router.navigate(['/', {outlets: {movie: null}}], {queryParamsHandling: 'preserve'}).then(
+    this.router.navigate(['/', {outlets: {show: null}}], {queryParamsHandling: 'preserve'}).then(
       () => {
         this.filters.clear();
         this.filters.setGenres([genre]);
@@ -448,7 +454,7 @@ export class MovieComponent implements OnInit {
   }
 
   searchPeople(person: string) {
-    this.router.navigate(['/', {outlets: {movie: null}}], {queryParamsHandling: 'preserve'}).then(
+    this.router.navigate(['/', {outlets: {show: null}}], {queryParamsHandling: 'preserve'}).then(
       () => {
         this.filters.clear();
         this.filters.setSearch(person);
@@ -457,12 +463,15 @@ export class MovieComponent implements OnInit {
   }
 
   searchTag(tag: string) {
-    this.router.navigate(['/', {outlets: {movie: null}}], {queryParamsHandling: 'preserve'}).then(
+    this.router.navigate(['/', {outlets: {show: null}}], {queryParamsHandling: 'preserve'}).then(
       () => {
         this.filters.clear();
         this.filters.setTags([tag]);
       }
     );
+  }
+
+  searchNetwork(network: string) {
   }
 
   focus() {

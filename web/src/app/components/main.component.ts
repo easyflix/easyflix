@@ -51,6 +51,7 @@ import {map} from 'rxjs/operators';
     <main [@mainAnimation]="getAnimationData(main)">
       <div [@movieAnimation]="getAnimationData(movie)">
         <router-outlet name="movie" #movie="outlet"></router-outlet>
+        <router-outlet name="show" #movie="outlet"></router-outlet>
       </div>
       <router-outlet #main="outlet"></router-outlet>
     </main>

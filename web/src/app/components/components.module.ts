@@ -25,6 +25,8 @@ import {MovieComponent} from '@app/components/movies/movie.component';
 import {MovieDetailsComponent} from '@app/components/movies/movie-details.component';
 import {FiltersComponent} from '@app/components/filters.component';
 import {ShowsGridComponent} from '@app/components/shows/shows-grid.component';
+import {ShowComponent} from '@app/components/shows/show.component';
+import {ShowDetailsComponent} from '@app/components/shows/show-details.component';
 
 const COMPONENTS = [
   FileListComponent,
@@ -51,7 +53,9 @@ const COMPONENTS = [
   MovieComponent,
   MovieDetailsComponent,
   FiltersComponent,
-  ShowsGridComponent
+  ShowsGridComponent,
+  ShowComponent,
+  ShowDetailsComponent
 ];
 
 @NgModule({
