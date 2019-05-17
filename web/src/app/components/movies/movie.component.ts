@@ -203,8 +203,13 @@ import {Router} from '@angular/router';
     }
     .score span {
       position: absolute;
-      top: 18px;
-      left: 14px;
+      top: 0;
+      left: 0;
+      width: 55px;
+      height: 55px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .user-score {
       display: inline-block;
