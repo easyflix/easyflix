@@ -8,7 +8,6 @@ import {VideoService} from '@app/services/video.service';
 import {FilesService} from '@app/services/files.service';
 import {FilterService} from '@app/services/filter.service';
 import {ActivatedRoute, Router, RouterOutlet} from '@angular/router';
-import {ThemePalette} from '@angular/material';
 import {tabsAnimations} from '@app/animations';
 
 @Component({
@@ -60,12 +59,7 @@ import {tabsAnimations} from '@app/animations';
                 queryParamsHandling="preserve"
                 *ngFor="let season of getSeasons(show); index as i"
                 [class.hidden]="getAvailableEpisodesCount(season) === 0 && !showAll">
-              <span [matBadge]="getAvailableEpisodesCount(season).toString()"
-                    matBadgeOverlap="false"
-                    matBadgeSize="medium"
-                    [matBadgeColor]="getBadgeColor(season)">
-                Season {{ season.season_number }}
-              </span>
+              Season {{ season.season_number }}
             </h3>
           </header>
           <div class="tabs-content" [@tabsAnimation]="getAnimationData(tab) | async">
@@ -278,11 +272,6 @@ export class ShowComponent implements OnInit {
     )).map(id =>
       this.show.files.find(file => `s${file.seasonNumber}e${file.episodeNumber}` === id)
     ).length;
-  }
-
-  getBadgeColor(season: Season): ThemePalette {
-    return this.getAvailableEpisodesCount(season) >= season.episode_count ? 'primary' :
-      this.getAvailableEpisodesCount(season) === 0 ? 'warn' : 'accent';
   }
 
   play() {
