@@ -5,9 +5,10 @@ import {CoreService} from '@app/services/core.service';
 import {FilesService} from '@app/services/files.service';
 import {VideoService} from '@app/services/video.service';
 import {FilterService} from '@app/services/filter.service';
-import {ActivatedRoute, Router} from '@angular/router';
+import {ActivatedRoute, Router, RouterOutlet} from '@angular/router';
 import {DomSanitizer} from '@angular/platform-browser';
 import {map, switchMap} from 'rxjs/operators';
+import {episodesAnimations} from '@app/animations';
 
 @Component({
   selector: 'app-season',
@@ -32,8 +33,8 @@ import {map, switchMap} from 'rxjs/operators';
             <mat-icon>arrow_drop_up</mat-icon>
           </button>
         </div>
-        <div class="episode">
-          <router-outlet></router-outlet>
+        <div class="episode" [@episodesAnimation]="getAnimationData(episode) | async">
+          <router-outlet #episode="outlet"></router-outlet>
         </div>
         <div class="after">
           <button mat-button [routerLink]="[2]">
@@ -98,8 +99,11 @@ import {map, switchMap} from 'rxjs/operators';
     }
     .episode {
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      justify-content: center;
       height: 100%;
+      overflow: hidden;
+      position: relative;
     }
     .before, .after {
       position: absolute;
@@ -108,6 +112,7 @@ import {map, switchMap} from 'rxjs/operators';
       align-items: center;
       justify-content: center;
       width: 100%;
+      z-index: 1;
     }
     .before {
       top: 15px;
@@ -120,6 +125,7 @@ import {map, switchMap} from 'rxjs/operators';
       border-radius: 0;
     }
   `],
+  animations: [episodesAnimations],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SeasonComponent implements OnInit {
@@ -145,6 +151,13 @@ export class SeasonComponent implements OnInit {
           map(show => show.details.seasons.filter(season => season.season_number === seasonNumber)[0])
         );
       })
+    );
+  }
+
+  getAnimationData(outlet: RouterOutlet): Observable<string> {
+    // return outlet && outlet.activatedRouteData && outlet.activatedRouteData.animation || 'void';
+    return outlet.activatedRoute.paramMap.pipe(
+      map(params => (outlet.activatedRouteData && outlet.activatedRouteData.animation) || params.get('episode') || 'info')
     );
   }
 

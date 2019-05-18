@@ -164,3 +164,61 @@ export const tabsAnimations = trigger('tabsAnimation', [
   transition('void <=> *', []),
   transition('* => *', tabsAnim),
 ]);
+
+
+const slideUp = [
+  query(':enter, :leave', [
+    style({
+      position: 'absolute'
+    })
+  ]),
+  query(':enter', [
+    style({
+      transform: 'translateY(calc(100% + 50px))'
+    })
+  ]),
+  group([
+    query(
+      ':enter',
+      animate(DEFAULT_TIMING + ' ease', style({ transform: 'translateY(0)' }))
+    ),
+    query(
+      ':leave',
+      animate(DEFAULT_TIMING + ' ease', style({ transform: 'translateY(calc(-100% - 50px))' }))
+    )
+  ])
+];
+
+const slideDown = [
+  query(':enter, :leave', [
+    style({
+      position: 'absolute'
+    })
+  ]),
+  query(':enter', [
+    style({
+      transform: 'translateY(calc(-100% - 50px))'
+    })
+  ]),
+  group([
+    query(
+      ':enter',
+      animate(DEFAULT_TIMING + ' ease', style({ transform: 'translateY(0)' }))
+    ),
+    query(
+      ':leave',
+      animate(DEFAULT_TIMING + ' ease', style({ transform: 'translateY(calc(100% + 50px))' }))
+    )
+  ])
+];
+
+const nextEpisode = (from, to) => {
+  return +from < +to;
+};
+
+export const episodesAnimations = trigger('episodesAnimation', [
+  // transition(debug('episodes'), []),
+  transition('void <=> *', []),
+  transition(nextEpisode, slideUp),
+  transition('* => *', slideDown),
+]);
