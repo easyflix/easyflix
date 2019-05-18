@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, Component, ElementRef, Input, OnInit, ViewChild
 import {Season, Show} from '@app/models/show';
 import {DomSanitizer, SafeStyle, SafeUrl} from '@angular/platform-browser';
 import {CoreService} from '@app/services/core.service';
-import {Observable, of} from 'rxjs';
+import {EMPTY, Observable, of} from 'rxjs';
 import {filter, map, take} from 'rxjs/operators';
 import {VideoService} from '@app/services/video.service';
 import {FilesService} from '@app/services/files.service';
@@ -17,15 +17,20 @@ import {tabsAnimations} from '@app/animations';
       <div class="filter">
         <section class="show">
           <div class="poster">
-            <img [src]="getShowPosterSource() | async" [class.visible]="isShowingInfo() | async" />
-            <ng-container *ngFor="let season of getSeasons(show); index as i">
-              <img [src]="getSeasonPosterSource(season) | async" [class.visible]="isCurrentSeason(season) | async" />
+            <img *ngIf="getShowPosterSource() | async as poster"
+                 [src]="poster"
+                 [class.visible]="isShowingInfo() | async"/>
+            <ng-container *ngFor="let season of getSeasons(show)">
+              <img *ngIf="getSeasonPosterSource(season) | async as poster"
+                   [src]="poster"
+                   [class.visible]="isShowingSeason(season) | async"/>
             </ng-container>
           </div>
           <h1 class="title">
             {{ show.name }}
             <span class="year">
-              (<a class="search" (click)="searchYear(show.first_air_date.substr(0, 4))">{{ show.first_air_date.substr(0, 4) }}</a>)
+              (<a class="search"
+                  (click)="searchYear(show.first_air_date.substr(0, 4))">{{ show.first_air_date.substr(0, 4) }}</a>)
             </span>
           </h1>
           <div class="actions">
@@ -47,20 +52,28 @@ import {tabsAnimations} from '@app/animations';
           </p>
           <header class="tabs">
             <a class="tab"
-                [routerLink]="['./']"
-                routerLinkActive="selected"
-                queryParamsHandling="preserve"
-                [routerLinkActiveOptions]="{exact: true}">
+               [routerLink]="['./']"
+               routerLinkActive="selected"
+               queryParamsHandling="preserve"
+               [routerLinkActiveOptions]="{exact: true}">
               Show Info
             </a>
             <a class="tab"
-                [routerLink]="[i + 1]"
-                routerLinkActive="selected"
-                queryParamsHandling="preserve"
-                *ngFor="let season of getSeasons(show); index as i"
-                [class.hidden]="getAvailableEpisodesCount(season) === 0 && !showAll">
+               [routerLink]="['season', i + 1]"
+               routerLinkActive="selected"
+               queryParamsHandling="preserve"
+               *ngFor="let season of getSeasons(show); index as i"
+               [class.hidden]="getAvailableEpisodesCount(season) === 0 && !showAll">
               Season {{ season.season_number }}
             </a>
+            <button mat-icon-button class="settings" [matMenuTriggerFor]="rootMenu">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #rootMenu="matMenu" xPosition="before" yPosition="below">
+              <button mat-menu-item (click)="showAll = !showAll">
+                {{ showAll ? 'Hide empty seasons' : 'Show all seasons' }}
+              </button>
+            </mat-menu>
           </header>
           <div class="tabs-content" [@tabsAnimation]="getAnimationData(tab) | async">
             <router-outlet #tab="outlet"></router-outlet>
@@ -172,6 +185,12 @@ import {tabsAnimations} from '@app/animations';
       flex-direction: row;
       margin-bottom: 15px;
       border-bottom: 1px solid;
+      position: relative;
+      padding-right: 50px;
+    }
+    .tabs .settings {
+      position: absolute;
+      right: 5px;
     }
     .tab {
       font-weight: 400;
@@ -234,7 +253,7 @@ export class ShowComponent implements OnInit {
     }
   }
 
-  isCurrentSeason(season: Season): Observable<boolean> {
+  isShowingSeason(season: Season): Observable<boolean> {
     if (this.route.firstChild !== null) {
       return this.route.firstChild.paramMap.pipe(
         map(params => +params.get('season')),
@@ -251,37 +270,56 @@ export class ShowComponent implements OnInit {
     );
   }
 
+/*  getFirstEpisode(season: Season): number | {} {
+    const firstFile = this.show.files
+      .filter(file => file.seasonNumber === season.season_number)
+      .sort((a, b) => a.episodeNumber - b.episodeNumber)[0];
+    if (firstFile !== undefined) {
+      return firstFile.episodeNumber;
+    }
+    return {};
+  }*/
+
   getShowPosterSource(): Observable<SafeUrl> {
-    // TODO poster can be null
-    return this.core.getConfig().pipe(
-      filter(s => !!s),
-      take(1),
-      map(config => this.sanitizer.bypassSecurityTrustResourceUrl(
-        `${config.images.secure_base_url}w300${this.show.poster}`
-      ))
-    );
+    if (this.show.poster) {
+      return this.core.getConfig().pipe(
+        filter(s => !!s),
+        take(1),
+        map(config => this.sanitizer.bypassSecurityTrustResourceUrl(
+          `${config.images.secure_base_url}w300${this.show.poster}`
+        ))
+      );
+    } else {
+      return EMPTY;
+    }
   }
 
   getBackdropStyle(): Observable<SafeStyle> {
-    // TODO: backdrop can be null
-    return this.core.getConfig().pipe(
-      filter(s => !!s),
-      take(1),
-      map(config => this.sanitizer.bypassSecurityTrustStyle(
-        `background-image: url(${config.images.secure_base_url}original${this.show.backdrop})`
-      ))
-    );
+    if (this.show.backdrop) {
+      return this.core.getConfig().pipe(
+        filter(s => !!s),
+        take(1),
+        map(config => this.sanitizer.bypassSecurityTrustStyle(
+          `background-image: url(${config.images.secure_base_url}original${this.show.backdrop})`
+        ))
+      );
+    } else {
+      return EMPTY;
+    }
   }
 
   getSeasonPosterSource(season: Season) {
-    // TODO: poster path can be empty
-    return this.core.getConfig().pipe(
-      filter(s => !!s),
-      take(1),
-      map(config => this.sanitizer.bypassSecurityTrustResourceUrl(
-        `${config.images.secure_base_url}w300${season.poster_path}`
-      ))
-    );
+    if (season.poster_path) {
+      return this.core.getConfig().pipe(
+        filter(s => !!s),
+        take(1),
+        map(config => this.sanitizer.bypassSecurityTrustResourceUrl(
+          `${config.images.secure_base_url}w300${season.poster_path}`
+        ))
+      );
+    } else {
+      return EMPTY;
+    }
   }
 
   getScore() {
@@ -297,9 +335,9 @@ export class ShowComponent implements OnInit {
       this.show.files
         .filter(file => file.seasonNumber === season.season_number)
         .map(file => `s${file.seasonNumber}e${file.episodeNumber}`)
-    )).map(id =>
+    ))/*.map(id =>
       this.show.files.find(file => `s${file.seasonNumber}e${file.episodeNumber}` === id)
-    ).length;
+    )*/.length;
   }
 
   play() {

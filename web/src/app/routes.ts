@@ -22,6 +22,8 @@ import {ShowResolverService} from '@app/guards/show-resolver.service';
 import {SeasonComponent} from '@app/components/shows/season.component';
 import {ShowInfoComponent} from '@app/components/shows/show-info.component';
 import {EpisodeComponent} from '@app/components/shows/episode.component';
+import {SeasonResolverService} from '@app/guards/season-resolver.service';
+import {EpisodeResolverService} from '@app/guards/episode-resolver.service';
 
 const navOutletName = 'nav';
 
@@ -58,11 +60,28 @@ export const routes: Routes = [
     children: [
       { path: '', component: ShowInfoComponent, data: { animation: 'info' } },
       {
-        path: ':season',
+        path: 'season/:season',
         component: SeasonComponent,
+        resolve: {
+          season: SeasonResolverService
+        },
         data: { reuse: false },
         children: [
-          { path: ':episode', component: EpisodeComponent, data: { reuse: false } }
+          {
+            path: '',
+            component: EpisodeComponent,
+            resolve: {
+              episode: EpisodeResolverService
+            }
+          },
+          {
+            path: 'episode/:episode',
+            component: EpisodeComponent,
+            resolve: {
+              episode: EpisodeResolverService
+            },
+            data: { reuse: false },
+          },
         ]
       },
     ]

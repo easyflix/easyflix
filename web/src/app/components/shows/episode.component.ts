@@ -1,13 +1,13 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
-import {filter, map, switchMap, take} from 'rxjs/operators';
-import {EMPTY, Observable, zip} from 'rxjs';
+import {filter, map, take} from 'rxjs/operators';
+import {EMPTY, Observable} from 'rxjs';
 import {CoreService} from '@app/services/core.service';
 import {FilesService} from '@app/services/files.service';
 import {VideoService} from '@app/services/video.service';
 import {FilterService} from '@app/services/filter.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
-import {Episode, Show} from '@app/models/show';
+import {Episode} from '@app/models/show';
 
 @Component({
   selector: 'app-episode',
@@ -145,20 +145,8 @@ export class EpisodeComponent implements OnInit {
   }
 
   ngOnInit(): void {
-
-    this.episode$ = zip(this.route.paramMap, this.route.parent.paramMap, this.route.parent.parent.data).pipe(
-      map(array => ({
-        episode: +array[0].get('episode'),
-        season: +array[1].get('season'),
-        show$: array[2].show$ as Observable<Show>
-      })),
-      switchMap(obj => obj.show$.pipe(
-        map((show: Show) =>
-          show.episodes.filter(ep =>
-            ep.season_number === obj.season && ep.episode_number === obj.episode
-          )[0]
-        )
-      ))
+    this.episode$ = this.route.data.pipe(
+      map((data: {episode: Episode}) => data.episode)
     );
   }
 

@@ -1,15 +1,9 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
-import {concat, EMPTY, Observable, of} from 'rxjs';
-import {Season, Show} from '@app/models/show';
-import {CoreService} from '@app/services/core.service';
-import {FilesService} from '@app/services/files.service';
-import {VideoService} from '@app/services/video.service';
-import {FilterService} from '@app/services/filter.service';
+import {EMPTY, Observable, of} from 'rxjs';
+import {Episode, Season, Show} from '@app/models/show';
 import {ActivatedRoute, Router, RouterOutlet} from '@angular/router';
-import {DomSanitizer} from '@angular/platform-browser';
-import {distinctUntilChanged, map, switchMap, take, tap} from 'rxjs/operators';
+import {map, switchMap, take, tap} from 'rxjs/operators';
 import {episodesAnimations} from '@app/animations';
-import {LibraryFile} from "@app/models";
 
 @Component({
   selector: 'app-season',
@@ -23,14 +17,19 @@ import {LibraryFile} from "@app/models";
             <dt>First air date</dt>
             <dd>{{ season.air_date ? (season.air_date | date) : 'N/A' }}</dd>
             <dt>Episodes</dt>
-            <dd>{{ season.episode_count }}</dd>
+            <dd>
+              <ng-container *ngIf="episodes$ | async as episodes">
+                <span *ngIf="episodes.length < season.episode_count">{{ episodes.length }} /</span>
+              </ng-container>
+              {{ season.episode_count }}
+            </dd>
           </dl>
           <p class="overview">{{ season.overview }}</p>
         </div>
       </section>
       <section class="episodes">
         <div class="before">
-          <button mat-button (click)="previousEpisode()">
+          <button mat-button (click)="previousEpisode()" [disabled]="!(hasPreviousEpisode() | async)">
             <mat-icon>arrow_drop_up</mat-icon>
           </button>
         </div>
@@ -38,7 +37,7 @@ import {LibraryFile} from "@app/models";
           <router-outlet #episode="outlet"></router-outlet>
         </div>
         <div class="after">
-          <button mat-button (click)="nextEpisode()">
+          <button mat-button (click)="nextEpisode()" [disabled]="!(hasNextEpisode() | async)">
             <mat-icon>arrow_drop_down</mat-icon>
           </button>
         </div>
@@ -133,9 +132,9 @@ export class SeasonComponent implements OnInit {
 
   season$: Observable<Season>;
 
-  seasonFiles$: Observable<LibraryFile[]>;
+  episodes$: Observable<Episode[]>;
 
-  currentEpisodeNumber: number;
+  currentEpisodeIndex = 0;
 
   constructor(
     private router: Router,
@@ -146,106 +145,78 @@ export class SeasonComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.season$ = this.route.paramMap.pipe(
+    this.season$ = this.route.data.pipe(
+      map((data: { season: Season }) => data.season)
+    );
+
+    this.episodes$ = this.route.paramMap.pipe(
       switchMap(params => {
         const seasonNumber = +params.get('season');
         return this.route.parent.data.pipe(
           switchMap((data: { show$: Observable<Show> }) => data.show$),
-          map(show => show.details.seasons.filter(season => season.season_number === seasonNumber)[0])
+          map(show =>
+            show.episodes
+              .filter(episode => episode.season_number === seasonNumber)
+              .sort((a, b) => a.episode_number - b.episode_number)
+          )
         );
       })
     );
 
-    this.seasonFiles$ = this.route.paramMap.pipe(
-      switchMap(params => {
-        const seasonNumber = +params.get('season');
-        return this.route.parent.data.pipe(
-          switchMap((data: { show$: Observable<Show> }) => data.show$),
-          map(show => show.files.filter(file => file.seasonNumber === seasonNumber).sort((a, b) => a.episodeNumber - b.episodeNumber))
-        );
-      })
-    );
-
-    if (this.route.firstChild) {
-      this.route.firstChild.paramMap.pipe(
-        take(1),
-        map(params => params.get('episode')),
-        tap(episode => {
-          this.currentEpisodeNumber = +episode;
-          this.cdr.markForCheck();
-        })
-      ).subscribe();
-    } else {
-      this.seasonFiles$.pipe(
-        take(1),
-        map(files => files[0]),
-        tap(file => this.router.navigate([file.episodeNumber], { relativeTo: this.route }).then(
-          () => this.route.firstChild.paramMap.pipe(
-            take(1),
-            map(params => params.get('episode')),
-            tap(episode => {
-              this.currentEpisodeNumber = +episode;
-              this.cdr.markForCheck();
-            })
-          ).subscribe()
-        ))
-      ).subscribe();
-    }
-    // Redirect to first available episode if no child route
-    /*if (this.route.firstChild === null) {
-      console.log('1')
-      this.seasonFiles$.pipe(
-        take(1),
-        map(files => files[0]),
-        tap(file => this.router.navigate([file.episodeNumber], { relativeTo: this.route }))
-      ).subscribe();
-    } else {
-      console.log('2')
-      this.route.firstChild.paramMap.pipe(
-        switchMap(params => {
-          console.log(params)
-          const episode = +params.get('episode');
-          return this.seasonFiles$.pipe(
-            map(files => files.filter(file => file.episodeNumber === episode)[0]) // TODO redirect if unavailable
-          );
-        }),
-        tap(file => {
-          this.currentEpisodeNumber = file.episodeNumber;
-          this.cdr.markForCheck();
-        })
-      ).subscribe();
-    }*/
-
-  }
-
-  nextEpisode(): void {
-    const next = this.currentEpisodeNumber + 1;
-    this.seasonFiles$.pipe(
+    this.route.firstChild.paramMap.pipe(
       take(1),
-      map(files => files.filter(file => file.episodeNumber === next)[0]),
-      tap(file => {
-        this.currentEpisodeNumber = next;
-        this.router.navigate([file.episodeNumber], { relativeTo: this.route });
+      map(params => params.get('episode')),
+      switchMap(episode => {
+        if (episode === null) {
+          return EMPTY;
+        }
+        return this.episodes$.pipe(
+          tap(episodes => {
+            const ep = episodes.find(e => e.episode_number === +episode);
+            this.currentEpisodeIndex = episodes.indexOf(ep);
+            this.cdr.markForCheck();
+          })
+        );
       })
     ).subscribe();
   }
 
+  hasPreviousEpisode(): Observable<boolean> {
+    return this.episodes$.pipe(
+      map(episodes => !!episodes[this.currentEpisodeIndex - 1]),
+    );
+  }
+
+  hasNextEpisode(): Observable<boolean> {
+    return this.episodes$.pipe(
+      map(episodes => !!episodes[this.currentEpisodeIndex + 1]),
+    );
+  }
+
+  nextEpisode(): void {
+    this.currentEpisodeIndex += 1;
+    this.navigateToCurrentEpisode();
+  }
+
   previousEpisode(): void {
-    const previous = this.currentEpisodeNumber - 1;
-    this.seasonFiles$.pipe(
-      take(1),
-      map(files => files.filter(file => file.episodeNumber === previous)[0]),
-      tap(file => {
-        this.currentEpisodeNumber = previous;
-        this.router.navigate([file.episodeNumber], { relativeTo: this.route });
-      })
+    this.currentEpisodeIndex -= 1;
+    this.navigateToCurrentEpisode();
+  }
+
+  navigateToCurrentEpisode() {
+    this.episodes$.pipe(
+      map(episodes => episodes[this.currentEpisodeIndex]),
+      tap((episode: Episode) =>
+        this.router.navigate(['episode', episode.episode_number], { relativeTo: this.route })
+      ),
+      take(1)
     ).subscribe();
   }
 
   getAnimationData(outlet: RouterOutlet): Observable<string> {
     if (outlet && outlet.isActivated) {
       return outlet.activatedRoute.paramMap.pipe(
-        map(params => params.get('episode'))
+        map(params => params.get('episode') || '0')
       );
     } else {
       return of('void');

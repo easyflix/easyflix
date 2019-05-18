@@ -146,13 +146,13 @@ const tabsAnim = [
       ':leave',
       sequence([
         style({ height: 'unset' }),
-        animate('100ms ease-in-out', style({ opacity: 0 })),
+        animate('150ms ease-in-out', style({ opacity: 0 })),
         style({ height: 0, overflow: 'hidden' }),
       ])
     ),
     query(':enter', sequence([
       style({ height: 'unset', overflow: 'unset' }),
-      animate('100ms ease-in-out', style({ opacity: 1 }))
+      animate('150ms ease-in-out', style({ opacity: 1 }))
     ])),
   ]),
 
