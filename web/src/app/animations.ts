@@ -1,7 +1,4 @@
-import {
-  trigger, group,
-  transition, animate, style, query, animateChild
-} from '@angular/animations';
+import {animate, animateChild, group, query, sequence, style, transition, trigger} from '@angular/animations';
 
 const debug = (name: string) => {
   return (from, to, el, params) => {
@@ -22,7 +19,9 @@ const fadeIn = [
 const fadeOut = [
   query(':leave', [
     animate(DEFAULT_TIMING + ' ease-in-out', style({ opacity: '0'}))
-  ])
+  ]),
+  // FIX to prevent child routes to remove their component https://github.com/angular/angular/issues/15477
+  query('router-outlet ~ *', [style({}), animate(1, style({}))], { optional: true }),
 ];
 
 const superimpose =
@@ -127,9 +126,41 @@ export const movieAnimations = trigger('movieAnimation', [
 ]);
 
 export const showsAnimations = trigger('showsAnimation', [
-  // transition(debug('movies'), []),
+  // transition(debug('shows'), []),
   transition('void <=> *', []),
   transition('grid => list', slideLeft),
   transition('grid <=> details', fadeInOut),
   transition('list => grid', slideRight),
+]);
+
+const tabsAnim = [
+  sequence([
+    query(':enter', [
+      style({
+        height: 0,
+        opacity: 0,
+        overflow: 'hidden'
+      }),
+    ]),
+    query(
+      ':leave',
+      sequence([
+        animate('100ms ease-in-out', style({ opacity: 0 })),
+        style({ height: 0, overflow: 'hidden' }),
+      ])
+    ),
+    query(':enter', sequence([
+      style({ height: 'auto', overflow: 'unset' }),
+      animate('100ms ease-in-out', style({ opacity: 1 }))
+    ])),
+  ]),
+
+  // FIX to prevent child routes to remove their component https://github.com/angular/angular/issues/15477
+  query('router-outlet ~ *', [style({}), animate(1, style({}))], { optional: true }),
+];
+
+export const tabsAnimations = trigger('tabsAnimation', [
+  // transition(debug('tabs'), []),
+  transition('void <=> *', []),
+  transition('* => *', tabsAnim),
 ]);

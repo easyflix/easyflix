@@ -60,10 +60,10 @@ export const routes: Routes = [
       {
         path: ':season',
         component: SeasonComponent,
-        /*data: { animation: 'season' },*/
+        data: { reuse: false },
         children: [
           { path: '', redirectTo: '1', pathMatch: 'full' },
-          { path: ':episode', component: EpisodeComponent }
+          { path: ':episode', component: EpisodeComponent, data: { reuse: false } }
         ]
       },
     ]

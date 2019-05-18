@@ -10,7 +10,7 @@ import {environment} from '@env/environment';
 import {EffectsModule} from '@ngrx/effects';
 import {AppEffects} from './app.effects';
 import {VideoService} from './services/video.service';
-import {RouterModule} from '@angular/router';
+import {RouteReuseStrategy, RouterModule} from '@angular/router';
 import {HttpClientModule} from '@angular/common/http';
 import {FormsModule} from '@angular/forms';
 import {SharedModule} from './shared/shared.module';
@@ -26,6 +26,7 @@ import {HttpSocketClientService} from '@app/services/http-socket-client.service'
 import {MoviesService} from '@app/services/movies.service';
 import {FilterService} from '@app/services/filter.service';
 import {ShowsService} from '@app/services/shows.service';
+import {CustomRouteReuseStrategy} from '@app/route-reuse.strategy';
 
 @NgModule({
   declarations: [
@@ -49,6 +50,7 @@ import {ShowsService} from '@app/services/shows.service';
     ComponentsModule
   ],
   providers: [
+    {provide: RouteReuseStrategy, useClass: CustomRouteReuseStrategy},
     CoreService,
     VideoService,
     FilesService,

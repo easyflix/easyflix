@@ -7,8 +7,9 @@ import {filter, map, take} from 'rxjs/operators';
 import {VideoService} from '@app/services/video.service';
 import {FilesService} from '@app/services/files.service';
 import {FilterService} from '@app/services/filter.service';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router, RouterOutlet} from '@angular/router';
 import {ThemePalette} from '@angular/material';
+import {tabsAnimations} from '@app/animations';
 
 @Component({
   selector: 'app-show',
@@ -67,8 +68,8 @@ import {ThemePalette} from '@angular/material';
               </span>
             </h3>
           </header>
-          <div class="tabs-content">
-            <router-outlet></router-outlet>
+          <div class="tabs-content" [@tabsAnimation]="getAnimationData(tab) | async">
+            <router-outlet #tab="outlet"></router-outlet>
           </div>
         </section>
       </div>
@@ -186,6 +187,9 @@ import {ThemePalette} from '@angular/material';
     .tab.selected {
       border-bottom: 2px solid;
     }
+    .tabs-content {
+      position: relative;
+    }
     a.search {
       cursor: pointer;
     }
@@ -196,6 +200,7 @@ import {ThemePalette} from '@angular/material';
       display: none;
     }
   `],
+  animations: [tabsAnimations],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ShowComponent implements OnInit {
@@ -214,6 +219,7 @@ export class ShowComponent implements OnInit {
     private video: VideoService,
     private filters: FilterService,
     private router: Router,
+    private route: ActivatedRoute,
     private sanitizer: DomSanitizer,
   ) { }
 
@@ -297,6 +303,13 @@ export class ShowComponent implements OnInit {
 
   focus() {
     this.container.nativeElement.focus();
+  }
+
+  getAnimationData(outlet: RouterOutlet): Observable<string> {
+    // return outlet && outlet.activatedRouteData && outlet.activatedRouteData.animation || 'void';
+    return outlet.activatedRoute.paramMap.pipe(
+      map(params => (outlet.activatedRouteData && outlet.activatedRouteData.animation) || params.get('season') || 'info')
+    );
   }
 
 }
