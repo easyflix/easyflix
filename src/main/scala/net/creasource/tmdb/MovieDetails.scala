@@ -34,8 +34,8 @@ case class MovieDetails(
 object MovieDetails extends JsonSupport {
 
   def get(
-      movie_id: Int,
       api_key: String,
+      movie_id: Int,
       language: Option[String] = Some("en-US"),
       append_to_response: Option[String] = None): String = {
 

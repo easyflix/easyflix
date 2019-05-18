@@ -17,15 +17,18 @@ case class Show(
     overview: String,
     vote_average: Float,
     files: Seq[LibraryFile],
-    details: Option[Show.Details]) {
+    details: Option[Show.Details],
+    episodes: List[Episode]) {
 
   def withDetails(details: Show.Details): Show = copy(details = Some(details))
+
+  def withEpisode(episode: Episode): Show = copy(episodes = episodes :+ episode)
 
 }
 
 object Show extends JsonSupport {
 
-  implicit val format: RootJsonFormat[Show] = jsonFormat12(Show.apply)
+  implicit val format: RootJsonFormat[Show] = jsonFormat13(Show.apply)
 
   case class Details(
       id: Int,

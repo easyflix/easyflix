@@ -1,6 +1,10 @@
 package net.creasource.tmdb
 
+import net.creasource.json.JsonSupport
 import net.creasource.tmdb.common.{Cast, Crew}
+import spray.json.RootJsonFormat
+
+// https://developers.themoviedb.org/3/tv-episodes/get-tv-episode-details
 
 case class TVEpisodeDetails(
     air_date: String,
@@ -16,7 +20,22 @@ case class TVEpisodeDetails(
     vote_average: Float,
     vote_count: Int)
 
-object TVEpisodeDetails {
+object TVEpisodeDetails extends JsonSupport {
 
+  def get(
+       api_key: String,
+       tv_id: Int,
+       season_number: Int,
+       episode_number: Int,
+       language: Option[String] = Some("en-US"),
+       append_to_response: Option[String] = None): String = {
+
+    s"/3/tv/$tv_id/season/$season_number/episode/$episode_number?api_key=$api_key" +
+      language.toParam("language") +
+      append_to_response.toParam("append_to_response")
+
+  }
+
+  implicit val format: RootJsonFormat[TVEpisodeDetails] = jsonFormat12(TVEpisodeDetails.apply)
 
 }
