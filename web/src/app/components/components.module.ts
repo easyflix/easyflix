@@ -27,6 +27,8 @@ import {FiltersComponent} from '@app/components/filters.component';
 import {ShowsGridComponent} from '@app/components/shows/shows-grid.component';
 import {ShowComponent} from '@app/components/shows/show.component';
 import {ShowDetailsComponent} from '@app/components/shows/show-details.component';
+import {SeasonComponent} from '@app/components/shows/season.component';
+import {ShowInfoComponent} from '@app/components/shows/show-info.component';
 
 const COMPONENTS = [
   FileListComponent,
@@ -55,7 +57,9 @@ const COMPONENTS = [
   FiltersComponent,
   ShowsGridComponent,
   ShowComponent,
-  ShowDetailsComponent
+  ShowDetailsComponent,
+  SeasonComponent,
+  ShowInfoComponent
 ];
 
 @NgModule({

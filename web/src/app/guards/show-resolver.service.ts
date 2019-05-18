@@ -3,7 +3,7 @@ import {ActivatedRouteSnapshot, Resolve, Router, RouterStateSnapshot} from '@ang
 import {concat, EMPTY, Observable, of} from 'rxjs';
 import {Show} from '@app/models/show';
 import {FilesService} from '@app/services/files.service';
-import {catchError, filter, map, switchMap, take} from 'rxjs/operators';
+import {catchError, filter, map, publishReplay, shareReplay, switchMap, take} from 'rxjs/operators';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 import {ShowsService} from '@app/services/shows.service';
 
@@ -25,6 +25,8 @@ export class ShowResolverService implements Resolve<Observable<Show>> {
       map(show => {
         if (show === undefined) {
           return this.socketClient.get('/api/shows/' + id).pipe(
+            take(1),
+            shareReplay(1),
             switchMap((mov: Show) => concat(
               of(mov),
               this.shows.getById(+id).pipe(filter(m => !!m)))

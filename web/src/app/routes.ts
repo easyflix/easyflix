@@ -19,6 +19,8 @@ import {MovieResolverService} from '@app/guards/movie-resolver.service';
 import {ShowsGridComponent} from '@app/components/shows/shows-grid.component';
 import {ShowDetailsComponent} from '@app/components/shows/show-details.component';
 import {ShowResolverService} from '@app/guards/show-resolver.service';
+import {SeasonComponent} from '@app/components/shows/season.component';
+import {ShowInfoComponent} from '@app/components/shows/show-info.component';
 
 const navOutletName = 'nav';
 
@@ -52,6 +54,10 @@ export const routes: Routes = [
     resolve: {
       show$: ShowResolverService
     },
+    children: [
+      { path: '', component: ShowInfoComponent, data: { animation: 'info' } },
+      { path: ':season', component: SeasonComponent, data: { animation: 'season' } },
+    ]
   },
   {
     path: ':id',

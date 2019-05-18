@@ -112,13 +112,13 @@
     .year {
       color: mat-color($foreground, disabled-text);
     }
-    .information header {
+    .tabs {
       border-color: mat-color($foreground, divider) !important;
     }
-    .information h3 {
+    .tab {
       color: mat-color($foreground, secondary-text);
     }
-    .information h3.selected {
+    .tab.selected {
       color: mat-color($foreground, text);
       border-color: mat-color($primary) !important;
     }

@@ -3,7 +3,7 @@ import {ActivatedRouteSnapshot, Resolve, Router, RouterStateSnapshot} from '@ang
 import {concat, EMPTY, Observable, of} from 'rxjs';
 import {Movie} from '@app/models';
 import {FilesService} from '@app/services/files.service';
-import {catchError, filter, map, switchMap, take} from 'rxjs/operators';
+import {catchError, filter, map, shareReplay, switchMap, take} from 'rxjs/operators';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 import {MoviesService} from '@app/services/movies.service';
 
@@ -25,6 +25,8 @@ export class MovieResolverService implements Resolve<Observable<Movie>> {
       map(movie => {
         if (movie === undefined) {
           return this.socketClient.get('/api/movies/' + id).pipe(
+            take(1),
+            shareReplay(1),
             switchMap((mov: Movie) => concat(
               of(mov),
               this.movies.getById(+id).pipe(filter(m => !!m)))
