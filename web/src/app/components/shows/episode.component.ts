@@ -1,31 +1,55 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
+import {filter, map, switchMap, take} from 'rxjs/operators';
+import {EMPTY, Observable, zip} from 'rxjs';
+import {CoreService} from '@app/services/core.service';
+import {FilesService} from '@app/services/files.service';
+import {VideoService} from '@app/services/video.service';
+import {FilterService} from '@app/services/filter.service';
+import {ActivatedRoute, Router} from '@angular/router';
+import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
+import {Episode, Show} from '@app/models/show';
 
 @Component({
   selector: 'app-episode',
   template: `
-    <div class="still">
-      <img src="https://image.tmdb.org/t/p/w300/lNXkxjiVwWKXalBcDCpntXBBfOh.jpg">
-    </div>
-    <div>
-      <header class="tabs">
-        <h3 class="tab" [class.selected]="true">Episode Info</h3>
-        <h3 class="tab" [class.selected]="false">File Info</h3>
-      </header>
-      <dl>
-        <dt>Number</dt>
-        <dd>1</dd>
-        <dt>Name</dt>
-        <dd>eps1.0_hellofriend.mov</dd>
-        <dt>Directed by</dt>
-        <dd>David Nutter</dd>
-        <dt>Written by</dt>
-        <dd>Dave Hill</dd>
-      </dl>
-      <p class="overview">Elliot, a cyber-security engineer by day and vigilante hacker by night,
-        is recruited by a mysterious underground group to destroy the firm he's paid to protect.
-        Elliot must decide how far he'll go to expose the forces he believes are running (and ruining)
-        the world.</p>
-    </div>
+    <ng-container *ngIf="episode$ | async as episode">
+      <div class="still">
+        <img *ngIf="getStillSource(episode) | async as source" [src]="source">
+      </div>
+      <div class="content">
+        <header class="tabs">
+          <h3 class="tab" [class.selected]="true">Episode Info</h3>
+          <h3 class="tab" [class.selected]="false">File Info</h3>
+        </header>
+        <dl>
+          <dt>Name</dt>
+          <dd>{{ episode.episode_number }}. {{ episode.name }}</dd>
+          <dt>Air date</dt>
+          <dd>{{ episode.air_date | date }}</dd>
+          <ng-container *ngIf="getDirectors(episode).length > 0; else placeholder">
+            <dt>Directed by</dt>
+            <dd>
+              <ng-container *ngFor="let director of getDirectors(episode); last as isLast">
+                {{ director }}{{ isLast ? '' : ', ' }}
+              </ng-container>
+            </dd>
+          </ng-container>
+          <ng-container *ngIf="getWriters(episode).length > 0; else placeholder">
+            <dt>Written by</dt>
+            <dd>
+              <ng-container *ngFor="let writer of getWriters(episode); last as isLast">
+                {{ writer }}{{ isLast ? '' : ', ' }}
+              </ng-container>
+            </dd>
+          </ng-container>
+          <ng-template #placeholder>
+            <dt>&nbsp;</dt>
+            <dd>&nbsp;</dd>
+          </ng-template>
+        </dl>
+        <p class="overview">{{episode.overview}}</p>
+      </div>
+    </ng-container>
   `,
   styles: [`
     :host {
@@ -36,8 +60,12 @@ import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
       align-items: center;
     }
     .still {
-      margin-right: 2rem;
+      margin-right: 30px;
       font-size: 0;
+      min-width: 300px;
+    }
+    .content {
+      min-width: calc(100% - 330px);
     }
     dl {
       float: left;
@@ -65,7 +93,7 @@ import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
     dl {
       padding: 0 1rem 0 0;
       float: left;
-      width: 350px;
+      width: 380px;
       box-sizing: border-box;
       display: flex;
       flex-direction: row;
@@ -102,9 +130,58 @@ import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 })
 export class EpisodeComponent implements OnInit {
 
-  constructor() {}
+  episode$: Observable<Episode>;
+
+  constructor(
+    private core: CoreService,
+    private files: FilesService,
+    private video: VideoService,
+    private filters: FilterService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private sanitizer: DomSanitizer,
+  ) {
+
+  }
 
   ngOnInit(): void {
+
+    this.episode$ = zip(this.route.paramMap, this.route.parent.paramMap, this.route.parent.parent.data).pipe(
+      map(array => ({
+        episode: +array[0].get('episode'),
+        season: +array[1].get('season'),
+        show$: array[2].show$ as Observable<Show>
+      })),
+      switchMap(obj => obj.show$.pipe(
+        map((show: Show) =>
+          show.episodes.filter(ep =>
+            ep.season_number === obj.season && ep.episode_number === obj.episode
+          )[0]
+        )
+      ))
+    );
+  }
+
+  getStillSource(episode: Episode): Observable<SafeUrl> {
+    if (episode.still_path) {
+      return this.core.getConfig().pipe(
+        filter(s => !!s),
+        take(1),
+        map(config => this.sanitizer.bypassSecurityTrustResourceUrl(
+          `${config.images.secure_base_url}w300${episode.still_path}`
+        ))
+      );
+    } else {
+      return EMPTY;
+    }
+  }
+
+  getWriters(episode: Episode): string[] {
+    return episode.crew.filter(p => p.job === 'Writer').map(p => p.name);
+  }
+
+  getDirectors(episode: Episode): string[] {
+    return episode.crew.filter(p => p.job === 'Director').map(p => p.name);
   }
 
 }

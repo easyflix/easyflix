@@ -106,7 +106,7 @@
     .filter {
       background-color: mat-color($background, background, 0.85);
     }
-    .poster img {
+    img {
       @include mat-elevation(4);
     }
     .year {

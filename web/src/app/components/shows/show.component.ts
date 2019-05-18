@@ -306,9 +306,10 @@ export class ShowComponent implements OnInit {
   }
 
   getAnimationData(outlet: RouterOutlet): Observable<string> {
-    // return outlet && outlet.activatedRouteData && outlet.activatedRouteData.animation || 'void';
     return outlet.activatedRoute.paramMap.pipe(
-      map(params => (outlet.activatedRouteData && outlet.activatedRouteData.animation) || params.get('season') || 'info')
+      map(params =>
+        (outlet.activatedRouteData && outlet.activatedRouteData.animation) || `Season${params.get('season')}`
+      )
     );
   }
 

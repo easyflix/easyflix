@@ -62,7 +62,6 @@ export const routes: Routes = [
         component: SeasonComponent,
         data: { reuse: false },
         children: [
-          { path: '', redirectTo: '1', pathMatch: 'full' },
           { path: ':episode', component: EpisodeComponent, data: { reuse: false } }
         ]
       },

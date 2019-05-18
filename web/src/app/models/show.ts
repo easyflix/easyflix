@@ -40,6 +40,18 @@ export interface ShowDetails {
   };
 }
 
+export interface Episode {
+  air_date: string;
+  crew: Crew[];
+  episode_number: number;
+  name: string;
+  overview: string;
+  season_number: number;
+  still_path?: string;
+  vote_average: number;
+  vote_count: number;
+}
+
 export interface Show {
   id: number;
   name: string;
@@ -53,5 +65,6 @@ export interface Show {
   vote_average: number;
   files: LibraryFile[];
   details?: ShowDetails;
+  episodes: Episode[];
 }
 
