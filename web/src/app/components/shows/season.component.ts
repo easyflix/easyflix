@@ -7,14 +7,14 @@ import {VideoService} from '@app/services/video.service';
 import {FilterService} from '@app/services/filter.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {DomSanitizer} from '@angular/platform-browser';
-import {map, switchMap, tap} from 'rxjs/operators';
+import {map, switchMap} from 'rxjs/operators';
 
 @Component({
   selector: 'app-season',
   template: `
     <ng-container *ngIf="season$ | async as season">
       <section class="season">
-        <div class="season-content">
+        <div>
           <dl>
             <dt>Name</dt>
             <dd>{{ season.name }}</dd>
@@ -28,37 +28,15 @@ import {map, switchMap, tap} from 'rxjs/operators';
       </section>
       <section class="episodes">
         <div class="before">
-          <button mat-button>
+          <button mat-button [routerLink]="[1]">
             <mat-icon>arrow_drop_up</mat-icon>
           </button>
         </div>
-        <div class="episode" *ngFor="let episode of [0]">
-          <div class="still">
-            <img src="https://image.tmdb.org/t/p/w300/lNXkxjiVwWKXalBcDCpntXBBfOh.jpg">
-          </div>
-          <div>
-            <header class="tabs">
-              <h3 class="tab" [class.selected]="true">Episode Info</h3>
-              <h3 class="tab" [class.selected]="false">File Info</h3>
-            </header>
-            <dl>
-              <dt>Number</dt>
-              <dd>1</dd>
-              <dt>Name</dt>
-              <dd>eps1.0_hellofriend.mov</dd>
-              <dt>Directed by</dt>
-              <dd>David Nutter</dd>
-              <dt>Written by</dt>
-              <dd>Dave Hill</dd>
-            </dl>
-            <p class="overview">Elliot, a cyber-security engineer by day and vigilante hacker by night,
-              is recruited by a mysterious underground group to destroy the firm he's paid to protect.
-              Elliot must decide how far he'll go to expose the forces he believes are running (and ruining)
-              the world.</p>
-          </div>
+        <div class="episode">
+          <router-outlet></router-outlet>
         </div>
         <div class="after">
-          <button mat-button>
+          <button mat-button [routerLink]="[2]">
             <mat-icon>arrow_drop_down</mat-icon>
           </button>
         </div>
@@ -103,7 +81,7 @@ import {map, switchMap, tap} from 'rxjs/operators';
     }
     .overview {
       font-weight: 300;
-      line-height: 1.9;
+      line-height: 30px;
       margin: 0;
       max-height: 120px;
       overflow-y: auto;
@@ -116,50 +94,30 @@ import {map, switchMap, tap} from 'rxjs/operators';
       box-sizing: border-box;
       width: 100%;
       max-width: 1300px;
+      position: relative;
     }
     .episode {
-      /*flex-grow: 1;*/
-      box-sizing: border-box;
-      width: 100%;
-      font-weight: 300;
-      display: flex;
-    }
-    .episode .still {
-      margin-right: 2rem;
-      font-size: 0;
-    }
-    .episode .tabs {
-      margin-top: 0;
-    }
-    .episode dl {
-      float: left;
-      width: 350px;
-    }
-    .before, .after {
-      min-height: 45px;
       display: flex;
       align-items: center;
+      height: 100%;
+    }
+    .before, .after {
+      position: absolute;
+      display: flex;
+      height: 45px;
+      align-items: center;
       justify-content: center;
+      width: 100%;
+    }
+    .before {
+      top: 15px;
+    }
+    .after {
+      bottom: 0;
     }
     .before button, .after button {
       width: 100%;
       border-radius: 0;
-    }
-
-    .tabs {
-      display: flex;
-      flex-direction: row;
-      margin-bottom: 15px;
-      border-bottom: 1px solid;
-    }
-    .tab {
-      font-weight: 400;
-      font-size: 16px;
-      width: 8.5rem;
-      text-align: center;
-      margin: 0 0 -1px 0;
-      padding: .75rem 0;
-      cursor: pointer;
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush

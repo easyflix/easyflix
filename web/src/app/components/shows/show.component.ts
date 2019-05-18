@@ -157,7 +157,7 @@ import {ThemePalette} from '@angular/material';
     }
     .overview {
       font-weight: 300;
-      line-height: 1.9;
+      line-height: 30px;
       margin: 0 0 15px 0;
       max-height: 120px;
       overflow-y: auto;
@@ -186,7 +186,6 @@ import {ThemePalette} from '@angular/material';
     .tab.selected {
       border-bottom: 2px solid;
     }
-    
     a.search {
       cursor: pointer;
     }
@@ -196,7 +195,6 @@ import {ThemePalette} from '@angular/material';
     .hidden {
       display: none;
     }
-    
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

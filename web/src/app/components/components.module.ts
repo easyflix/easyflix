@@ -29,6 +29,7 @@ import {ShowComponent} from '@app/components/shows/show.component';
 import {ShowDetailsComponent} from '@app/components/shows/show-details.component';
 import {SeasonComponent} from '@app/components/shows/season.component';
 import {ShowInfoComponent} from '@app/components/shows/show-info.component';
+import {EpisodeComponent} from '@app/components/shows/episode.component';
 
 const COMPONENTS = [
   FileListComponent,
@@ -59,7 +60,8 @@ const COMPONENTS = [
   ShowComponent,
   ShowDetailsComponent,
   SeasonComponent,
-  ShowInfoComponent
+  ShowInfoComponent,
+  EpisodeComponent
 ];
 
 @NgModule({

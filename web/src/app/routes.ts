@@ -21,6 +21,7 @@ import {ShowDetailsComponent} from '@app/components/shows/show-details.component
 import {ShowResolverService} from '@app/guards/show-resolver.service';
 import {SeasonComponent} from '@app/components/shows/season.component';
 import {ShowInfoComponent} from '@app/components/shows/show-info.component';
+import {EpisodeComponent} from '@app/components/shows/episode.component';
 
 const navOutletName = 'nav';
 
@@ -56,7 +57,15 @@ export const routes: Routes = [
     },
     children: [
       { path: '', component: ShowInfoComponent, data: { animation: 'info' } },
-      { path: ':season', component: SeasonComponent, data: { animation: 'season' } },
+      {
+        path: ':season',
+        component: SeasonComponent,
+        /*data: { animation: 'season' },*/
+        children: [
+          { path: '', redirectTo: '1', pathMatch: 'full' },
+          { path: ':episode', component: EpisodeComponent }
+        ]
+      },
     ]
   },
   {
