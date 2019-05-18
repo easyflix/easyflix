@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, Component, ElementRef, Input, OnInit, ViewChild
 import {Season, Show} from '@app/models/show';
 import {DomSanitizer, SafeStyle, SafeUrl} from '@angular/platform-browser';
 import {CoreService} from '@app/services/core.service';
-import {Observable} from 'rxjs';
+import {Observable, of} from 'rxjs';
 import {filter, map, take} from 'rxjs/operators';
 import {VideoService} from '@app/services/video.service';
 import {FilesService} from '@app/services/files.service';
@@ -17,9 +17,9 @@ import {tabsAnimations} from '@app/animations';
       <div class="filter">
         <section class="show">
           <div class="poster">
-            <img [src]="getShowPosterSource() | async" />
+            <img [src]="getShowPosterSource() | async" [class.visible]="isShowingInfo() | async" />
             <ng-container *ngFor="let season of getSeasons(show); index as i">
-              <img [src]="getSeasonPosterSource(season) | async" *ngIf="false" />
+              <img [src]="getSeasonPosterSource(season) | async" [class.visible]="isCurrentSeason(season) | async" />
             </ng-container>
           </div>
           <h1 class="title">
@@ -46,21 +46,21 @@ import {tabsAnimations} from '@app/animations';
             {{ show.overview }}
           </p>
           <header class="tabs">
-            <h3 class="tab"
+            <a class="tab"
                 [routerLink]="['./']"
                 routerLinkActive="selected"
                 queryParamsHandling="preserve"
                 [routerLinkActiveOptions]="{exact: true}">
               Show Info
-            </h3>
-            <h3 class="tab"
+            </a>
+            <a class="tab"
                 [routerLink]="[i + 1]"
                 routerLinkActive="selected"
                 queryParamsHandling="preserve"
                 *ngFor="let season of getSeasons(show); index as i"
                 [class.hidden]="getAvailableEpisodesCount(season) === 0 && !showAll">
               Season {{ season.season_number }}
-            </h3>
+            </a>
           </header>
           <div class="tabs-content" [@tabsAnimation]="getAnimationData(tab) | async">
             <router-outlet #tab="outlet"></router-outlet>
@@ -106,6 +106,16 @@ import {tabsAnimations} from '@app/animations';
       font-size: 0;
       position: relative;
       z-index: 1;
+    }
+    .poster img {
+      position: absolute;
+      transition: opacity 300ms ease-in-out;
+      opacity: 0;
+      height: 0;
+    }
+    .poster img.visible {
+      opacity: 1 !important;
+      height: unset;
     }
     .title {
       display: flex;
@@ -171,6 +181,7 @@ import {tabsAnimations} from '@app/animations';
       margin: 0 0 -1px 0;
       padding: .75rem 0;
       cursor: pointer;
+      text-decoration: none;
     }
     .tab .mat-badge-content {
       display: none;
@@ -221,6 +232,23 @@ export class ShowComponent implements OnInit {
     if (this.focusOnLoad) {
       this.focus();
     }
+  }
+
+  isCurrentSeason(season: Season): Observable<boolean> {
+    if (this.route.firstChild !== null) {
+      return this.route.firstChild.paramMap.pipe(
+        map(params => +params.get('season')),
+        map(s => s === season.season_number)
+      );
+    } else {
+      return of(false);
+    }
+  }
+
+  isShowingInfo(): Observable<boolean> {
+    return this.route.firstChild.paramMap.pipe(
+      map(params => params.get('season') === null)
+    );
   }
 
   getShowPosterSource(): Observable<SafeUrl> {
