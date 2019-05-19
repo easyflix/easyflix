@@ -121,6 +121,7 @@ import {episodesAnimations} from '@app/animations';
       bottom: 0;
     }
     .before button, .after button {
+      height: 40px;
       width: 100%;
       border-radius: 0;
     }

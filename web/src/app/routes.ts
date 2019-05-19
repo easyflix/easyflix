@@ -51,7 +51,7 @@ export const routes: Routes = [
   {
     path: ':id',
     component: ShowDetailsComponent,
-    data: { animation: 'details' },
+    data: { animation: 'details', reuse: false },
     outlet: 'show',
     resolve: {
       show$: ShowResolverService

@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {Location} from '@angular/common';
-import {mainAnimations, movieAnimations} from '../animations';
+import {mainAnimations, movieAnimations, showAnimations} from '../animations';
 import {Router, RouterOutlet} from '@angular/router';
 import {Observable} from 'rxjs';
 import {CoreService} from '@app/services/core.service';
@@ -51,10 +51,13 @@ import {map} from 'rxjs/operators';
     <main [@mainAnimation]="getAnimationData(main)">
       <div [@movieAnimation]="getAnimationData(movie)">
         <router-outlet name="movie" #movie="outlet"></router-outlet>
-        <router-outlet name="show" #movie="outlet"></router-outlet>
+      </div>
+      <div [@showAnimation]="getAnimationData(show)">
+        <router-outlet name="show" #show="outlet"></router-outlet>
       </div>
       <router-outlet #main="outlet"></router-outlet>
     </main>
+
   `,
   styles: [`
     :host {
@@ -128,7 +131,7 @@ import {map} from 'rxjs/operators';
       padding-top: 60px;
     }
   `],
-  animations: [mainAnimations, movieAnimations],
+  animations: [mainAnimations, movieAnimations, showAnimations],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MainComponent implements OnInit {
@@ -157,6 +160,11 @@ export class MainComponent implements OnInit {
 
   getAnimationData(outlet: RouterOutlet) {
     return outlet && outlet.activatedRouteData && outlet.activatedRouteData.animation || 'void';
+  }
+
+  getShowAnimationData(outlet: RouterOutlet) {
+    console.log(history.state)
+    return history.state && history.state.next && history.state.next.toString() || 'void';
   }
 
 }

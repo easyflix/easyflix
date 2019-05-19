@@ -17,6 +17,10 @@ export class DefaultRouteReuseStrategy implements RouteReuseStrategy {
 export class CustomRouteReuseStrategy extends DefaultRouteReuseStrategy {
   shouldReuseRoute(future: ActivatedRouteSnapshot, curr: ActivatedRouteSnapshot): boolean {
     const reuse = (future.data && future.data.hasOwnProperty('reuse')) ? future.data.reuse : true;
+    // Reuse route when navigating in same show/movie details component
+    if (!reuse && curr.params.id && future.params.id && curr.params.id === future.params.id) {
+      return true;
+    }
     // Reuse route when navigating in same season component
     if (!reuse && curr.params.season && future.params.season && curr.params.season === future.params.season) {
       return true;

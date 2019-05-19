@@ -109,23 +109,24 @@ import {tabsAnimations} from '@app/animations';
     .show {
       display: block;
       box-sizing: border-box;
-      max-width: 1300px;
-      padding: 2rem;
+      max-width: 1360px;
+      padding: 60px;
       min-width: 100%;
     }
-    @media (min-width: 1300px) {
+    @media (min-width: 1360px) {
       .show {
-        min-width: 1300px;
+        min-width: 1360px;
       }
     }
     .poster {
       float: left;
       width: 300px;
-      min-height: 450px;
+      min-height: 465px;
       margin-right: 30px;
-      font-size: 0;
       position: relative;
       z-index: 1;
+      display: flex;
+      align-items: center;
     }
     .poster img {
       position: absolute;
@@ -220,7 +221,6 @@ import {tabsAnimations} from '@app/animations';
     }
     .tabs-content {
       position: relative;
-      height: 455px;
     }
     a.search {
       cursor: pointer;

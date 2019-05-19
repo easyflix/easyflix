@@ -20,8 +20,8 @@ const fadeOut = [
   query(':leave', [
     animate(DEFAULT_TIMING + ' ease-in-out', style({ opacity: '0'}))
   ]),
-  // FIX to prevent child routes to remove their component https://github.com/angular/angular/issues/15477
-  query('router-outlet ~ *', [style({}), animate(1, style({}))], { optional: true }),
+  // FIX to prevent child routes to remove their component https://github.com/angular/angular/issues/15477 -> bugs in Edge
+  // query('router-outlet ~ *', [style({}), animate(10, style({}))], { optional: true }),
 ];
 
 const superimpose =
@@ -51,7 +51,7 @@ const fadeInOut = [
     fadeOut[0]
   ]),
   // FIX to prevent child routes to remove their component https://github.com/angular/angular/issues/15477
-  query('router-outlet ~ *', [style({}), animate(1, style({}))], { optional: true }),
+  // query('router-outlet ~ *', [style({}), animate(1, style({}))], { optional: true }),
   query(':enter', animateChild())
 ];
 
@@ -120,7 +120,7 @@ export const moviesAnimations = trigger('moviesAnimation', [
 ]);
 
 export const movieAnimations = trigger('movieAnimation', [
-  // transition(debug('movie'), []),
+  transition(debug('movie'), []),
   transition('void => details', fadeIn),
   transition('details => void', fadeOut)
 ]);
@@ -131,6 +131,12 @@ export const showsAnimations = trigger('showsAnimation', [
   transition('grid => list', slideLeft),
   transition('grid <=> details', fadeInOut),
   transition('list => grid', slideRight),
+]);
+
+export const showAnimations = trigger('showAnimation', [
+  transition(debug('show'), []),
+  transition('void => details', fadeIn),
+  transition('details => void', fadeOut)
 ]);
 
 const tabsAnim = [
@@ -157,7 +163,7 @@ const tabsAnim = [
   ]),
 
   // FIX to prevent child routes to remove their component https://github.com/angular/angular/issues/15477
-  query('router-outlet ~ *', [style({}), animate(1, style({}))], { optional: true }),
+  // query('router-outlet ~ *', [style({}), animate(1, style({}))], { optional: true }),
 ];
 
 export const tabsAnimations = trigger('tabsAnimation', [

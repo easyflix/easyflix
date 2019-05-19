@@ -107,6 +107,9 @@
   }
 
   app-movie, app-show {
+    .container {
+      background-color: mat-color($background, background);
+    }
     .filter {
       background-color: mat-color($background, background, 0.85);
     }
@@ -167,6 +170,5 @@
       background-color: mat-color($background, background);
     }
   }
-
 
 }
