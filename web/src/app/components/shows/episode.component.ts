@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
-import {filter, map, take} from 'rxjs/operators';
+import {filter, map, switchMap, take, tap} from 'rxjs/operators';
 import {EMPTY, Observable} from 'rxjs';
 import {CoreService} from '@app/services/core.service';
 import {FilesService} from '@app/services/files.service';
@@ -7,7 +7,8 @@ import {VideoService} from '@app/services/video.service';
 import {FilterService} from '@app/services/filter.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
-import {Episode} from '@app/models/show';
+import {Episode, Show} from '@app/models/show';
+import {LibraryFile} from '@app/models';
 
 @Component({
   selector: 'app-episode',
@@ -18,36 +19,71 @@ import {Episode} from '@app/models/show';
       </div>
       <div class="content">
         <header class="tabs">
-          <h3 class="tab" [class.selected]="true">Episode {{ episode.episode_number }}</h3>
-          <h3 class="tab" [class.selected]="false">File Info</h3>
+          <a class="tab"
+             [class.selected]="tabIndex === 0"
+             (click)="tabIndex = 0"
+             (keydown.enter)="tabIndex = 0"
+             tabindex="0">
+            Episode {{ episode.episode_number }}
+          </a>
+          <ng-container *ngIf="files$ | async as files">
+            <a class="tab"
+               [class.selected]="tabIndex === i + 1"
+               (click)="tabIndex = i + 1"
+               (keydown.enter)="tabIndex = i + 1"
+               tabindex="0"
+               *ngFor="let file of files; index as i">
+              File Info <ng-container *ngIf="files.length > 1">({{ i + 1 }})</ng-container>
+            </a>
+          </ng-container>
         </header>
-        <dl>
-          <dt>Name</dt>
-          <dd>{{ episode.name }}</dd>
-          <dt>Air date</dt>
-          <dd>{{ episode.air_date | date }}</dd>
-          <ng-container *ngIf="getDirectors(episode).length > 0; else placeholder">
-            <dt>Directed by</dt>
-            <dd>
-              <ng-container *ngFor="let director of getDirectors(episode); last as isLast">
-                {{ director }}{{ isLast ? '' : ', ' }}
-              </ng-container>
+        <ng-container *ngIf="tabIndex === 0">
+          <dl>
+            <dt>Name</dt>
+            <dd>{{ episode.name }}</dd>
+            <dt>Air date</dt>
+            <dd>{{ episode.air_date | date }}</dd>
+            <ng-container *ngIf="getDirectors(episode).length > 0; else placeholder">
+              <dt>Directed by</dt>
+              <dd>
+                <ng-container *ngFor="let director of getDirectors(episode); last as isLast">
+                  {{ director }}{{ isLast ? '' : ', ' }}
+                </ng-container>
+              </dd>
+            </ng-container>
+            <ng-container *ngIf="getWriters(episode).length > 0; else placeholder">
+              <dt>Written by</dt>
+              <dd>
+                <ng-container *ngFor="let writer of getWriters(episode); last as isLast">
+                  {{ writer }}{{ isLast ? '' : ', ' }}
+                </ng-container>
+              </dd>
+            </ng-container>
+            <ng-template #placeholder>
+              <dt>&nbsp;</dt>
+              <dd>&nbsp;</dd>
+            </ng-template>
+          </dl>
+          <p class="overview">{{episode.overview}}</p>
+        </ng-container>
+        <section class="file-info" *ngFor="let file of files$ | async; index as i" [class.hidden]="tabIndex !== (i + 1)">
+          <dl>
+            <dt>Library</dt>
+            <dd>{{ file.libraryName }}</dd>
+            <dt>File name</dt>
+            <dd>{{ file.name }}</dd>
+            <dt>File size</dt>
+            <dd>{{ file.size | sgFileSize }}</dd>
+            <dt>Tags</dt>
+            <dd class="tags">
+              <mat-chip-list [selectable]="false" [disabled]="true">
+                <mat-chip *ngFor="let tag of file.tags">
+                  {{ tag }}
+                </mat-chip>
+              </mat-chip-list>
             </dd>
-          </ng-container>
-          <ng-container *ngIf="getWriters(episode).length > 0; else placeholder">
-            <dt>Written by</dt>
-            <dd>
-              <ng-container *ngFor="let writer of getWriters(episode); last as isLast">
-                {{ writer }}{{ isLast ? '' : ', ' }}
-              </ng-container>
-            </dd>
-          </ng-container>
-          <ng-template #placeholder>
-            <dt>&nbsp;</dt>
-            <dd>&nbsp;</dd>
-          </ng-template>
-        </dl>
-        <p class="overview">{{episode.overview}}</p>
+          </dl>
+        </section>
       </div>
     </ng-container>
   `,
@@ -87,6 +123,9 @@ import {Episode} from '@app/models/show';
       padding: .75rem 0;
       cursor: pointer;
     }
+    .tab:hover, .tab:focus {
+      border-bottom: 2px solid;
+    }
     .tab.selected {
       border-bottom: 2px solid;
     }
@@ -125,12 +164,28 @@ import {Episode} from '@app/models/show';
       max-height: 120px;
       overflow-y: auto;
     }
+    .hidden {
+      display: none;
+    }
+    .file-info dl {
+      float: none;
+      width: 100%;
+      height: 120px;
+    }
+    .tags mat-chip {
+      opacity: 1 !important;
+      font-weight: 300;
+    }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EpisodeComponent implements OnInit {
 
   episode$: Observable<Episode>;
+
+  files$: Observable<LibraryFile[]>;
+
+  tabIndex = 0;
 
   constructor(
     private core: CoreService,
@@ -147,6 +202,17 @@ export class EpisodeComponent implements OnInit {
   ngOnInit(): void {
     this.episode$ = this.route.data.pipe(
       map((data: {episode: Episode}) => data.episode)
+    );
+    this.files$ = this.route.parent.parent.data.pipe(
+      tap(data => console.log(data)),
+      switchMap((data: {show$: Observable<Show>}) => data.show$),
+      switchMap(show => this.episode$.pipe(
+        map(episode =>
+          show.files.filter(file =>
+            file.seasonNumber === episode.season_number && file.episodeNumber === episode.episode_number
+          )
+        )
+      ))
     );
   }
 

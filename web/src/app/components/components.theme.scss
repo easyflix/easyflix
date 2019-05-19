@@ -147,6 +147,19 @@
     .play:focus {
       background-color: mat-color($accent);
     }
+    .overview {
+      padding-right: .5rem;
+    }
+    .overview::-webkit-scrollbar {
+      width: .5rem;
+    }
+    .overview::-webkit-scrollbar-thumb {
+      border-radius: .5rem;
+      background-color: mat-color($foreground, disabled-button, 0.15);
+    }
+    .overview:hover::-webkit-scrollbar-thumb {
+      background-color: mat-color($foreground, disabled-button, 0.3);
+    }
   }
 
   app-movie-details {
