@@ -15,7 +15,7 @@ import {LibraryFile} from '@app/models';
   template: `
     <ng-container *ngIf="episode$ | async as episode">
       <div class="still">
-        <img *ngIf="getStillSource(episode) | async as source" [src]="source">
+        <img *ngIf="getStillSource(episode) | async as source" [src]="source" alt="Still">
       </div>
       <div class="content">
         <header class="tabs">
@@ -204,7 +204,6 @@ export class EpisodeComponent implements OnInit {
       map((data: {episode: Episode}) => data.episode)
     );
     this.files$ = this.route.parent.parent.data.pipe(
-      tap(data => console.log(data)),
       switchMap((data: {show$: Observable<Show>}) => data.show$),
       switchMap(show => this.episode$.pipe(
         map(episode =>

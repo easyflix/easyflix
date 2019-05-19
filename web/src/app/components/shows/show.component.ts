@@ -19,11 +19,11 @@ import {tabsAnimations} from '@app/animations';
           <div class="poster">
             <img *ngIf="getShowPosterSource() | async as poster"
                  [src]="poster"
-                 [class.visible]="isShowingInfo() | async"/>
+                 [class.visible]="isShowingInfo() | async" alt="Show poster"/>
             <ng-container *ngFor="let season of getSeasons(show)">
               <img *ngIf="getSeasonPosterSource(season) | async as poster"
                    [src]="poster"
-                   [class.visible]="isShowingSeason(season) | async"/>
+                   [class.visible]="isShowingSeason(season) | async" alt="Season poster"/>
             </ng-container>
           </div>
           <h1 class="title">
@@ -111,6 +111,12 @@ import {tabsAnimations} from '@app/animations';
       box-sizing: border-box;
       max-width: 1300px;
       padding: 2rem;
+      min-width: 100%;
+    }
+    @media (min-width: 1300px) {
+      .show {
+        min-width: 1300px;
+      }
     }
     .poster {
       float: left;

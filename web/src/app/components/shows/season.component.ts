@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnInit} from '@angular/core';
 import {EMPTY, Observable, of} from 'rxjs';
 import {Episode, Season, Show} from '@app/models/show';
 import {ActivatedRoute, Router, RouterOutlet} from '@angular/router';
@@ -191,6 +191,22 @@ export class SeasonComponent implements OnInit {
     return this.episodes$.pipe(
       map(episodes => !!episodes[this.currentEpisodeIndex + 1]),
     );
+  }
+
+  @HostListener('window:keydown.arrowDown')
+  goToNext(): void {
+    this.hasNextEpisode().pipe(
+      take(1),
+      tap(hasNext => hasNext ? this.nextEpisode() : {})
+    ).subscribe();
+  }
+
+  @HostListener('window:keydown.arrowUp')
+  goToPrevious(): void {
+    this.hasPreviousEpisode().pipe(
+      take(1),
+      tap(hasPrevious => hasPrevious ? this.previousEpisode() : {})
+    ).subscribe();
   }
 
   nextEpisode(): void {
