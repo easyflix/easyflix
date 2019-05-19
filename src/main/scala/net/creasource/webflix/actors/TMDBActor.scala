@@ -188,7 +188,15 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
             tmdbActor ! createRequest(TVDetailsContext(show.id))
             show.files.map(
               file => TVEpisodeContext(show.id, file.seasonNumber.get, file.episodeNumber.get)
-            ).distinct.foreach(tmdbActor ! createRequest(_))
+            )
+            .distinct
+            // Filter episodes for which we already have a result
+            .filter(context => !shows.values
+              .filter(_.id == show.id)
+              .flatMap(_.episodes)
+              .map(ep => TVEpisodeContext(show.id, ep.season_number, ep.episode_number))
+              .toSeq.contains(context)
+            ).foreach(tmdbActor ! createRequest(_))
             application.bus.publish(ShowAdded(show))
             showSearches -= searchContext
           }
@@ -211,7 +219,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
             crew = episode.crew.filter(p => p.job == "Director" || p.job == "Writer")
           )
           logger.info(s"Received episode details for show: ${show.name} - $seasonNumber/$episodeNumber")
-          shows += show.id -> show.withEpisode(cleanedEpisode)
+          shows += show.id -> show.withEpisode(cleanedEpisode) // TODO check if this episodes exists already
           application.bus.publish(ShowAdded(show.withEpisode(cleanedEpisode))) // TODO publish only an update
         }
     }
