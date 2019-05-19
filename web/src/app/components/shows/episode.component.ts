@@ -1,11 +1,7 @@
-import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
-import {filter, map, switchMap, take, tap} from 'rxjs/operators';
+import {ChangeDetectionStrategy, Component, Input, OnInit} from '@angular/core';
+import {filter, map, take} from 'rxjs/operators';
 import {EMPTY, Observable} from 'rxjs';
 import {CoreService} from '@app/services/core.service';
-import {FilesService} from '@app/services/files.service';
-import {VideoService} from '@app/services/video.service';
-import {FilterService} from '@app/services/filter.service';
-import {ActivatedRoute, Router} from '@angular/router';
 import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
 import {Episode, Show} from '@app/models/show';
 import {LibraryFile} from '@app/models';
@@ -13,7 +9,6 @@ import {LibraryFile} from '@app/models';
 @Component({
   selector: 'app-episode',
   template: `
-    <ng-container *ngIf="episode$ | async as episode">
       <div class="still">
         <img *ngIf="getStillSource(episode) | async as source" [src]="source" alt="Still">
       </div>
@@ -26,16 +21,14 @@ import {LibraryFile} from '@app/models';
              tabindex="0">
             Episode {{ episode.episode_number }}
           </a>
-          <ng-container *ngIf="files$ | async as files">
-            <a class="tab"
-               [class.selected]="tabIndex === i + 1"
-               (click)="tabIndex = i + 1"
-               (keydown.enter)="tabIndex = i + 1"
-               tabindex="0"
-               *ngFor="let file of files; index as i">
-              File Info <ng-container *ngIf="files.length > 1">({{ i + 1 }})</ng-container>
-            </a>
-          </ng-container>
+          <a class="tab"
+             [class.selected]="tabIndex === i + 1"
+             (click)="tabIndex = i + 1"
+             (keydown.enter)="tabIndex = i + 1"
+             tabindex="0"
+             *ngFor="let file of files; index as i">
+            File Info <ng-container *ngIf="files.length > 1">({{ i + 1 }})</ng-container>
+          </a>
         </header>
         <ng-container *ngIf="tabIndex === 0">
           <dl>
@@ -66,7 +59,7 @@ import {LibraryFile} from '@app/models';
           </dl>
           <p class="overview">{{episode.overview}}</p>
         </ng-container>
-        <section class="file-info" *ngFor="let file of files$ | async; index as i" [class.hidden]="tabIndex !== (i + 1)">
+        <section class="file-info" *ngFor="let file of files; index as i" [class.hidden]="tabIndex !== (i + 1)">
           <dl>
             <dt>Library</dt>
             <dd>{{ file.libraryName }}</dd>
@@ -85,7 +78,6 @@ import {LibraryFile} from '@app/models';
           </dl>
         </section>
       </div>
-    </ng-container>
   `,
   styles: [`
     :host {
@@ -181,37 +173,23 @@ import {LibraryFile} from '@app/models';
 })
 export class EpisodeComponent implements OnInit {
 
-  episode$: Observable<Episode>;
+  @Input() show: Show;
+  @Input() episode: Episode;
 
-  files$: Observable<LibraryFile[]>;
+  files: LibraryFile[];
 
   tabIndex = 0;
 
   constructor(
     private core: CoreService,
-    private files: FilesService,
-    private video: VideoService,
-    private filters: FilterService,
-    private router: Router,
-    private route: ActivatedRoute,
     private sanitizer: DomSanitizer,
   ) {
 
   }
 
   ngOnInit(): void {
-    this.episode$ = this.route.data.pipe(
-      map((data: {episode: Episode}) => data.episode)
-    );
-    this.files$ = this.route.parent.parent.data.pipe(
-      switchMap((data: {show$: Observable<Show>}) => data.show$),
-      switchMap(show => this.episode$.pipe(
-        map(episode =>
-          show.files.filter(file =>
-            file.seasonNumber === episode.season_number && file.episodeNumber === episode.episode_number
-          )
-        )
-      ))
+    this.files = this.show.files.filter(file =>
+      file.seasonNumber === this.episode.season_number && file.episodeNumber === this.episode.episode_number
     );
   }
 

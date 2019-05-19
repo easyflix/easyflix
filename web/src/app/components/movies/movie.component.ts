@@ -13,7 +13,7 @@ import {Router} from '@angular/router';
 @Component({
   selector: 'app-movie',
   template: `
-    <div class="container" [style]="getBackdropStyle() | async" #container tabindex="0">
+    <div class="container" [style]="getBackdropStyle() | async">
       <div class="filter">
         <div class="movie">
           <div class="poster">
@@ -340,11 +340,7 @@ export class MovieComponent implements OnInit {
 
   @Input() movie: Movie;
 
-  @Input() focusOnLoad = false;
-
   tabIndex = 0;
-
-  @ViewChild('container', {static: true}) container: ElementRef;
 
   constructor(
     private core: CoreService,
@@ -356,9 +352,6 @@ export class MovieComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    if (this.focusOnLoad) {
-      this.focus();
-    }
   }
 
   getPosterSource(): Observable<SafeUrl> {
@@ -469,10 +462,6 @@ export class MovieComponent implements OnInit {
         this.filters.setTags([tag]);
       }
     );
-  }
-
-  focus() {
-    this.container.nativeElement.focus();
   }
 
 }

@@ -17,27 +17,8 @@ import {map} from 'rxjs/operators';
       <nav>
         <a [routerLink]="['/home']" routerLinkActive="active" queryParamsHandling="preserve">Home</a>
         <a [routerLink]="['/movies']" routerLinkActive="active" queryParamsHandling="preserve">Movies</a>
-        <nav>
-          <mat-icon>arrow_right</mat-icon>
-          <button mat-icon-button
-                  [routerLink]="viewGrid ? ['/movies/list'] : ['/movies']"
-                  queryParamsHandling="preserve"
-                  routerLinkActive="active">
-            <mat-icon>{{ viewGrid ? 'view_module' : 'view_stream' }}</mat-icon>
-          </button>
-        </nav>
         <a routerLink="/shows" routerLinkActive="active" queryParamsHandling="preserve">TV Shows</a>
-        <!--<nav>
-          <mat-icon>arrow_right</mat-icon>
-          <button mat-icon-button
-                  (click)="viewGrid = !viewGrid"
-                  [routerLink]="viewGrid ? '/movies/list' : '/movies'"
-                  queryParamsHandling="preserve"
-                  routerLinkActive="active">
-            <mat-icon>{{ viewGrid ? 'view_module' : 'view_stream' }}</mat-icon>
-          </button>
-        </nav>-->
-        <a routerLink="/shows" routerLinkActive="active" queryParamsHandling="preserve">Others</a>
+        <a routerLink="/others" routerLinkActive="active" queryParamsHandling="preserve">Others</a>
       </nav>
       <!--<mat-icon (click)="searchInput.focus()">search</mat-icon>
       <input #searchInput
@@ -49,11 +30,8 @@ import {map} from 'rxjs/operators';
       <app-filters></app-filters>
     </header>
     <main [@mainAnimation]="getAnimationData(main)">
-      <div [@movieAnimation]="getAnimationData(movie)">
-        <router-outlet name="movie" #movie="outlet"></router-outlet>
-      </div>
-      <div [@showAnimation]="getAnimationData(show)">
-        <router-outlet name="show" #show="outlet"></router-outlet>
+      <div>
+        <router-outlet name="details" #details="outlet"></router-outlet>
       </div>
       <router-outlet #main="outlet"></router-outlet>
     </main>
@@ -100,18 +78,6 @@ import {map} from 'rxjs/operators';
     }
     a:not(:first-child) {
       border-left: 1px solid;
-    }
-    nav nav {
-      display: inline-flex;
-      align-items: center;
-      width: 0;
-      overflow: hidden;
-      transition: width 300ms ease;
-      position: relative;
-      left: -7px;
-    }
-    a.active + nav {
-      width: 65px;
     }
     app-filters {
       margin-left: auto;
@@ -160,11 +126,6 @@ export class MainComponent implements OnInit {
 
   getAnimationData(outlet: RouterOutlet) {
     return outlet && outlet.activatedRouteData && outlet.activatedRouteData.animation || 'void';
-  }
-
-  getShowAnimationData(outlet: RouterOutlet) {
-    console.log(history.state)
-    return history.state && history.state.next && history.state.next.toString() || 'void';
   }
 
 }

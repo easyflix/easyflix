@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Input, OnInit} from '@angular/core';
 import {Creator, Network, Season, Show, ShowDetails} from '@app/models/show';
 import {ActivatedRoute, Router} from '@angular/router';
 import {EMPTY, Observable} from 'rxjs';
@@ -13,72 +13,70 @@ import {FilterService} from '@app/services/filter.service';
 @Component({
   selector: 'app-show-info',
   template: `
-    <ng-container *ngIf="show$ | async as show">
-      <section class="info">
-        <dl class="left">
-          <dt>Original name</dt>
-          <dd><span class="overflow-ellipsis">{{ show.original_name }}</span></dd>
-          <dt>First air date</dt>
-          <dd>{{ show.first_air_date | date:'mediumDate'}}</dd>
-          <dt>Episodes</dt>
-          <dd *ngIf="show.details as details; else loading">
-            <span *ngIf="getTotalAvailableEpisodesCount(show) < details.number_of_episodes">
-              {{ getTotalAvailableEpisodesCount(show) }} /
-            </span>
-            <span>{{ details.number_of_episodes }}</span>
-          </dd>
-          <dt>Seasons</dt>
-          <dd *ngIf="show.details as details; else loading">
-            <span *ngIf="getAvailableSeasons(show).length !== details.number_of_seasons">
-              {{ getAvailableSeasons(show).length }} /
-            </span>
-            <span>{{ details.number_of_seasons }}</span>
-          </dd>
-          <ng-template #loading>
-            <dd class="loading">Loading...</dd>
-          </ng-template>
-        </dl>
-        <dl class="right">
-          <dt>Language</dt>
-          <dd>
-            <a class="search" (click)="searchLanguage(show.original_language)">
-              {{ getLanguage(show.original_language) | async }}
-            </a>
-          </dd>
-          <dt>Genres</dt>
-          <dd *ngIf="show.details as details; else loading">
-            <ng-container *ngFor="let genre of getGenres(details); last as isLast">
-              <a class="search" (click)="searchGenre(genre)">{{genre}}</a>{{ isLast ? '' : ',' }}
-            </ng-container>
-          </dd>
-          <dt>Created by</dt>
-          <dd *ngIf="show.details as details; else loading">
-            <ng-container *ngFor="let creator of getCreatedBy(details.created_by); last as isLast">
-              <a class="search" (click)="searchPeople(creator)">{{creator}}</a>{{ isLast ? '' : ',' }}
-            </ng-container>
-          </dd>
-          <dt>Networks</dt>
-          <dd *ngIf="show.details as details; else loading">
-            <ng-container *ngFor="let network of getNetworks(details.networks); last as isLast">
-              <a class="search" (click)="searchNetwork(network)">{{network}}</a>{{ isLast ? '' : ',' }}
-            </ng-container>
-          </dd>
-        </dl>
-      </section>
-      <div class="cast" *ngIf="show.details as details; else castLoading">
-        <div class="people" *ngFor="let actor of details.credits.cast">
-          <div class="profile" [style]="getActorStyle(actor) | async">
-            <mat-icon *ngIf="!actor.profile_path">person</mat-icon>
-          </div>
-          <div class="name">
-            <a class="search" (click)="searchPeople(actor.name)">{{ actor.name }}</a>
-          </div>
+    <div class="info">
+      <dl class="left">
+        <dt>Original name</dt>
+        <dd><span class="overflow-ellipsis">{{ show.original_name }}</span></dd>
+        <dt>First air date</dt>
+        <dd>{{ show.first_air_date | date:'mediumDate'}}</dd>
+        <dt>Episodes</dt>
+        <dd *ngIf="show.details as details; else loading">
+          <span *ngIf="getTotalAvailableEpisodesCount(show) < details.number_of_episodes">
+            {{ getTotalAvailableEpisodesCount(show) }} /
+          </span>
+          <span>{{ details.number_of_episodes }}</span>
+        </dd>
+        <dt>Seasons</dt>
+        <dd *ngIf="show.details as details; else loading">
+          <span *ngIf="getAvailableSeasons(show).length !== details.number_of_seasons">
+            {{ getAvailableSeasons(show).length }} /
+          </span>
+          <span>{{ details.number_of_seasons }}</span>
+        </dd>
+        <ng-template #loading>
+          <dd class="loading">Loading...</dd>
+        </ng-template>
+      </dl>
+      <dl class="right">
+        <dt>Language</dt>
+        <dd>
+          <a class="search" (click)="searchLanguage(show.original_language)">
+            {{ getLanguage(show.original_language) | async }}
+          </a>
+        </dd>
+        <dt>Genres</dt>
+        <dd *ngIf="show.details as details; else loading">
+          <ng-container *ngFor="let genre of getGenres(details); last as isLast">
+            <a class="search" (click)="searchGenre(genre)">{{genre}}</a>{{ isLast ? '' : ',' }}
+          </ng-container>
+        </dd>
+        <dt>Created by</dt>
+        <dd *ngIf="show.details as details; else loading">
+          <ng-container *ngFor="let creator of getCreatedBy(details.created_by); last as isLast">
+            <a class="search" (click)="searchPeople(creator)">{{creator}}</a>{{ isLast ? '' : ',' }}
+          </ng-container>
+        </dd>
+        <dt>Networks</dt>
+        <dd *ngIf="show.details as details; else loading">
+          <ng-container *ngFor="let network of getNetworks(details.networks); last as isLast">
+            <a class="search" (click)="searchNetwork(network)">{{network}}</a>{{ isLast ? '' : ',' }}
+          </ng-container>
+        </dd>
+      </dl>
+    </div>
+    <div class="cast" *ngIf="show.details as details; else castLoading">
+      <div class="people" *ngFor="let actor of details.credits.cast">
+        <div class="profile" [style]="getActorStyle(actor) | async">
+          <mat-icon *ngIf="!actor.profile_path">person</mat-icon>
+        </div>
+        <div class="name">
+          <a class="search" (click)="searchPeople(actor.name)">{{ actor.name }}</a>
         </div>
       </div>
-      <ng-template #castLoading>
-        <!--TODO -->
-      </ng-template>
-    </ng-container>
+    </div>
+    <ng-template #castLoading>
+      <!--TODO -->
+    </ng-template>
   `,
   styles: [`
     :host {
@@ -169,7 +167,7 @@ import {FilterService} from '@app/services/filter.service';
 })
 export class ShowInfoComponent implements OnInit {
 
-  show$: Observable<Show>;
+  @Input() show: Show;
 
   constructor(
     private core: CoreService,
@@ -181,11 +179,7 @@ export class ShowInfoComponent implements OnInit {
     private sanitizer: DomSanitizer,
   ) {}
 
-  ngOnInit(): void {
-    this.route.parent.data.subscribe(
-      (data: { show$: Observable<Show> }) => this.show$ = data.show$
-    );
-  }
+  ngOnInit(): void {}
 
   getActorStyle(actor: Cast): Observable<SafeStyle> {
     if (actor.profile_path) {
@@ -261,8 +255,6 @@ export class ShowInfoComponent implements OnInit {
       }
     );
   }
-
-
 
   searchTag(tag: string) {
     this.router.navigate(['/', {outlets: {show: null}}], {queryParamsHandling: 'preserve'}).then(

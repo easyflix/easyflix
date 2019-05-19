@@ -1,54 +1,48 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnInit} from '@angular/core';
-import {EMPTY, Observable, of} from 'rxjs';
+import {ChangeDetectionStrategy, Component, HostListener, Input, OnInit} from '@angular/core';
 import {Episode, Season, Show} from '@app/models/show';
-import {ActivatedRoute, Router, RouterOutlet} from '@angular/router';
-import {map, switchMap, take, tap} from 'rxjs/operators';
+import {ActivatedRoute, Router} from '@angular/router';
 import {episodesAnimations} from '@app/animations';
 
 @Component({
   selector: 'app-season',
   template: `
-    <ng-container *ngIf="season$ | async as season">
-      <section class="season">
-        <div>
-          <dl>
-            <dt>Name</dt>
-            <dd>{{ season.name }}</dd>
-            <dt>First air date</dt>
-            <dd>{{ season.air_date ? (season.air_date | date) : 'N/A' }}</dd>
-            <dt>Episodes</dt>
-            <dd>
-              <ng-container *ngIf="episodes$ | async as episodes">
-                <span *ngIf="episodes.length < season.episode_count">{{ episodes.length }} /</span>
-              </ng-container>
-              {{ season.episode_count }}
-            </dd>
-          </dl>
-          <p class="overview">{{ season.overview }}</p>
-        </div>
-      </section>
-      <section class="episodes">
-        <div class="before">
-          <button mat-button (click)="previousEpisode()" [disabled]="!(hasPreviousEpisode() | async)">
-            <mat-icon>arrow_drop_up</mat-icon>
-          </button>
-        </div>
-        <div class="episode" [@episodesAnimation]="getAnimationData(episode) | async">
-          <router-outlet #episode="outlet"></router-outlet>
-        </div>
-        <div class="after">
-          <button mat-button (click)="nextEpisode()" [disabled]="!(hasNextEpisode() | async)">
-            <mat-icon>arrow_drop_down</mat-icon>
-          </button>
-        </div>
-      </section>
-    </ng-container>
+    <section class="season-info">
+      <div>
+        <dl>
+          <dt>Name</dt>
+          <dd>{{ season.name }}</dd>
+          <dt>First air date</dt>
+          <dd>{{ season.air_date ? (season.air_date | date) : 'N/A' }}</dd>
+          <dt>Episodes</dt>
+          <dd>
+            <span *ngIf="episodes.length < season.episode_count">{{ episodes.length }} /</span>
+            {{ season.episode_count }}
+          </dd>
+        </dl>
+        <p class="overview">{{ season.overview }}</p>
+      </div>
+    </section>
+    <section class="episodes">
+      <div class="before">
+        <button mat-button (click)="previousEpisode()" [disabled]="!hasPreviousEpisode()">
+          <mat-icon>arrow_drop_up</mat-icon>
+        </button>
+      </div>
+      <div class="episode">
+        <app-episode *ngIf="episodes[currentEpisodeIndex]" [show]="show" [episode]="episodes[currentEpisodeIndex]"></app-episode>
+      </div>
+      <div class="after">
+        <button mat-button (click)="nextEpisode()" [disabled]="!hasNextEpisode()">
+          <mat-icon>arrow_drop_down</mat-icon>
+        </button>
+      </div>
+    </section>
   `,
   styles: [`
     :host {
       display: block;
     }
-    .season{
+    .season-info {
       display: flex;
       height: 120px;
     }
@@ -131,83 +125,52 @@ import {episodesAnimations} from '@app/animations';
 })
 export class SeasonComponent implements OnInit {
 
-  season$: Observable<Season>;
+  @Input() show: Show;
+  @Input() season: Season;
 
-  episodes$: Observable<Episode[]>;
+  episodes: Episode[];
 
   currentEpisodeIndex = 0;
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
   ) {
-
   }
 
   ngOnInit(): void {
-    this.season$ = this.route.data.pipe(
-      map((data: { season: Season }) => data.season)
-    );
+    this.episodes = this.show.episodes
+      .filter(episode => episode.season_number === this.season.season_number)
+      .sort((a, b) => a.episode_number - b.episode_number);
 
-    this.episodes$ = this.route.paramMap.pipe(
-      switchMap(params => {
-        const seasonNumber = +params.get('season');
-        return this.route.parent.data.pipe(
-          switchMap((data: { show$: Observable<Show> }) => data.show$),
-          map(show =>
-            show.episodes
-              .filter(episode => episode.season_number === seasonNumber)
-              .sort((a, b) => a.episode_number - b.episode_number)
-          )
-        );
-      })
-    );
-
-    this.route.firstChild.paramMap.pipe(
-      take(1),
-      map(params => params.get('episode')),
-      switchMap(episode => {
-        if (episode === null) {
-          return EMPTY;
-        }
-        return this.episodes$.pipe(
-          tap(episodes => {
-            const ep = episodes.find(e => e.episode_number === +episode);
-            this.currentEpisodeIndex = episodes.indexOf(ep);
-            this.cdr.markForCheck();
-          })
-        );
-      })
-    ).subscribe();
+    const currentEpisode = this.route.snapshot.paramMap.get('episode');
+    if (currentEpisode !== null) {
+      this.currentEpisodeIndex = this.episodes.indexOf(
+        this.episodes.find(e => e.episode_number === +currentEpisode)
+      );
+    }
   }
 
-  hasPreviousEpisode(): Observable<boolean> {
-    return this.episodes$.pipe(
-      map(episodes => !!episodes[this.currentEpisodeIndex - 1]),
-    );
+  hasPreviousEpisode(): boolean {
+    return !!this.episodes[this.currentEpisodeIndex - 1];
   }
 
-  hasNextEpisode(): Observable<boolean> {
-    return this.episodes$.pipe(
-      map(episodes => !!episodes[this.currentEpisodeIndex + 1]),
-    );
+  hasNextEpisode(): boolean {
+    return !!this.episodes[this.currentEpisodeIndex + 1];
   }
 
   @HostListener('window:keydown.arrowDown')
   goToNext(): void {
-    this.hasNextEpisode().pipe(
-      take(1),
-      tap(hasNext => hasNext ? this.nextEpisode() : {})
-    ).subscribe();
+    if (this.hasNextEpisode()) {
+      this.nextEpisode();
+    }
   }
 
   @HostListener('window:keydown.arrowUp')
   goToPrevious(): void {
-    this.hasPreviousEpisode().pipe(
-      take(1),
-      tap(hasPrevious => hasPrevious ? this.previousEpisode() : {})
-    ).subscribe();
+    if (this.hasPreviousEpisode()) {
+      this.previousEpisode();
+    }
   }
 
   nextEpisode(): void {
@@ -221,23 +184,13 @@ export class SeasonComponent implements OnInit {
   }
 
   navigateToCurrentEpisode() {
-    this.episodes$.pipe(
-      map(episodes => episodes[this.currentEpisodeIndex]),
-      tap((episode: Episode) =>
-        this.router.navigate(['episode', episode.episode_number], { relativeTo: this.route })
-      ),
-      take(1)
-    ).subscribe();
-  }
-
-  getAnimationData(outlet: RouterOutlet): Observable<string> {
-    if (outlet && outlet.isActivated) {
-      return outlet.activatedRoute.paramMap.pipe(
-        map(params => params.get('episode') || '0')
-      );
-    } else {
-      return of('void');
-    }
+    this.router.navigate(
+      ['./', {
+        season: this.season.season_number,
+        episode: this.episodes[this.currentEpisodeIndex].episode_number
+      }],
+      { relativeTo: this.route }
+    );
   }
 
 }

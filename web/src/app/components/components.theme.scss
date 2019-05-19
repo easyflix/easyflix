@@ -87,7 +87,7 @@
     }
   }
 
-  app-video-list, app-movies-grid {
+  app-video-list, app-movies, app-shows {
     .poster {
       background-color: mat-color($background, card);
       @include mat-elevation(2);
@@ -97,12 +97,6 @@
     }
     .item:focus .poster {
       outline-color: mat-color($primary) !important;
-    }
-  }
-
-  app-movies {
-    button.active {
-      color: mat-color($primary);
     }
   }
 
@@ -162,12 +156,6 @@
     }
     .overview:hover::-webkit-scrollbar-thumb {
       background-color: mat-color($foreground, disabled-button, 0.3);
-    }
-  }
-
-  app-movie-details {
-    .loading-movie {
-      background-color: mat-color($background, background);
     }
   }
 

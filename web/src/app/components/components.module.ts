@@ -11,25 +11,21 @@ import {HomeComponent} from './home/home.component';
 import {AboutComponent} from './about/about.component';
 import {SidenavComponent} from './sidenav.component';
 import {LibraryListComponent} from './library/library-list.component';
-import {MoviesComponent} from './movies/movies.component';
-import {ShowsComponent} from './shows/shows.component';
 import {MainComponent} from './main.component';
 import {VideoListComponent} from './common/video-list/video-list.component';
-import {MoviesGridComponent} from './movies/movies-grid.component';
-import {MoviesListComponent} from './movies/movies-list.component';
+import {MoviesComponent} from './movies/movies.component';
 import {GlobalComponent} from './settings/global/global.component';
 import {LocalComponent} from '@app/components/settings/local/local.component';
 import {LibraryCreationDialogComponent} from '@app/components/dialogs/library-creation-dialog/library-creation-dialog.component';
 import {ConfirmDialogComponent} from '@app/components/dialogs/confirm-dialog.component';
 import {MovieComponent} from '@app/components/movies/movie.component';
-import {MovieDetailsComponent} from '@app/components/movies/movie-details.component';
 import {FiltersComponent} from '@app/components/filters.component';
-import {ShowsGridComponent} from '@app/components/shows/shows-grid.component';
+import {ShowsComponent} from '@app/components/shows/shows.component';
 import {ShowComponent} from '@app/components/shows/show.component';
-import {ShowDetailsComponent} from '@app/components/shows/show-details.component';
 import {SeasonComponent} from '@app/components/shows/season.component';
 import {ShowInfoComponent} from '@app/components/shows/show-info.component';
 import {EpisodeComponent} from '@app/components/shows/episode.component';
+import {DetailsComponent} from '@app/components/details.component';
 
 const COMPONENTS = [
   FileListComponent,
@@ -43,25 +39,21 @@ const COMPONENTS = [
   HomeComponent,
   SidenavComponent,
   LibraryListComponent,
-  MoviesComponent,
-  ShowsComponent,
   MainComponent,
   VideoListComponent,
-  MoviesGridComponent,
-  MoviesListComponent,
+  MoviesComponent,
   GlobalComponent,
   LocalComponent,
   LibraryCreationDialogComponent,
   ConfirmDialogComponent,
   MovieComponent,
-  MovieDetailsComponent,
   FiltersComponent,
-  ShowsGridComponent,
+  ShowsComponent,
   ShowComponent,
-  ShowDetailsComponent,
   SeasonComponent,
   ShowInfoComponent,
-  EpisodeComponent
+  EpisodeComponent,
+  DetailsComponent
 ];
 
 @NgModule({

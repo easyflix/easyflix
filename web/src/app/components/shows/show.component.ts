@@ -19,11 +19,11 @@ import {tabsAnimations} from '@app/animations';
           <div class="poster">
             <img *ngIf="getShowPosterSource() | async as poster"
                  [src]="poster"
-                 [class.visible]="isShowingInfo() | async" alt="Show poster"/>
+                 [class.visible]="isSelectedInfo() | async" alt="Show poster"/>
             <ng-container *ngFor="let season of getSeasons(show)">
               <img *ngIf="getSeasonPosterSource(season) | async as poster"
                    [src]="poster"
-                   [class.visible]="isShowingSeason(season) | async" alt="Season poster"/>
+                   [class.visible]="isSelectedSeason(season) | async" alt="Season poster"/>
             </ng-container>
           </div>
           <h1 class="title">
@@ -52,17 +52,16 @@ import {tabsAnimations} from '@app/animations';
           </p>
           <header class="tabs">
             <a class="tab"
-               [routerLink]="['./']"
-               routerLinkActive="selected"
-               queryParamsHandling="preserve"
-               [routerLinkActiveOptions]="{exact: true}">
+               [routerLink]="['./', {}]"
+               [class.selected]="isSelectedInfo() | async"
+               queryParamsHandling="preserve">
               Show Info
             </a>
             <a class="tab"
-               [routerLink]="['season', i + 1]"
-               routerLinkActive="selected"
+               *ngFor="let season of getSeasons(show)"
+               [routerLink]="['./', {season: season.season_number}]"
                queryParamsHandling="preserve"
-               *ngFor="let season of getSeasons(show); index as i"
+               [class.selected]="isSelectedSeason(season) | async"
                [class.hidden]="getAvailableEpisodesCount(season) === 0 && !showAll"
                [class.disabled]="getAvailableEpisodesCount(season) === 0">
               Season {{ season.season_number }}
@@ -76,8 +75,11 @@ import {tabsAnimations} from '@app/animations';
               </button>
             </mat-menu>
           </header>
-          <div class="tabs-content" [@tabsAnimation]="getAnimationData(tab) | async">
-            <router-outlet #tab="outlet"></router-outlet>
+          <div class="tabs-content">
+            <app-show-info *ngIf="isSelectedInfo() | async" [show]="show"></app-show-info>
+            <ng-container *ngFor="let season of getSeasons(show)">
+              <app-season [show]="show" [season]="season" *ngIf="isSelectedSeason(season) | async"></app-season>
+            </ng-container>
           </div>
         </section>
       </div>
@@ -261,32 +263,17 @@ export class ShowComponent implements OnInit {
     }
   }
 
-  isShowingSeason(season: Season): Observable<boolean> {
-    if (this.route.firstChild !== null) {
-      return this.route.firstChild.paramMap.pipe(
-        map(params => +params.get('season')),
-        map(s => s === season.season_number)
-      );
-    } else {
-      return of(false);
-    }
-  }
-
-  isShowingInfo(): Observable<boolean> {
-    return this.route.firstChild.paramMap.pipe(
-      map(params => params.get('season') === null)
+  isSelectedSeason(season: Season): Observable<boolean> {
+    return this.route.paramMap.pipe(
+      map(params => +params.get('season') === season.season_number)
     );
   }
 
-/*  getFirstEpisode(season: Season): number | {} {
-    const firstFile = this.show.files
-      .filter(file => file.seasonNumber === season.season_number)
-      .sort((a, b) => a.episodeNumber - b.episodeNumber)[0];
-    if (firstFile !== undefined) {
-      return firstFile.episodeNumber;
-    }
-    return {};
-  }*/
+  isSelectedInfo(): Observable<boolean> {
+    return this.route.paramMap.pipe(
+      map(params => params.get('season') === null)
+    );
+  }
 
   getShowPosterSource(): Observable<SafeUrl> {
     if (this.show.poster) {
