@@ -18,12 +18,12 @@ import {Episode} from '@app/models/show';
       </div>
       <div class="content">
         <header class="tabs">
-          <h3 class="tab" [class.selected]="true">Episode Info</h3>
+          <h3 class="tab" [class.selected]="true">Episode {{ episode.episode_number }}</h3>
           <h3 class="tab" [class.selected]="false">File Info</h3>
         </header>
         <dl>
           <dt>Name</dt>
-          <dd>{{ episode.episode_number }}. {{ episode.name }}</dd>
+          <dd>{{ episode.name }}</dd>
           <dt>Air date</dt>
           <dd>{{ episode.air_date | date }}</dd>
           <ng-container *ngIf="getDirectors(episode).length > 0; else placeholder">

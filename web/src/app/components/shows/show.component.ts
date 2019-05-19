@@ -63,15 +63,16 @@ import {tabsAnimations} from '@app/animations';
                routerLinkActive="selected"
                queryParamsHandling="preserve"
                *ngFor="let season of getSeasons(show); index as i"
-               [class.hidden]="getAvailableEpisodesCount(season) === 0 && !showAll">
+               [class.hidden]="getAvailableEpisodesCount(season) === 0 && !showAll"
+               [class.disabled]="getAvailableEpisodesCount(season) === 0">
               Season {{ season.season_number }}
             </a>
-            <button mat-icon-button class="settings" [matMenuTriggerFor]="rootMenu">
+            <button mat-icon-button class="settings" [matMenuTriggerFor]="rootMenu" *ngIf="hasEmptySeasons()">
               <mat-icon>more_vert</mat-icon>
             </button>
             <mat-menu #rootMenu="matMenu" xPosition="before" yPosition="below">
               <button mat-menu-item (click)="showAll = !showAll">
-                {{ showAll ? 'Hide empty seasons' : 'Show all seasons' }}
+                {{ showAll ? 'Hide unavailable seasons' : 'Show all seasons' }}
               </button>
             </mat-menu>
           </header>
@@ -186,11 +187,11 @@ import {tabsAnimations} from '@app/animations';
       margin-bottom: 15px;
       border-bottom: 1px solid;
       position: relative;
-      padding-right: 50px;
+      padding-right: 40px;
     }
     .tabs .settings {
       position: absolute;
-      right: 5px;
+      right: 0;
     }
     .tab {
       font-weight: 400;
@@ -202,17 +203,15 @@ import {tabsAnimations} from '@app/animations';
       cursor: pointer;
       text-decoration: none;
     }
-    .tab .mat-badge-content {
-      display: none;
-    }
-    .tab:hover .mat-badge-content {
-      display: unset;
+    .tab:hover, .tab:focus {
+      border-bottom: 2px solid;
     }
     .tab.selected {
       border-bottom: 2px solid;
     }
     .tabs-content {
       position: relative;
+      height: 455px;
     }
     a.search {
       cursor: pointer;
@@ -338,6 +337,12 @@ export class ShowComponent implements OnInit {
     ))/*.map(id =>
       this.show.files.find(file => `s${file.seasonNumber}e${file.episodeNumber}` === id)
     )*/.length;
+  }
+
+  hasEmptySeasons(): boolean {
+    return this.show.details && this.show.details.seasons.find(
+      season => this.getAvailableEpisodesCount(season) === 0
+    ) !== undefined;
   }
 
   play() {

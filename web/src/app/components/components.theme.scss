@@ -122,6 +122,12 @@
     .tab {
       color: mat-color($foreground, secondary-text);
     }
+    .tab.disabled {
+      color: mat-color($foreground, disabled-text);
+    }
+    .tab:hover, .tab:focus {
+      border-color: mat-color($foreground, text) !important;
+    }
     .tab.selected {
       color: mat-color($foreground, text);
       border-color: mat-color($primary) !important;
