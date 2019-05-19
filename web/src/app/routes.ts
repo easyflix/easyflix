@@ -28,8 +28,7 @@ import {EpisodeResolverService} from '@app/guards/episode-resolver.service';
 const navOutletName = 'nav';
 
 export const routes: Routes = [
-  // { path: '', redirectTo: '/browse(nav:library)', pathMatch: 'full' },
-  { path: '', component: HomeComponent, data: { animation: 'home' }, pathMatch: 'full' },
+  { path: '', redirectTo: '/home(nav:library)', pathMatch: 'full' },
   { path: 'home', component: HomeComponent, data: { animation: 'home' } },
   {
     path: 'movies',
