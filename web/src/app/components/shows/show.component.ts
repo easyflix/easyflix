@@ -215,6 +215,9 @@ import {tabsAnimations} from '@app/animations';
     .tab.selected {
       border-bottom: 2px solid;
     }
+    .tab.hidden.selected {
+      display: unset !important;
+    }
     .tabs-content {
       position: relative;
       height: 455px;
