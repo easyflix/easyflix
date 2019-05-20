@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {Location} from '@angular/common';
-import {mainAnimations, movieAnimations, showAnimations} from '../animations';
+import {detailsAnimations, mainAnimations} from '../animations';
 import {Router, RouterOutlet} from '@angular/router';
 import {Observable} from 'rxjs';
 import {CoreService} from '@app/services/core.service';
@@ -30,10 +30,10 @@ import {map} from 'rxjs/operators';
       <app-filters></app-filters>
     </header>
     <main [@mainAnimation]="getAnimationData(main)">
-      <div>
+      <router-outlet #main="outlet"></router-outlet>
+      <div [@detailsAnimation]="getDetailsAnimationData(details)" class="details-animation">
         <router-outlet name="details" #details="outlet"></router-outlet>
       </div>
-      <router-outlet #main="outlet"></router-outlet>
     </main>
 
   `,
@@ -96,8 +96,11 @@ import {map} from 'rxjs/operators';
       position: relative;
       padding-top: 60px;
     }
+    .details-animation {
+      z-index: 20;
+    }
   `],
-  animations: [mainAnimations, movieAnimations, showAnimations],
+  animations: [mainAnimations, detailsAnimations],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MainComponent implements OnInit {
@@ -126,6 +129,21 @@ export class MainComponent implements OnInit {
 
   getAnimationData(outlet: RouterOutlet) {
     return outlet && outlet.activatedRouteData && outlet.activatedRouteData.animation || 'void';
+  }
+
+  getDetailsAnimationData(outlet: RouterOutlet) {
+    const primary =
+      history.state.transition && history.state.id ?
+        history.state.transition + '-' + history.state.id : '';
+
+    const fallback = outlet
+      && outlet.isActivated
+      && outlet.activatedRoute
+      && outlet.activatedRoute.firstChild
+      && outlet.activatedRoute.firstChild.firstChild
+      && outlet.activatedRoute.firstChild.firstChild.snapshot.data.animation || 'empty';
+
+    return primary || fallback;
   }
 
 }

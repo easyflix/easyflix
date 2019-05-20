@@ -1,7 +1,6 @@
 import {ChangeDetectionStrategy, Component, HostListener, Input, OnInit} from '@angular/core';
 import {Episode, Season, Show} from '@app/models/show';
 import {ActivatedRoute, Router} from '@angular/router';
-import {episodesAnimations} from '@app/animations';
 
 @Component({
   selector: 'app-season',
@@ -28,8 +27,10 @@ import {episodesAnimations} from '@app/animations';
           <mat-icon>arrow_drop_up</mat-icon>
         </button>
       </div>
-      <div class="episode">
-        <app-episode *ngIf="episodes[currentEpisodeIndex]" [show]="show" [episode]="episodes[currentEpisodeIndex]"></app-episode>
+      <div class="episode-container">
+        <ng-container *ngFor="let episode of episodes; index as i">
+          <app-episode *ngIf="currentEpisodeIndex === i" [show]="show" [episode]="episode"></app-episode>
+        </ng-container>
       </div>
       <div class="after">
         <button mat-button (click)="nextEpisode()" [disabled]="!hasNextEpisode()">
@@ -91,7 +92,7 @@ import {episodesAnimations} from '@app/animations';
       max-width: 1300px;
       position: relative;
     }
-    .episode {
+    .episode-container {
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -120,7 +121,6 @@ import {episodesAnimations} from '@app/animations';
       border-radius: 0;
     }
   `],
-  animations: [episodesAnimations],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SeasonComponent implements OnInit {

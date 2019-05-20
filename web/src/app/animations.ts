@@ -1,4 +1,4 @@
-import {animate, animateChild, group, query, sequence, style, transition, trigger} from '@angular/animations';
+import {animate, animateChild, group, query, style, transition, trigger} from '@angular/animations';
 
 const debug = (name: string) => {
   return (from, to, el, params) => {
@@ -35,12 +35,12 @@ const superimpose =
     })
   ]);
 
-/*const hideElements =
-  query(':enter .animation-hide, :leave .animation-hide', [
+const hideElements =
+  query(':enter .animation-hidden, :leave .animation-hidden', [
     style({
       display: 'none'
     })
-  ], { optional: true });*/
+  ], { optional: true });
 
 const fadeInOut = [
   superimpose,
@@ -61,7 +61,16 @@ const fadeOver = [
 ];
 
 const slideRight = [
-  superimpose,
+  hideElements,
+  query(':enter, :leave', [
+    style({
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      bottom: 0,
+      width: '100%'
+    })
+  ]),
   query(':enter', [
     style({
       transform: 'translate(-100%)'
@@ -80,7 +89,16 @@ const slideRight = [
 ];
 
 const slideLeft = [
-  superimpose,
+  hideElements,
+  query(':enter, :leave', [
+    style({
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      bottom: 0,
+      width: '100%'
+    })
+  ]),
   query(':enter', [
     style({
       transform: 'translate(100%)'
@@ -111,35 +129,52 @@ export const mainAnimations = trigger('mainAnimation', [
   transition('* => *', fadeInOut)
 ]);
 
-export const moviesAnimations = trigger('moviesAnimation', [
+/*export const moviesAnimations = trigger('moviesAnimation', [
   // transition(debug('movies'), []),
   transition('void <=> *', []),
   transition('grid => list', slideLeft),
   transition('grid <=> details', fadeInOut),
   transition('list => grid', slideRight),
-]);
+]);*/
 
-export const movieAnimations = trigger('movieAnimation', [
+/*export const movieAnimations = trigger('movieAnimation', [
   transition(debug('movie'), []),
   transition('void => details', fadeIn),
   transition('details => void', fadeOut)
-]);
+]);*/
 
-export const showsAnimations = trigger('showsAnimation', [
+/*export const showsAnimations = trigger('showsAnimation', [
   // transition(debug('shows'), []),
   transition('void <=> *', []),
   transition('grid => list', slideLeft),
   transition('grid <=> details', fadeInOut),
   transition('list => grid', slideRight),
+]);*/
+
+const isRight = (from, to) => {
+  return to.startsWith('right');
+};
+
+const isLeft = (from, to) => {
+  return to.startsWith('left');
+};
+
+export const detailsAnimations = trigger('detailsAnimation', [
+  transition(debug('details'), []),
+  transition('void => *', []),
+  transition('* => empty', fadeOut),
+  transition('empty => *', fadeIn),
+  transition(isRight, slideLeft),
+  transition(isLeft, slideRight),
 ]);
 
-export const showAnimations = trigger('showAnimation', [
+/*export const showAnimations = trigger('showAnimation', [
   transition(debug('show'), []),
   transition('void => details', fadeIn),
   transition('details => void', fadeOut)
-]);
+]);*/
 
-const tabsAnim = [
+/*const tabsAnim = [
   sequence([
     query(':enter', [
       style({
@@ -228,4 +263,4 @@ export const episodesAnimations = trigger('episodesAnimation', [
   transition('void <=> *', []),
   transition(nextEpisode, slideUp),
   transition('* => *', slideDown),
-]);
+]);*/

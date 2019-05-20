@@ -16,8 +16,6 @@ import {ShowsComponent} from '@app/components/shows/shows.component';
 import {ShowResolverService} from '@app/guards/show-resolver.service';
 import {DetailsComponent} from '@app/components/details.component';
 
-const navOutletName = 'nav';
-
 export const detailsRoutes = [
   {
     path: 'show',
@@ -25,7 +23,7 @@ export const detailsRoutes = [
       {
         path: ':id',
         component: DetailsComponent,
-        data: { type: 'show' },
+        data: { type: 'show', reuse: false, animation: 'show' },
         resolve: {
           show$: ShowResolverService
         }
@@ -38,7 +36,7 @@ export const detailsRoutes = [
       {
         path: ':id',
         component: DetailsComponent,
-        data: { type: 'movie' },
+        data: { type: 'movie', reuse: false, animation: 'movie' },
         resolve: {
           movie$: MovieResolverService
         }
@@ -47,51 +45,26 @@ export const detailsRoutes = [
   }
 ];
 
-export const routes: Routes = [
-  { path: '', redirectTo: '/home(nav:library)', pathMatch: 'full' },
-  { path: 'home', component: HomeComponent, data: { animation: 'home' } },
-  {
-    path: 'movies',
-    data: { animation: 'movies' },
-    children: [
-      { path: '', component: MoviesComponent, data: { animation: 'grid' } },
-    ],
-  },
-  {
-    path: 'shows',
-    data: { animation: 'shows' },
-    children: [
-      { path: '', component: ShowsComponent, data: { animation: 'grid' } },
-    ],
-  },
-  {
-    path: '',
-    outlet: 'details',
-    children: detailsRoutes
-  },
-  {
-    path: ':id',
-    component: VideoComponent,
-    // canActivate: [LibrariesLoadedGuard],
-    resolve: {
-      video: VideoResolverService
-    },
-    outlet: 'player',
-    data: { animation: 'player' }
-  },
+export const navRoutes = [
   {
     path: 'library',
     component: LibraryComponent,
-    outlet: navOutletName,
     canActivate: [LibrariesLoadedGuard],
     data: { animation: 'library' }
   },
-  { path: 'search', component: SearchComponent, outlet: navOutletName, data: { animation: 'search' } },
-  { path: 'history', component: HistoryComponent, outlet: navOutletName, data: { animation: 'history' } },
+  {
+    path: 'search',
+    component: SearchComponent,
+    data: { animation: 'search' }
+  },
+  {
+    path: 'history',
+    component: HistoryComponent,
+    data: { animation: 'history' }
+  },
   {
     path: 'settings',
     component: SettingsComponent,
-    outlet: navOutletName,
     canActivate: [LibrariesLoadedGuard],
     data: { animation: 'settings' },
     children: [
@@ -105,7 +78,48 @@ export const routes: Routes = [
       }
     ]
   },
-  { path: 'about', component: AboutComponent, outlet: navOutletName, data: { animation: 'about' } },
+  {
+    path: 'about',
+    component: AboutComponent,
+    data: { animation: 'about' }
+  },
+];
+
+export const routes: Routes = [
+  { path: '', redirectTo: '/home(nav:library)', pathMatch: 'full' },
+  { path: 'home', component: HomeComponent, data: { animation: 'home' } },
+  {
+    path: 'movies',
+    children: [
+      { path: '', component: MoviesComponent, data: { animation: 'movies' } },
+    ],
+  },
+  {
+    path: 'shows',
+    children: [
+      { path: '', component: ShowsComponent, data: { animation: 'shows' } },
+    ],
+  },
+  {
+    path: '',
+    outlet: 'nav',
+    children: navRoutes
+  },
+  {
+    path: '',
+    outlet: 'details',
+    children: detailsRoutes
+  },
+  {
+    path: ':id',
+    outlet: 'player',
+    component: VideoComponent,
+    // canActivate: [LibrariesLoadedGuard],
+    resolve: {
+      video: VideoResolverService
+    },
+    data: { animation: 'player' }
+  },
 ];
 
 

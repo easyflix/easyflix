@@ -188,6 +188,7 @@ export class EpisodeComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Careful: this is not updated if the episode input changes
     this.files = this.show.files.filter(file =>
       file.seasonNumber === this.episode.season_number && file.episodeNumber === this.episode.episode_number
     );

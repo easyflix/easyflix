@@ -1,7 +1,6 @@
-import {ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
-import {moviesAnimations} from '@app/animations';
+import {ChangeDetectionStrategy, Component, ElementRef, HostListener, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {EMPTY, Observable} from 'rxjs';
+import {Observable} from 'rxjs';
 import {Show} from '@app/models/show';
 import {Movie} from '@app/models';
 import {filter, map, switchMap, take, tap} from 'rxjs/operators';
@@ -17,19 +16,19 @@ import {MoviesService} from '@app/services/movies.service';
       <button mat-icon-button
               [disabled]="nextDisabled() | async"
               (click)="next()"
-              class="right">
+              class="right animation-hidden">
         <mat-icon>keyboard_arrow_right</mat-icon>
       </button>
       <button mat-icon-button
               [disabled]="previousDisabled() | async"
               (click)="previous()"
-              class="left">
+              class="left animation-hidden">
         <mat-icon>keyboard_arrow_left</mat-icon>
       </button>
       <button mat-icon-button
               [routerLink]="['/', {outlets: {details: null}}]"
               queryParamsHandling="preserve"
-              class="close">
+              class="close animation-hidden">
         <mat-icon>close</mat-icon>
       </button>
     </section>
@@ -43,7 +42,6 @@ import {MoviesService} from '@app/services/movies.service';
       top: 0;
       width: 100%;
       height: 100%;
-      z-index: 20;
     }
     app-movie, app-show {
       flex-grow: 1;
@@ -66,7 +64,6 @@ import {MoviesService} from '@app/services/movies.service';
       left: 10px;
     }
   `],
-  animations: [moviesAnimations],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DetailsComponent implements OnInit {
@@ -148,22 +145,24 @@ export class DetailsComponent implements OnInit {
     }
   }
 
+  @HostListener('keydown.arrowLeft')
   previous(): void {
     this.previousId().pipe(
       take(1),
-      tap(id => this.router.navigate(
+      tap(id => id !== undefined && this.router.navigate(
         ['/', { outlets: { details: [this.type, id.toString()] } }],
-        {relativeTo: this.route, state: {transition: 'left'}})
+        { relativeTo: this.route, state: { transition: 'left', id }, queryParamsHandling: 'preserve' })
       )
     ).subscribe();
   }
 
+  @HostListener('keydown.arrowRight')
   next(): void {
     this.nextId().pipe(
       take(1),
-      tap(id => this.router.navigate(
+      tap(id => id !== undefined && this.router.navigate(
         ['/', { outlets: { details: [this.type, id.toString()] } }],
-        {relativeTo: this.route, state: {transition: 'right'}})
+        { relativeTo: this.route, state: { transition: 'right', id }, queryParamsHandling: 'preserve' })
       )
     ).subscribe();
   }

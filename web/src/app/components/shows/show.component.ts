@@ -8,12 +8,11 @@ import {VideoService} from '@app/services/video.service';
 import {FilesService} from '@app/services/files.service';
 import {FilterService} from '@app/services/filter.service';
 import {ActivatedRoute, Router, RouterOutlet} from '@angular/router';
-import {tabsAnimations} from '@app/animations';
 
 @Component({
   selector: 'app-show',
   template: `
-    <div class="container" [style]="getBackdropStyle() | async" #container tabindex="0">
+    <div class="container" [style]="getBackdropStyle() | async">
       <div class="filter">
         <section class="show">
           <div class="poster">
@@ -234,18 +233,13 @@ import {tabsAnimations} from '@app/animations';
       display: none;
     }
   `],
-  animations: [tabsAnimations],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ShowComponent implements OnInit {
 
   @Input() show: Show;
 
-  @Input() focusOnLoad = false;
-
   showAll = false;
-
-  @ViewChild('container', {static: true}) container: ElementRef;
 
   constructor(
     private core: CoreService,
@@ -257,11 +251,7 @@ export class ShowComponent implements OnInit {
     private sanitizer: DomSanitizer,
   ) { }
 
-  ngOnInit() {
-    if (this.focusOnLoad) {
-      this.focus();
-    }
-  }
+  ngOnInit() {}
 
   isSelectedSeason(season: Season): Observable<boolean> {
     return this.route.paramMap.pipe(
@@ -355,10 +345,6 @@ export class ShowComponent implements OnInit {
         this.filters.setYears([year]);
       }
     );
-  }
-
-  focus() {
-    this.container.nativeElement.focus();
   }
 
   getAnimationData(outlet: RouterOutlet): Observable<string> {
