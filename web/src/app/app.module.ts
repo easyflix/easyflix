@@ -19,7 +19,6 @@ import {routes} from './routes';
 import {CoreService} from './services/core.service';
 import {FilesService} from './services/files.service';
 import {VideoGuard} from './guards/video.guard';
-import {VideoResolverService} from '@app/guards/video-resolver.service';
 import {LibrariesLoadedGuard} from '@app/guards/libraries-loaded.guard';
 import {LibrariesService} from '@app/services/libraries.service';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
@@ -51,7 +50,7 @@ import {KeyboardService} from '@app/services/keyboard.service';
     ComponentsModule
   ],
   providers: [
-    {provide: RouteReuseStrategy, useClass: CustomRouteReuseStrategy},
+    { provide: RouteReuseStrategy, useClass: CustomRouteReuseStrategy },
     CoreService,
     VideoService,
     FilesService,
@@ -61,7 +60,6 @@ import {KeyboardService} from '@app/services/keyboard.service';
     VideoGuard,
     // FilesLoadedGuard,
     LibrariesLoadedGuard,
-    VideoResolverService,
     HttpSocketClientService,
     FilterService,
     KeyboardService

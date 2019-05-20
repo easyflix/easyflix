@@ -49,6 +49,9 @@ import {detailsAnimations} from '@app/animations';
       height: 100%;
       z-index: 20;
     }
+    .details:focus {
+      outline: none;
+    }
     .close {
       position: absolute;
       top: 10px;

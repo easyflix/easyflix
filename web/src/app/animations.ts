@@ -7,13 +7,6 @@ export const debugAnimation = (name: string) => {
   };
 };
 
-const debug = (name: string) => {
-  return (from, to, el, params) => {
-    console.log('ANIMATION (' + name + '):', from, '=>', to, el, params);
-    return false;
-  };
-};
-
 export const DEFAULT_TIMING = '300ms';
 
 const fadeIn = [

@@ -5,16 +5,32 @@ import {filter, share, throttleTime} from 'rxjs/operators';
 @Injectable()
 export class KeyboardService {
 
+  THROTTLE_TIME = 300;
+
   ArrowRight = fromEvent(document, 'keydown').pipe(
     filter((event: KeyboardEvent) => event.key === 'ArrowRight'),
-    throttleTime(275, asyncScheduler, { leading: true, trailing: true}),
+    throttleTime(this.THROTTLE_TIME, asyncScheduler, { leading: true, trailing: true}),
     throttleTime(150, asyncScheduler, { leading: true, trailing: false}),
     share()
   );
 
   ArrowLeft = fromEvent(document, 'keydown').pipe(
     filter((event: KeyboardEvent) => event.key === 'ArrowLeft'),
-    throttleTime(275, asyncScheduler, { leading: true, trailing: true}),
+    throttleTime(this.THROTTLE_TIME, asyncScheduler, { leading: true, trailing: true}),
+    throttleTime(150, asyncScheduler, { leading: true, trailing: false}),
+    share()
+  );
+
+  ArrowUp = fromEvent(document, 'keydown').pipe(
+    filter((event: KeyboardEvent) => event.key === 'ArrowUp'),
+    throttleTime(this.THROTTLE_TIME, asyncScheduler, { leading: true, trailing: true}),
+    throttleTime(150, asyncScheduler, { leading: true, trailing: false}),
+    share()
+  );
+
+  ArrowDown = fromEvent(document, 'keydown').pipe(
+    filter((event: KeyboardEvent) => event.key === 'ArrowDown'),
+    throttleTime(this.THROTTLE_TIME, asyncScheduler, { leading: true, trailing: true}),
     throttleTime(150, asyncScheduler, { leading: true, trailing: false}),
     share()
   );
@@ -22,8 +38,8 @@ export class KeyboardService {
   constructor() {
     this.ArrowRight.subscribe();
     this.ArrowLeft.subscribe();
+    this.ArrowUp.subscribe();
+    this.ArrowDown.subscribe();
   }
-
-
 
 }

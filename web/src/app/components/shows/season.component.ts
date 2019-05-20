@@ -1,6 +1,64 @@
-import {ChangeDetectionStrategy, Component, HostListener, Input, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {Episode, Season, Show} from '@app/models/show';
 import {ActivatedRoute, Router} from '@angular/router';
+import {animate, group, query, style, transition, trigger} from '@angular/animations';
+import {DEFAULT_TIMING} from '@app/animations';
+import {KeyboardService} from '@app/services/keyboard.service';
+import {Subscription} from 'rxjs';
+
+const isNext = (from, to) => {
+  return to.startsWith('next');
+};
+
+const isPrev = (from, to) => {
+  return to.startsWith('prev');
+};
+
+const slideUp = [
+  query(':enter, :leave', [
+    style({
+      position: 'absolute'
+    })
+  ]),
+  query(':enter', [
+    style({
+      transform: 'translateY(calc(280px))'
+    })
+  ]),
+  group([
+    query(
+      ':enter',
+      animate(DEFAULT_TIMING + ' ease-in-out', style({ transform: 'translateY(0)' }))
+    ),
+    query(
+      ':leave',
+      animate(DEFAULT_TIMING + ' ease-in-out', style({ transform: 'translateY(calc(-280px))' }))
+    )
+  ])
+];
+
+const slideDown = [
+  query(':enter, :leave', [
+    style({
+      position: 'absolute'
+    })
+  ]),
+  query(':enter', [
+    style({
+      transform: 'translateY(calc(-280px))'
+    })
+  ]),
+  group([
+    query(
+      ':enter',
+      animate(DEFAULT_TIMING + ' ease-in-out', style({ transform: 'translateY(0)' }))
+    ),
+    query(
+      ':leave',
+      animate(DEFAULT_TIMING + ' ease-in-out', style({ transform: 'translateY(calc(280px))' }))
+    )
+  ])
+];
 
 @Component({
   selector: 'app-season',
@@ -27,7 +85,7 @@ import {ActivatedRoute, Router} from '@angular/router';
           <mat-icon>arrow_drop_up</mat-icon>
         </button>
       </div>
-      <div class="episode-container">
+      <div class="episode-container" [@episodeAnimation]="getAnimation()">
         <ng-container *ngFor="let episode of episodes; index as i">
           <app-episode *ngIf="currentEpisodeIndex === i" [show]="show" [episode]="episode"></app-episode>
         </ng-container>
@@ -121,9 +179,17 @@ import {ActivatedRoute, Router} from '@angular/router';
       border-radius: 0;
     }
   `],
+  animations: [
+    trigger('episodeAnimation', [
+      // transition(debugAnimation('episode'), []),
+      transition('void => *', []),
+      transition(isNext, slideUp),
+      transition(isPrev, slideDown),
+    ])
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SeasonComponent implements OnInit {
+export class SeasonComponent implements OnInit, OnDestroy {
 
   @Input() show: Show;
   @Input() season: Season;
@@ -132,11 +198,16 @@ export class SeasonComponent implements OnInit {
 
   currentEpisodeIndex = 0;
 
+  animateNext = true;
+
+  subscriptions: Subscription[] = [];
+
   constructor(
+    private keyboard: KeyboardService,
     private router: Router,
     private route: ActivatedRoute,
-  ) {
-  }
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.episodes = this.show.episodes
@@ -149,6 +220,27 @@ export class SeasonComponent implements OnInit {
         this.episodes.find(e => e.episode_number === +currentEpisode)
       );
     }
+
+    // Keyboard events
+    this.subscriptions.push(
+      this.keyboard.ArrowDown.subscribe(
+        () => {
+          this.nextEpisode();
+          this.cdr.markForCheck();
+        }
+      ),
+      this.keyboard.ArrowUp.subscribe(
+        () => {
+          this.previousEpisode();
+          this.cdr.markForCheck();
+        }
+      )
+    );
+
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   hasPreviousEpisode(): boolean {
@@ -159,30 +251,20 @@ export class SeasonComponent implements OnInit {
     return !!this.episodes[this.currentEpisodeIndex + 1];
   }
 
-  @HostListener('body:keydown.arrowDown', ['$event'])
-  goToNext(event: KeyboardEvent): void {
-    if (this.hasNextEpisode()) {
-      this.nextEpisode();
-    }
-    event.stopPropagation();
-  }
-
-  @HostListener('body:keydown.arrowUp', ['$event'])
-  goToPrevious(event: KeyboardEvent): void {
-    if (this.hasPreviousEpisode()) {
-      this.previousEpisode();
-    }
-    event.stopPropagation();
-  }
-
   nextEpisode(): void {
-    this.currentEpisodeIndex += 1;
-    this.navigateToCurrentEpisode();
+    if (this.hasNextEpisode()) {
+      this.currentEpisodeIndex += 1;
+      this.animateNext = true;
+      this.navigateToCurrentEpisode();
+    }
   }
 
   previousEpisode(): void {
-    this.currentEpisodeIndex -= 1;
-    this.navigateToCurrentEpisode();
+    if (this.hasPreviousEpisode()) {
+      this.currentEpisodeIndex -= 1;
+      this.animateNext = false;
+      this.navigateToCurrentEpisode();
+    }
   }
 
   navigateToCurrentEpisode() {
@@ -193,6 +275,10 @@ export class SeasonComponent implements OnInit {
       }],
       { relativeTo: this.route }
     );
+  }
+
+  getAnimation(): string {
+    return (this.animateNext ? 'next-' : 'prev-') + this.currentEpisodeIndex;
   }
 
 }
