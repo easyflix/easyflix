@@ -160,7 +160,7 @@ const isLeft = (from, to) => {
 };
 
 export const detailsAnimations = trigger('detailsAnimation', [
-  transition(debug('details'), []),
+  // transition(debug('details'), []),
   transition('void => *', []),
   transition('* => empty', fadeOut),
   transition('empty => *', fadeIn),

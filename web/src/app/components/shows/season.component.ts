@@ -159,18 +159,20 @@ export class SeasonComponent implements OnInit {
     return !!this.episodes[this.currentEpisodeIndex + 1];
   }
 
-  @HostListener('window:keydown.arrowDown')
-  goToNext(): void {
+  @HostListener('body:keydown.arrowDown', ['$event'])
+  goToNext(event: KeyboardEvent): void {
     if (this.hasNextEpisode()) {
       this.nextEpisode();
     }
+    event.stopPropagation();
   }
 
-  @HostListener('window:keydown.arrowUp')
-  goToPrevious(): void {
+  @HostListener('body:keydown.arrowUp', ['$event'])
+  goToPrevious(event: KeyboardEvent): void {
     if (this.hasPreviousEpisode()) {
       this.previousEpisode();
     }
+    event.stopPropagation();
   }
 
   nextEpisode(): void {

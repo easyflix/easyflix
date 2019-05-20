@@ -26,8 +26,7 @@ import {MoviesService} from '@app/services/movies.service';
         <mat-icon>keyboard_arrow_left</mat-icon>
       </button>
       <button mat-icon-button
-              [routerLink]="['/', {outlets: {details: null}}]"
-              queryParamsHandling="preserve"
+              (click)="close()"
               class="close animation-hidden">
         <mat-icon>close</mat-icon>
       </button>
@@ -151,8 +150,8 @@ export class DetailsComponent implements OnInit {
       take(1),
       tap(id => id !== undefined && this.router.navigate(
         ['/', { outlets: { details: [this.type, id.toString()] } }],
-        { relativeTo: this.route, state: { transition: 'left', id }, queryParamsHandling: 'preserve' })
-      )
+        { relativeTo: this.route, state: { transition: 'left', id }, queryParamsHandling: 'preserve' }
+      ))
     ).subscribe();
   }
 
@@ -162,8 +161,8 @@ export class DetailsComponent implements OnInit {
       take(1),
       tap(id => id !== undefined && this.router.navigate(
         ['/', { outlets: { details: [this.type, id.toString()] } }],
-        { relativeTo: this.route, state: { transition: 'right', id }, queryParamsHandling: 'preserve' })
-      )
+        { relativeTo: this.route, state: { transition: 'right', id }, queryParamsHandling: 'preserve' }
+      ))
     ).subscribe();
   }
 
@@ -176,6 +175,14 @@ export class DetailsComponent implements OnInit {
   nextDisabled(): Observable<boolean> {
     return this.nextId().pipe(
       map(id => id === undefined)
+    );
+  }
+
+  @HostListener('keydown.esc')
+  close() {
+    this.router.navigate(
+      ['/', { outlets: { details: null } }],
+      { relativeTo: this.route, queryParamsHandling: 'preserve' }
     );
   }
 
