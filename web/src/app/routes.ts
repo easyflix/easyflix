@@ -15,15 +15,19 @@ import {MovieResolverService} from '@app/guards/movie-resolver.service';
 import {ShowsComponent} from '@app/components/shows/shows.component';
 import {ShowResolverService} from '@app/guards/show-resolver.service';
 import {DetailsComponent} from '@app/components/details.component';
+import {ShowComponent} from '@app/components/shows/show.component';
+import {MovieComponent} from '@app/components/movies/movie.component';
 
 export const detailsRoutes = [
   {
     path: 'show',
+    component: DetailsComponent,
+    data: { type: 'show' },
     children: [
       {
         path: ':id',
-        component: DetailsComponent,
-        data: { type: 'show', reuse: false, animation: 'show' },
+        component: ShowComponent,
+        data: { reuse: false, animation: 'show' },
         resolve: {
           show$: ShowResolverService
         }
@@ -32,11 +36,13 @@ export const detailsRoutes = [
   },
   {
     path: 'movie',
+    component: DetailsComponent,
+    data: { type: 'movie' },
     children: [
       {
         path: ':id',
-        component: DetailsComponent,
-        data: { type: 'movie', reuse: false, animation: 'movie' },
+        component: MovieComponent,
+        data: { reuse: false, animation: 'movie' },
         resolve: {
           movie$: MovieResolverService
         }

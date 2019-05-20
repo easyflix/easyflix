@@ -27,6 +27,7 @@ import {MoviesService} from '@app/services/movies.service';
 import {FilterService} from '@app/services/filter.service';
 import {ShowsService} from '@app/services/shows.service';
 import {CustomRouteReuseStrategy} from '@app/route-reuse.strategy';
+import {KeyboardService} from '@app/services/keyboard.service';
 
 @NgModule({
   declarations: [
@@ -62,7 +63,8 @@ import {CustomRouteReuseStrategy} from '@app/route-reuse.strategy';
     LibrariesLoadedGuard,
     VideoResolverService,
     HttpSocketClientService,
-    FilterService
+    FilterService,
+    KeyboardService
   ],
   bootstrap: [AppComponent]
 })

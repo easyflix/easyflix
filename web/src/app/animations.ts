@@ -1,5 +1,12 @@
 import {animate, animateChild, group, query, style, transition, trigger} from '@angular/animations';
 
+export const debugAnimation = (name: string) => {
+  return (from, to, el, params) => {
+    console.log('ANIMATION (' + name + '):', from, '=>', to, el, params);
+    return false;
+  };
+};
+
 const debug = (name: string) => {
   return (from, to, el, params) => {
     console.log('ANIMATION (' + name + '):', from, '=>', to, el, params);
@@ -7,7 +14,7 @@ const debug = (name: string) => {
   };
 };
 
-const DEFAULT_TIMING = '300ms';
+export const DEFAULT_TIMING = '300ms';
 
 const fadeIn = [
   query(':enter', [
@@ -61,7 +68,6 @@ const fadeOver = [
 ];
 
 const slideRight = [
-  hideElements,
   query(':enter, :leave', [
     style({
       position: 'absolute',
@@ -89,7 +95,6 @@ const slideRight = [
 ];
 
 const slideLeft = [
-  hideElements,
   query(':enter, :leave', [
     style({
       position: 'absolute',
@@ -162,8 +167,6 @@ const isLeft = (from, to) => {
 export const detailsAnimations = trigger('detailsAnimation', [
   // transition(debug('details'), []),
   transition('void => *', []),
-  transition('* => empty', fadeOut),
-  transition('empty => *', fadeIn),
   transition(isRight, slideLeft),
   transition(isLeft, slideRight),
 ]);

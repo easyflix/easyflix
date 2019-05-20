@@ -100,6 +100,12 @@
     }
   }
 
+  app-details {
+    .details {
+      background-color: mat-color($background, background);
+    }
+  }
+
   app-movie, app-show {
     .container {
       background-color: mat-color($background, background);

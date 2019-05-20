@@ -1,10 +1,34 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {Location} from '@angular/common';
-import {detailsAnimations, mainAnimations} from '../animations';
+import {DEFAULT_TIMING, mainAnimations} from '../animations';
 import {Router, RouterOutlet} from '@angular/router';
 import {Observable} from 'rxjs';
 import {CoreService} from '@app/services/core.service';
 import {map} from 'rxjs/operators';
+import {animate, query, style, transition, trigger} from '@angular/animations';
+
+const detailsTransitions = [
+  // transition(debugAnimation('details'), []),
+  transition('detailsOn => detailsOff', [
+    query('.details', style({ background: 'none' })),
+    query(
+      ':leave router-outlet ~ *',
+      [animate(DEFAULT_TIMING, style({opacity: 0}))],
+      { optional: true }
+    ),
+  ]),
+  transition('detailsOff => detailsOn', [
+    query('.details', style({ background: 'none' })),
+    query(
+      ':enter router-outlet ~ *',
+      [
+        style({ opacity: 0 }),
+        animate(DEFAULT_TIMING, style({ opacity: 1 }))
+      ],
+      { optional: true }
+    ),
+  ])
+];
 
 @Component({
   selector: 'app-main',
@@ -31,11 +55,10 @@ import {map} from 'rxjs/operators';
     </header>
     <main [@mainAnimation]="getAnimationData(main)">
       <router-outlet #main="outlet"></router-outlet>
-      <div [@detailsAnimation]="getDetailsAnimationData(details)" class="details-animation">
-        <router-outlet name="details" #details="outlet"></router-outlet>
-      </div>
     </main>
-
+    <div [@detailsTransitions]="getDetailsAnimation(details)" class="details-animation">
+      <router-outlet name="details" #details="outlet"></router-outlet>
+    </div>
   `,
   styles: [`
     :host {
@@ -100,7 +123,10 @@ import {map} from 'rxjs/operators';
       z-index: 20;
     }
   `],
-  animations: [mainAnimations, detailsAnimations],
+  animations: [
+    mainAnimations,
+    trigger('detailsTransitions', detailsTransitions)
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MainComponent implements OnInit {
@@ -131,7 +157,11 @@ export class MainComponent implements OnInit {
     return outlet && outlet.activatedRouteData && outlet.activatedRouteData.animation || 'void';
   }
 
-  getDetailsAnimationData(outlet: RouterOutlet) {
+  getDetailsAnimation(outlet: RouterOutlet) {
+    return outlet && outlet.isActivated && outlet.activatedRoute && outlet.activatedRoute.firstChild && 'detailsOn' || 'detailsOff';
+  }
+
+/*  getDetailsAnimationData(outlet: RouterOutlet) {
     const primary =
       history.state.transition && history.state.id ?
         history.state.transition + '-' + history.state.id : '';
@@ -144,6 +174,6 @@ export class MainComponent implements OnInit {
       && outlet.activatedRoute.firstChild.firstChild.snapshot.data.animation || 'empty';
 
     return primary || fallback;
-  }
+  }*/
 
 }

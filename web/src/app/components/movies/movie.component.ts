@@ -1,143 +1,149 @@
-import {ChangeDetectionStrategy, Component, ElementRef, Input, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {Movie} from '@app/models';
 import {DomSanitizer, SafeStyle, SafeUrl} from '@angular/platform-browser';
 import {CoreService} from '@app/services/core.service';
 import {EMPTY, Observable} from 'rxjs';
-import {filter, map, take} from 'rxjs/operators';
+import {filter, map, switchMap, take} from 'rxjs/operators';
 import {Cast, Crew, MovieDetails} from '@app/models/movie';
 import {VideoService} from '@app/services/video.service';
 import {FilesService} from '@app/services/files.service';
 import {FilterService} from '@app/services/filter.service';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 
 @Component({
   selector: 'app-movie',
   template: `
-    <div class="container" [style]="getBackdropStyle() | async">
-      <div class="filter">
-        <div class="movie">
-          <div class="poster">
-            <img [src]="getPosterSource() | async" />
-          </div>
-          <div class="meta">
-            <h1 class="title">
-              {{ movie.title }}
-              <span class="year">
-                (<a class="search" (click)="searchYear(movie.release_date.substr(0, 4))">{{ movie.release_date.substr(0, 4) }}</a>)
-              </span>
-            </h1>
-            <h2 class="tagline" *ngIf="movie.details as details; else taglineLoading">
-              {{ details.tagline ? details.tagline : '&nbsp;' }}
-            </h2>
-            <ng-template #taglineLoading>
-              <h2 class="tagline loading">Loading...</h2>
+    <ng-container *ngIf="movie$ | async as movie">
+      <div class="container" [style]="getBackdropStyle(movie) | async">
+        <div class="filter">
+          <div class="movie">
+            <div class="poster">
+              <img [src]="getPosterSource(movie) | async" alt="Movie poster" />
+            </div>
+            <div class="meta">
+              <h1 class="title">
+                {{ movie.title }}
+                <span class="year">
+                  (<a class="search" (click)="searchYear(movie.release_date.substr(0, 4))">{{ movie.release_date.substr(0, 4) }}</a>)
+                </span>
+              </h1>
+              <h2 class="tagline" *ngIf="movie.details as details; else taglineLoading">
+                {{ details.tagline ? details.tagline : '&nbsp;' }}
+              </h2>
+              <ng-template #taglineLoading>
+                <h2 class="tagline loading">Loading...</h2>
+              </ng-template>
+              <div class="actions">
+                <div class="score">
+                  <mat-progress-spinner mode="determinate"
+                                        [value]="movie.vote_average * 10"
+                                        diameter="55" color="accent">
+                  </mat-progress-spinner>
+                  <span>{{ getScore(movie) }}%</span>
+                </div>
+                <span class="user-score">User Score</span>
+                <button class="play" mat-button mat-raised-button color="primary" (click)="play(movie)">
+                  <mat-icon>play_arrow</mat-icon>
+                  PLAY
+                </button>
+              </div>
+              <p class="overview">
+                {{ movie.overview }}
+              </p>
+              <div class="information">
+                <header>
+                  <h3 (click)="tabIndex = 0" [class.selected]="tabIndex === 0">Movie Info</h3>
+                  <h3 (click)="tabIndex = i + 1" [class.selected]="tabIndex === i + 1" *ngFor="let file of movie.files; index as i">
+                    File Info <ng-container *ngIf="movie.files.length > 1">({{ i + 1 }})</ng-container>
+                  </h3>
+                </header>
+                <section class="movie-info" *ngIf="tabIndex === 0">
+                  <dl class="left">
+                    <dt>Original title</dt>
+                    <dd>{{ movie.original_title }}</dd>
+                    <dt>Release date</dt>
+                    <dd>{{ movie.release_date | date:'mediumDate'}}</dd>
+                    <dt>Directed by</dt>
+                    <dd *ngIf="movie.details as details; else loading">
+                      <ng-container *ngFor="let director of getDirectors(details.credits.crew); last as isLast">
+                        <a class="search" (click)="searchPeople(director)">{{director}}</a>{{ isLast ? '' : ', ' }}
+                      </ng-container>
+                    </dd>
+                    <dt>Runtime</dt>
+                    <dd *ngIf="movie.details as details; else loading">
+                      {{ details.runtime | sgTime }}
+                    </dd>
+                  </dl>
+                  <dl class="right">
+                    <dt>Language</dt>
+                    <dd>
+                      <a class="search" (click)="searchLanguage(movie.original_language)">
+                        {{ getLanguage(movie.original_language) | async }}
+                      </a>
+                    </dd>
+                    <dt>Genres</dt>
+                    <dd *ngIf="movie.details as details; else loading">
+                      <ng-container *ngFor="let genre of getGenre(details); last as isLast">
+                        <a class="search" (click)="searchGenre(genre)">{{genre}}</a>{{ isLast ? '' : ', ' }}
+                      </ng-container>
+                    </dd>
+                    <dt>Budget</dt>
+                    <dd *ngIf="movie.details as details; else loading">
+                      {{ details.budget | currency:'USD':'symbol':'1.0' }}
+                    </dd>
+                    <dt>Revenue</dt>
+                    <dd *ngIf="movie.details as details; else loading">
+                      {{ details.revenue | currency:'USD':'symbol':'1.0' }}
+                    </dd>
+                    <ng-template #loading>
+                      <dd class="loading">Loading...</dd>
+                    </ng-template>
+                  </dl>
+                </section>
+                <section class="file-info" *ngFor="let file of movie.files; index as i" [class.hidden]="tabIndex !== (i + 1)">
+                  <dl>
+                    <dt>Library</dt>
+                    <dd>{{ file.libraryName }}</dd>
+                    <dt>File name</dt>
+                    <dd>{{ file.name }}</dd>
+                    <dt>File size</dt>
+                    <dd>{{ file.size | sgFileSize }}</dd>
+                    <dt>Tags</dt>
+                    <dd class="tags">
+                      <mat-chip-list [selectable]="false" [disabled]="true">
+                        <mat-chip *ngFor="let tag of file.tags" (click)="searchTag(tag)">
+                          {{ tag }}
+                        </mat-chip>
+                      </mat-chip-list>
+                    </dd>
+                  </dl>
+                </section>
+              </div>
+            </div>
+            <div class="cast" *ngIf="movie.details as details; else castLoading">
+              <div class="people" *ngFor="let actor of details.credits.cast">
+                <div class="profile" [style]="getActorStyle(actor) | async">
+                  <mat-icon *ngIf="!actor.profile_path">person</mat-icon>
+                </div>
+                <div class="name">
+                  <a class="search" (click)="searchPeople(actor.name)">{{ actor.name }}</a>
+                </div>
+              </div>
+            </div>
+            <ng-template #castLoading>
+              <!--TODO -->
             </ng-template>
-            <div class="actions">
-              <div class="score">
-                <mat-progress-spinner mode="determinate"
-                                      [value]="movie.vote_average * 10"
-                                      diameter="55" color="accent">
-                </mat-progress-spinner>
-                <span>{{ getScore() }}%</span>
-              </div>
-              <span class="user-score">User Score</span>
-              <button class="play" mat-button mat-raised-button color="primary" (click)="play()">
-                <mat-icon>play_arrow</mat-icon>
-                PLAY
-              </button>
-            </div>
-            <p class="overview">
-              {{ movie.overview }}
-            </p>
-            <div class="information">
-              <header>
-                <h3 (click)="tabIndex = 0" [class.selected]="tabIndex === 0">Movie Info</h3>
-                <h3 (click)="tabIndex = i + 1" [class.selected]="tabIndex === i + 1" *ngFor="let file of movie.files; index as i">
-                  File Info <ng-container *ngIf="movie.files.length > 1">({{ i + 1 }})</ng-container>
-                </h3>
-              </header>
-              <section class="movie-info" *ngIf="tabIndex === 0">
-                <dl class="left">
-                  <dt>Original title</dt>
-                  <dd>{{ movie.original_title }}</dd>
-                  <dt>Release date</dt>
-                  <dd>{{ movie.release_date | date:'mediumDate'}}</dd>
-                  <dt>Directed by</dt>
-                  <dd *ngIf="movie.details as details; else loading">
-                    <ng-container *ngFor="let director of getDirectors(details.credits.crew); last as isLast">
-                      <a class="search" (click)="searchPeople(director)">{{director}}</a>{{ isLast ? '' : ', ' }}
-                    </ng-container>
-                  </dd>
-                  <dt>Runtime</dt>
-                  <dd *ngIf="movie.details as details; else loading">
-                    {{ details.runtime | sgTime }}
-                  </dd>
-                </dl>
-                <dl class="right">
-                  <dt>Language</dt>
-                  <dd>
-                    <a class="search" (click)="searchLanguage(movie.original_language)">
-                      {{ getLanguage(movie.original_language) | async }}
-                    </a>
-                  </dd>
-                  <dt>Genres</dt>
-                  <dd *ngIf="movie.details as details; else loading">
-                    <ng-container *ngFor="let genre of getGenre(details); last as isLast">
-                      <a class="search" (click)="searchGenre(genre)">{{genre}}</a>{{ isLast ? '' : ', ' }}
-                    </ng-container>
-                  </dd>
-                  <dt>Budget</dt>
-                  <dd *ngIf="movie.details as details; else loading">
-                    {{ details.budget | currency:'USD':'symbol':'1.0' }}
-                  </dd>
-                  <dt>Revenue</dt>
-                  <dd *ngIf="movie.details as details; else loading">
-                    {{ details.revenue | currency:'USD':'symbol':'1.0' }}
-                  </dd>
-                  <ng-template #loading>
-                    <dd class="loading">Loading...</dd>
-                  </ng-template>
-                </dl>
-              </section>
-              <section class="file-info" *ngFor="let file of movie.files; index as i" [class.hidden]="tabIndex !== (i + 1)">
-                <dl>
-                  <dt>Library</dt>
-                  <dd>{{ file.libraryName }}</dd>
-                  <dt>File name</dt>
-                  <dd>{{ file.name }}</dd>
-                  <dt>File size</dt>
-                  <dd>{{ file.size | sgFileSize }}</dd>
-                  <dt>Tags</dt>
-                  <dd class="tags">
-                    <mat-chip-list [selectable]="false" [disabled]="true">
-                      <mat-chip *ngFor="let tag of file.tags" (click)="searchTag(tag)">
-                        {{ tag }}
-                      </mat-chip>
-                    </mat-chip-list>
-                  </dd>
-                </dl>
-              </section>
-            </div>
           </div>
-          <div class="cast" *ngIf="movie.details as details; else castLoading">
-            <div class="people" *ngFor="let actor of details.credits.cast">
-              <div class="profile" [style]="getActorStyle(actor) | async">
-                <mat-icon *ngIf="!actor.profile_path">person</mat-icon>
-              </div>
-              <div class="name">
-                <a class="search" (click)="searchPeople(actor.name)">{{ actor.name }}</a>
-              </div>
-            </div>
-          </div>
-          <ng-template #castLoading>
-            <!--TODO -->
-          </ng-template>
         </div>
       </div>
-    </div>
-    <ng-content></ng-content>
+    </ng-container>
   `,
   styles: [`
+    :host {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
     .container {
       background-size: cover;
       background-position: 50% 50%;
@@ -338,7 +344,7 @@ import {Router} from '@angular/router';
 })
 export class MovieComponent implements OnInit {
 
-  @Input() movie: Movie;
+  movie$: Observable<Movie>;
 
   tabIndex = 0;
 
@@ -347,31 +353,35 @@ export class MovieComponent implements OnInit {
     private files: FilesService,
     private video: VideoService,
     private filters: FilterService,
+    private route: ActivatedRoute,
     private router: Router,
     private sanitizer: DomSanitizer,
   ) { }
 
   ngOnInit() {
+    this.movie$ = this.route.data.pipe(
+      switchMap((data: { movie$: Observable<Movie> }) => data.movie$)
+    );
   }
 
-  getPosterSource(): Observable<SafeUrl> {
+  getPosterSource(movie: Movie): Observable<SafeUrl> {
     // TODO: can be null
     return this.core.getConfig().pipe(
       filter(s => !!s),
       take(1),
       map(config => this.sanitizer.bypassSecurityTrustUrl(
-        `${config.images.secure_base_url}w300${this.movie.poster}`
+        `${config.images.secure_base_url}w300${movie.poster}`
       ))
     );
   }
 
-  getBackdropStyle(): Observable<SafeStyle> {
+  getBackdropStyle(movie: Movie): Observable<SafeStyle> {
     // TODO: can be null
     return this.core.getConfig().pipe(
       filter(s => !!s),
       take(1),
       map(config => this.sanitizer.bypassSecurityTrustStyle(
-        `background-image: url(${config.images.secure_base_url}original${this.movie.backdrop})`
+        `background-image: url(${config.images.secure_base_url}original${movie.backdrop})`
       ))
     );
   }
@@ -401,8 +411,8 @@ export class MovieComponent implements OnInit {
     );
   }
 
-  getScore() {
-    return Math.floor(this.movie.vote_average * 10);
+  getScore(movie: Movie) {
+    return Math.floor(movie.vote_average * 10);
   }
 
   getGenre(details: MovieDetails): string[] {
@@ -413,8 +423,8 @@ export class MovieComponent implements OnInit {
     return crew.map(director => director.name);
   }
 
-  play() {
-    this.files.getByPath(this.movie.files[0].path).subscribe( // TODO present a dialog to select file to play
+  play(movie: Movie) {
+    this.files.getByPath(movie.files[0].path).subscribe( // TODO present a dialog to select file to play
       file => this.video.playVideo(file)
     );
   }

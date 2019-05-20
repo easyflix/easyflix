@@ -1,93 +1,96 @@
-import {ChangeDetectionStrategy, Component, ElementRef, Input, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {Season, Show} from '@app/models/show';
 import {DomSanitizer, SafeStyle, SafeUrl} from '@angular/platform-browser';
 import {CoreService} from '@app/services/core.service';
-import {EMPTY, Observable, of} from 'rxjs';
-import {filter, map, take} from 'rxjs/operators';
+import {EMPTY, Observable} from 'rxjs';
+import {filter, map, switchMap, take} from 'rxjs/operators';
 import {VideoService} from '@app/services/video.service';
 import {FilesService} from '@app/services/files.service';
 import {FilterService} from '@app/services/filter.service';
-import {ActivatedRoute, Router, RouterOutlet} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 
 @Component({
   selector: 'app-show',
   template: `
-    <div class="container" [style]="getBackdropStyle() | async">
-      <div class="filter">
-        <section class="show">
-          <div class="poster">
-            <img *ngIf="getShowPosterSource() | async as poster"
-                 [src]="poster"
-                 [class.visible]="isSelectedInfo() | async" alt="Show poster"/>
-            <ng-container *ngFor="let season of getSeasons(show)">
-              <img *ngIf="getSeasonPosterSource(season) | async as poster"
+    <ng-container *ngIf="show$ | async as show">
+      <div class="container" [style]="getBackdropStyle(show) | async">
+        <div class="filter">
+          <section class="show">
+            <div class="poster">
+              <img *ngIf="getShowPosterSource(show) | async as poster"
                    [src]="poster"
-                   [class.visible]="isSelectedSeason(season) | async" alt="Season poster"/>
-            </ng-container>
-          </div>
-          <h1 class="title">
-            {{ show.name }}
-            <span class="year">
-              (<a class="search"
-                  (click)="searchYear(show.first_air_date.substr(0, 4))">{{ show.first_air_date.substr(0, 4) }}</a>)
-            </span>
-          </h1>
-          <div class="actions">
-            <div class="score">
-              <mat-progress-spinner mode="determinate"
-                                    [value]="show.vote_average * 10"
-                                    diameter="60" color="accent">
-              </mat-progress-spinner>
-              <span>{{ getScore() }}%</span>
+                   [class.visible]="isSelectedInfo() | async" alt="Show poster"/>
+              <ng-container *ngFor="let season of getSeasons(show)">
+                <img *ngIf="getSeasonPosterSource(season) | async as poster"
+                     [src]="poster"
+                     [class.visible]="isSelectedSeason(season) | async" alt="Season poster"/>
+              </ng-container>
             </div>
-            <span class="user-score">User<br/>Score</span>
-            <button class="play" mat-button mat-raised-button color="primary" (click)="play()">
-              <mat-icon>play_arrow</mat-icon>
-              PLAY
-            </button>
-          </div>
-          <p class="overview">
-            {{ show.overview }}
-          </p>
-          <header class="tabs">
-            <a class="tab"
-               [routerLink]="['./', {}]"
-               [class.selected]="isSelectedInfo() | async"
-               queryParamsHandling="preserve">
-              Show Info
-            </a>
-            <a class="tab"
-               *ngFor="let season of getSeasons(show)"
-               [routerLink]="['./', {season: season.season_number}]"
-               queryParamsHandling="preserve"
-               [class.selected]="isSelectedSeason(season) | async"
-               [class.hidden]="getAvailableEpisodesCount(season) === 0 && !showAll"
-               [class.disabled]="getAvailableEpisodesCount(season) === 0">
-              Season {{ season.season_number }}
-            </a>
-            <button mat-icon-button class="settings" [matMenuTriggerFor]="rootMenu" *ngIf="hasEmptySeasons()">
-              <mat-icon>more_vert</mat-icon>
-            </button>
-            <mat-menu #rootMenu="matMenu" xPosition="before" yPosition="below">
-              <button mat-menu-item (click)="showAll = !showAll">
-                {{ showAll ? 'Hide unavailable seasons' : 'Show all seasons' }}
+            <h1 class="title">
+              {{ show.name }}
+              <span class="year">
+                (<a class="search"
+                    (click)="searchYear(show.first_air_date.substr(0, 4))">{{ show.first_air_date.substr(0, 4) }}</a>)
+              </span>
+            </h1>
+            <div class="actions">
+              <div class="score">
+                <mat-progress-spinner mode="determinate"
+                                      [value]="show.vote_average * 10"
+                                      diameter="60" color="accent">
+                </mat-progress-spinner>
+                <span>{{ getScore(show) }}%</span>
+              </div>
+              <span class="user-score">User<br/>Score</span>
+              <button class="play" mat-button mat-raised-button color="primary" (click)="play(show)">
+                <mat-icon>play_arrow</mat-icon>
+                PLAY
               </button>
-            </mat-menu>
-          </header>
-          <div class="tabs-content">
-            <app-show-info *ngIf="isSelectedInfo() | async" [show]="show"></app-show-info>
-            <ng-container *ngFor="let season of getSeasons(show)">
-              <app-season [show]="show" [season]="season" *ngIf="isSelectedSeason(season) | async"></app-season>
-            </ng-container>
-          </div>
-        </section>
+            </div>
+            <p class="overview">
+              {{ show.overview }}
+            </p>
+            <header class="tabs">
+              <a class="tab"
+                 [routerLink]="['./', {}]"
+                 [class.selected]="isSelectedInfo() | async"
+                 queryParamsHandling="preserve">
+                Show Info
+              </a>
+              <a class="tab"
+                 *ngFor="let season of getSeasons(show)"
+                 [routerLink]="['./', {season: season.season_number}]"
+                 queryParamsHandling="preserve"
+                 [class.selected]="isSelectedSeason(season) | async"
+                 [class.hidden]="getAvailableEpisodesCount(show, season) === 0 && !showAll"
+                 [class.disabled]="getAvailableEpisodesCount(show, season) === 0">
+                Season {{ season.season_number }}
+              </a>
+              <button mat-icon-button class="settings" [matMenuTriggerFor]="rootMenu" *ngIf="hasEmptySeasons(show)">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #rootMenu="matMenu" xPosition="before" yPosition="below">
+                <button mat-menu-item (click)="showAll = !showAll">
+                  {{ showAll ? 'Hide unavailable seasons' : 'Show all seasons' }}
+                </button>
+              </mat-menu>
+            </header>
+            <div class="tabs-content">
+              <app-show-info *ngIf="isSelectedInfo() | async" [show]="show"></app-show-info>
+              <ng-container *ngFor="let season of getSeasons(show)">
+                <app-season [show]="show" [season]="season" *ngIf="isSelectedSeason(season) | async"></app-season>
+              </ng-container>
+            </div>
+          </section>
+        </div>
       </div>
-    </div>
-    <ng-content></ng-content>
+    </ng-container>
   `,
   styles: [`
     :host {
-      display: block;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
     }
     .container {
       background-size: cover;
@@ -237,7 +240,7 @@ import {ActivatedRoute, Router, RouterOutlet} from '@angular/router';
 })
 export class ShowComponent implements OnInit {
 
-  @Input() show: Show;
+  show$: Observable<Show>;
 
   showAll = false;
 
@@ -251,7 +254,11 @@ export class ShowComponent implements OnInit {
     private sanitizer: DomSanitizer,
   ) { }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.show$ = this.route.data.pipe(
+      switchMap((data: { show$: Observable<Show> }) => data.show$)
+    );
+  }
 
   isSelectedSeason(season: Season): Observable<boolean> {
     return this.route.paramMap.pipe(
@@ -265,13 +272,13 @@ export class ShowComponent implements OnInit {
     );
   }
 
-  getShowPosterSource(): Observable<SafeUrl> {
-    if (this.show.poster) {
+  getShowPosterSource(show: Show): Observable<SafeUrl> {
+    if (show.poster) {
       return this.core.getConfig().pipe(
         filter(s => !!s),
         take(1),
         map(config => this.sanitizer.bypassSecurityTrustResourceUrl(
-          `${config.images.secure_base_url}w300${this.show.poster}`
+          `${config.images.secure_base_url}w300${show.poster}`
         ))
       );
     } else {
@@ -279,13 +286,13 @@ export class ShowComponent implements OnInit {
     }
   }
 
-  getBackdropStyle(): Observable<SafeStyle> {
-    if (this.show.backdrop) {
+  getBackdropStyle(show: Show): Observable<SafeStyle> {
+    if (show.backdrop) {
       return this.core.getConfig().pipe(
         filter(s => !!s),
         take(1),
         map(config => this.sanitizer.bypassSecurityTrustStyle(
-          `background-image: url(${config.images.secure_base_url}original${this.show.backdrop})`
+          `background-image: url(${config.images.secure_base_url}original${show.backdrop})`
         ))
       );
     } else {
@@ -307,17 +314,17 @@ export class ShowComponent implements OnInit {
     }
   }
 
-  getScore() {
-    return Math.floor(this.show.vote_average * 10);
+  getScore(show: Show) {
+    return Math.floor(show.vote_average * 10);
   }
 
   getSeasons(show: Show): Season[] {
     return show.details ? show.details.seasons.filter(season => season.season_number !== 0) : [];
   }
 
-  getAvailableEpisodesCount(season: Season): number {
+  getAvailableEpisodesCount(show: Show, season: Season): number {
     return Array.from(new Set(
-      this.show.files
+      show.files
         .filter(file => file.seasonNumber === season.season_number)
         .map(file => `s${file.seasonNumber}e${file.episodeNumber}`)
     ))/*.map(id =>
@@ -325,15 +332,15 @@ export class ShowComponent implements OnInit {
     )*/.length;
   }
 
-  hasEmptySeasons(): boolean {
-    return this.show.details && this.show.details.seasons.find(
-      season => this.getAvailableEpisodesCount(season) === 0
+  hasEmptySeasons(show: Show): boolean {
+    return show.details && show.details.seasons.find(
+      season => this.getAvailableEpisodesCount(show, season) === 0
     ) !== undefined;
   }
 
-  play() {
+  play(show: Show) {
     // TODO present a dialog to select file to play
-    this.files.getByPath(this.show.files[0].path).subscribe(
+    this.files.getByPath(show.files[0].path).subscribe(
       file => this.video.playVideo(file)
     );
   }
@@ -344,14 +351,6 @@ export class ShowComponent implements OnInit {
         this.filters.clear();
         this.filters.setYears([year]);
       }
-    );
-  }
-
-  getAnimationData(outlet: RouterOutlet): Observable<string> {
-    return outlet.activatedRoute.paramMap.pipe(
-      map(params =>
-        (outlet.activatedRouteData && outlet.activatedRouteData.animation) || `Season${params.get('season')}`
-      )
     );
   }
 

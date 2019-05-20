@@ -1,33 +1,40 @@
-import {ChangeDetectionStrategy, Component, ElementRef, HostListener, OnInit, ViewChild} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Observable} from 'rxjs';
-import {Show} from '@app/models/show';
-import {Movie} from '@app/models';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  ViewChild
+} from '@angular/core';
+import {ActivatedRoute, Router, RouterOutlet} from '@angular/router';
+import {Observable, Subscription} from 'rxjs';
 import {filter, map, switchMap, take, tap} from 'rxjs/operators';
 import {ShowsService} from '@app/services/shows.service';
 import {MoviesService} from '@app/services/movies.service';
+import {KeyboardService} from '@app/services/keyboard.service';
+import {detailsAnimations} from '@app/animations';
 
 @Component({
   selector: 'app-details',
   template: `
-    <section class="details" cdkTrapFocus tabindex="0" #container>
-      <app-show *ngIf="show$ | async as show" [show]="show"></app-show>
-      <app-movie *ngIf="movie$ | async as movie" [movie]="movie"></app-movie>
+    <section class="details" cdkTrapFocus tabindex="0" #container [@detailsAnimation]="getAnimationData(details)">
+      <router-outlet #details="outlet"></router-outlet>
       <button mat-icon-button
               [disabled]="nextDisabled() | async"
               (click)="next()"
-              class="right animation-hidden">
+              class="right">
         <mat-icon>keyboard_arrow_right</mat-icon>
       </button>
       <button mat-icon-button
               [disabled]="previousDisabled() | async"
               (click)="previous()"
-              class="left animation-hidden">
+              class="left">
         <mat-icon>keyboard_arrow_left</mat-icon>
       </button>
       <button mat-icon-button
               (click)="close()"
-              class="close animation-hidden">
+              class="close">
         <mat-icon>close</mat-icon>
       </button>
     </section>
@@ -36,16 +43,11 @@ import {MoviesService} from '@app/services/movies.service';
     .details {
       display: flex;
       flex-direction: column;
-      overflow: auto;
       position: absolute;
       top: 0;
       width: 100%;
       height: 100%;
-    }
-    app-movie, app-show {
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
+      z-index: 20;
     }
     .close {
       position: absolute;
@@ -63,20 +65,24 @@ import {MoviesService} from '@app/services/movies.service';
       left: 10px;
     }
   `],
+  animations: [detailsAnimations],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DetailsComponent implements OnInit {
+export class DetailsComponent implements OnInit, OnDestroy {
 
   type: string; // 'movie' or 'show'
 
-  show$: Observable<Show>;
-  movie$: Observable<Movie>;
-
   @ViewChild('container', {static: true}) container: ElementRef;
+
+  subscriptions: Subscription[] = [];
+
+  nextId: Observable<number | undefined>;
+  previousId: Observable<number | undefined>;
 
   constructor(
     private movies: MoviesService,
     private shows: ShowsService,
+    private keyboard: KeyboardService,
     private route: ActivatedRoute,
     private router: Router
   ) {
@@ -84,80 +90,54 @@ export class DetailsComponent implements OnInit {
 
   ngOnInit(): void {
     this.type = this.route.snapshot.data.type;
-    if (this.type === 'movie') {
-      this.movie$ = this.route.data.pipe(
-        switchMap((data: { movie$: Observable<Movie> }) => data.movie$)
-      );
-    } else {
-      this.show$ = this.route.data.pipe(
-        switchMap((data: { show$: Observable<Show> }) => data.show$)
-      );
-    }
     this.container.nativeElement.focus();
-  }
 
-  previousId(): Observable<number> {
-    if (this.type === 'movie') {
-      return this.movies.getAll().pipe(
-        filter(movies => movies.length > 0),
-        switchMap(movies => this.movie$.pipe(
-          map(movie => {
-            const currentIndex = movies.map(s => s.id).indexOf(movie.id);
-            return (movies[currentIndex - 1] && movies[currentIndex - 1].id) || undefined;
-          })
-        ))
-      );
-    } else {
-      return this.shows.getAll().pipe(
-        filter(shows => shows.length > 0),
-        switchMap(shows => this.show$.pipe(
-          map(show => {
-            const currentIndex = shows.map(s => s.id).indexOf(show.id);
-            return (shows[currentIndex - 1] && shows[currentIndex - 1].id) || undefined;
-          })
-        ))
-      );
-    }
-  }
+    // Keyboard events
+    this.subscriptions.push(
+      this.keyboard.ArrowLeft.subscribe(
+        () => this.previous()
+      ),
+      this.keyboard.ArrowRight.subscribe(
+        () => this.next()
+      )
+    );
 
-  nextId(): Observable<number> {
-    if (this.type === 'movie') {
-      return this.movies.getAll().pipe(
-        filter(movies => movies.length > 0),
-        switchMap(movies => this.movie$.pipe(
-          map(movie => {
-            const currentIndex = movies.map(s => s.id).indexOf(movie.id);
-            return (movies[currentIndex + 1] && movies[currentIndex + 1].id) || undefined;
-          })
-        ))
-      );
-    } else {
-      return this.shows.getAll().pipe(
-        filter(shows => shows.length > 0),
-        switchMap(shows => this.show$.pipe(
-          map(show => {
-            const currentIndex = shows.map(s => s.id).indexOf(show.id);
-            return (shows[currentIndex + 1] && shows[currentIndex + 1].id) || undefined;
-          })
-        ))
-      );
-    }
-  }
+    // NextId and PreviousId observables
+    const movies$ = this.movies.getAll().pipe(
+      filter(movies => movies.length > 0)
+    );
+    const shows$ = this.shows.getAll().pipe(
+      filter(shows => shows.length > 0)
+    );
+    const id$ = () => this.route.firstChild.paramMap.pipe(
+      map(params => +params.get('id'))
+    );
+    const items$: Observable<{id: number}[]> = this.type === 'movie' ? movies$ : shows$;
 
-  @HostListener('keydown.arrowLeft')
-  previous(): void {
-    this.previousId().pipe(
-      take(1),
-      tap(id => id !== undefined && this.router.navigate(
-        ['/', { outlets: { details: [this.type, id.toString()] } }],
-        { relativeTo: this.route, state: { transition: 'left', id }, queryParamsHandling: 'preserve' }
+    const fn = (array: {id: number}[], offset: 1 | -1) => (id: number) => {
+      const currentIndex = array.map(o => o.id).indexOf(id);
+      return (array[currentIndex + offset] && array[currentIndex + offset].id) || undefined;
+    };
+
+    this.nextId = items$.pipe(
+      switchMap(array => id$().pipe(
+        map(fn(array, 1))
       ))
-    ).subscribe();
+    );
+    this.previousId = items$.pipe(
+      switchMap(movies => id$().pipe(
+        map(fn(movies, -1))
+      ))
+    );
+
   }
 
-  @HostListener('keydown.arrowRight')
+  ngOnDestroy(): void {
+    this.subscriptions.map(sub => sub.unsubscribe());
+  }
+
   next(): void {
-    this.nextId().pipe(
+    this.nextId.pipe(
       take(1),
       tap(id => id !== undefined && this.router.navigate(
         ['/', { outlets: { details: [this.type, id.toString()] } }],
@@ -166,14 +146,24 @@ export class DetailsComponent implements OnInit {
     ).subscribe();
   }
 
-  previousDisabled(): Observable<boolean> {
-    return this.previousId().pipe(
+  previous(): void {
+    this.previousId.pipe(
+      take(1),
+      tap(id => id !== undefined && this.router.navigate(
+        ['/', { outlets: { details: [this.type, id.toString()] } }],
+        { relativeTo: this.route, state: { transition: 'left', id }, queryParamsHandling: 'preserve' }
+      ))
+    ).subscribe();
+  }
+
+  nextDisabled(): Observable<boolean> {
+    return this.nextId.pipe(
       map(id => id === undefined)
     );
   }
 
-  nextDisabled(): Observable<boolean> {
-    return this.nextId().pipe(
+  previousDisabled(): Observable<boolean> {
+    return this.previousId.pipe(
       map(id => id === undefined)
     );
   }
@@ -184,6 +174,18 @@ export class DetailsComponent implements OnInit {
       ['/', { outlets: { details: null } }],
       { relativeTo: this.route, queryParamsHandling: 'preserve' }
     );
+  }
+
+  getAnimationData(outlet: RouterOutlet) {
+    const primary =
+      history.state && history.state.transition && history.state.id ?
+        history.state.transition + '-' + history.state.id : '';
+
+    const fallback = outlet
+      && outlet.activatedRouteData
+      && outlet.activatedRouteData.animation || 'empty';
+
+    return primary || fallback;
   }
 
 }
