@@ -14,11 +14,11 @@ import {FilterService} from '@app/services/filter.service';
   selector: 'app-show-info',
   template: `
     <div class="info">
-      <dl class="left">
+      <app-dl>
         <dt>Original name</dt>
-        <dd><span class="overflow-ellipsis">{{ show.original_name }}</span></dd>
+        <dd>{{ show.original_name }}</dd>
         <dt>First air date</dt>
-        <dd>{{ show.first_air_date | date:'mediumDate'}}</dd>
+        <dd>{{ show.first_air_date | date:'mediumDate' }}</dd>
         <dt>Episodes</dt>
         <dd *ngIf="show.details as details; else loading">
           <span *ngIf="getTotalAvailableEpisodesCount(show) < details.number_of_episodes">
@@ -36,8 +36,8 @@ import {FilterService} from '@app/services/filter.service';
         <ng-template #loading>
           <dd class="loading">Loading...</dd>
         </ng-template>
-      </dl>
-      <dl class="right">
+      </app-dl>
+      <app-dl>
         <dt>Language</dt>
         <dd>
           <a class="search" (click)="searchLanguage(show.original_language)">
@@ -62,7 +62,7 @@ import {FilterService} from '@app/services/filter.service';
             <a class="search" (click)="searchNetwork(network)">{{network}}</a>{{ isLast ? '' : ',' }}
           </ng-container>
         </dd>
-      </dl>
+      </app-dl>
     </div>
     <div class="cast" *ngIf="show.details as details; else castLoading">
       <div class="people" *ngFor="let actor of details.credits.cast">
@@ -93,40 +93,6 @@ import {FilterService} from '@app/services/filter.service';
     }
     .info {
       display: flex;
-    }
-    dl {
-      display: inline-flex;
-      flex-direction: row;
-      flex-wrap: wrap;
-      font-weight: 300;
-      margin: 0;
-      width: 100%;
-      line-height: 1.9;
-    }
-    dl.left, dl.right {
-      width: 50%;
-    }
-    dt {
-      width: 9rem;
-      padding-right: 1rem;
-      box-sizing: border-box;
-      font-weight: 400;
-      margin: 0;
-      text-align: right;
-    }
-    dd {
-      width: calc(100% - 9rem);
-      align-items: center;
-      margin: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .right dt {
-      width: 7rem;
-    }
-    .right dd {
-      width: calc(100% - 7rem);
     }
     .cast {
       display: flex;

@@ -201,7 +201,7 @@ import {ActivatedRoute, Router} from '@angular/router';
     .tab {
       font-weight: 400;
       font-size: 16px;
-      width: 8.5rem;
+      width: 7.5rem;
       text-align: center;
       margin: 0 0 -1px 0;
       padding: .75rem 0;
@@ -327,7 +327,7 @@ export class ShowComponent implements OnInit {
   }
 
   hasEmptySeasons(show: Show): boolean {
-    return show.details && show.details.seasons.find(
+    return this.getSeasons(show).find(
       season => this.getAvailableEpisodesCount(show, season) === 0
     ) !== undefined;
   }

@@ -65,7 +65,7 @@ const slideDown = [
   template: `
     <section class="season-info">
       <div>
-        <dl>
+        <app-dl>
           <dt>Name</dt>
           <dd>{{ season.name }}</dd>
           <dt>First air date</dt>
@@ -75,7 +75,7 @@ const slideDown = [
             <span *ngIf="episodes.length < season.episode_count">{{ episodes.length }} /</span>
             {{ season.episode_count }}
           </dd>
-        </dl>
+        </app-dl>
         <app-overview>{{ season.overview }}</app-overview>
       </div>
     </section>
@@ -105,33 +105,11 @@ const slideDown = [
       display: flex;
       height: 120px;
     }
-    dl {
+    app-dl {
       padding: 0 1rem 0 0;
       float: left;
       width: 380px;
       box-sizing: border-box;
-      display: flex;
-      flex-direction: row;
-      flex-wrap: wrap;
-      font-weight: 300;
-      margin: 0;
-      line-height: 1.9;
-    }
-    dt {
-      width: 9rem;
-      padding-right: 1rem;
-      box-sizing: border-box;
-      font-weight: 400;
-      margin: 0;
-      text-align: right;
-    }
-    dd {
-      width: calc(100% - 9rem);
-      align-items: center;
-      margin: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
     .episodes {
       display: flex;

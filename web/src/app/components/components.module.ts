@@ -28,6 +28,7 @@ import {EpisodeComponent} from '@app/components/shows/episode.component';
 import {DetailsComponent} from '@app/components/details.component';
 import {LoadingBarComponent} from '@app/components/common/loading-bar.component';
 import {OverviewComponent} from '@app/components/common/overview.component';
+import {DescriptionListComponent} from '@app/components/common/description.component';
 
 const COMPONENTS = [
   FileListComponent,
@@ -57,7 +58,8 @@ const COMPONENTS = [
   EpisodeComponent,
   DetailsComponent,
   LoadingBarComponent,
-  OverviewComponent
+  OverviewComponent,
+  DescriptionListComponent,
 ];
 
 @NgModule({

@@ -31,7 +31,7 @@ import {LibraryFile} from '@app/models';
           </a>
         </header>
         <ng-container *ngIf="tabIndex === 0">
-          <dl>
+          <app-dl class="info">
             <dt>Name</dt>
             <dd>{{ episode.name }}</dd>
             <dt>Air date</dt>
@@ -56,11 +56,11 @@ import {LibraryFile} from '@app/models';
               <dt>&nbsp;</dt>
               <dd>&nbsp;</dd>
             </ng-template>
-          </dl>
+          </app-dl>
           <app-overview>{{episode.overview}}</app-overview>
         </ng-container>
         <section class="file-info" *ngFor="let file of files; index as i" [class.hidden]="tabIndex !== (i + 1)">
-          <dl>
+          <app-dl>
             <dt>Library</dt>
             <dd>{{ file.libraryName }}</dd>
             <dt>File name</dt>
@@ -75,7 +75,7 @@ import {LibraryFile} from '@app/models';
                 </mat-chip>
               </mat-chip-list>
             </dd>
-          </dl>
+          </app-dl>
         </section>
       </div>
   `,
@@ -94,10 +94,6 @@ import {LibraryFile} from '@app/models';
     }
     .content {
       min-width: calc(100% - 330px);
-    }
-    dl {
-      float: left;
-      width: 350px;
     }
     .tabs {
       margin-top: 0;
@@ -121,41 +117,14 @@ import {LibraryFile} from '@app/models';
     .tab.selected {
       border-bottom: 2px solid;
     }
-    dl {
+    .info {
       padding: 0 1rem 0 0;
       float: left;
       width: 380px;
       box-sizing: border-box;
-      display: flex;
-      flex-direction: row;
-      flex-wrap: wrap;
-      font-weight: 300;
-      margin: 0;
-      line-height: 1.9;
-    }
-    dt {
-      width: 9rem;
-      padding-right: 1rem;
-      box-sizing: border-box;
-      font-weight: 400;
-      margin: 0;
-      text-align: right;
-    }
-    dd {
-      width: calc(100% - 9rem);
-      align-items: center;
-      margin: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
     .hidden {
       display: none;
-    }
-    .file-info dl {
-      float: none;
-      width: 100%;
-      height: 120px;
     }
     .tags mat-chip {
       opacity: 1 !important;
