@@ -75,7 +75,16 @@ import {FilterService} from '@app/services/filter.service';
       </div>
     </div>
     <ng-template #castLoading>
-      <!--TODO -->
+      <div class="cast">
+        <div class="people" *ngFor="let i of [0,1,2,3,4,5,6]">
+          <div class="profile">
+            <mat-icon>person</mat-icon>
+          </div>
+          <div class="name">
+            <app-loading-bar></app-loading-bar>
+          </div>
+        </div>
+      </div>
     </ng-template>
   `,
   styles: [`
