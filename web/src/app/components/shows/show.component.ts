@@ -48,7 +48,7 @@ import {ActivatedRoute, Router} from '@angular/router';
               </button>
             </div>
             <app-overview>{{ show.overview }}</app-overview>
-            <header class="tabs">
+            <nav class="tabs">
               <a class="tab"
                  [routerLink]="['./', {}]"
                  [class.selected]="isSelectedInfo() | async"
@@ -59,9 +59,11 @@ import {ActivatedRoute, Router} from '@angular/router';
                  *ngFor="let season of getSeasons(show)"
                  [routerLink]="['./', {season: season.season_number}]"
                  queryParamsHandling="preserve"
-                 [class.selected]="isSelectedSeason(season) | async"
-                 [class.hidden]="getAvailableEpisodesCount(show, season) === 0 && !showAll"
-                 [class.disabled]="getAvailableEpisodesCount(show, season) === 0">
+                 [ngClass]="{
+                   'selected': isSelectedSeason(season) | async,
+                   'hidden': getAvailableEpisodesCount(show, season) === 0 && !showAll,
+                   'disabled': getAvailableEpisodesCount(show, season) === 0
+                 }">
                 Season {{ season.season_number }}
               </a>
               <button mat-icon-button class="settings" [matMenuTriggerFor]="rootMenu" *ngIf="hasEmptySeasons(show)">
@@ -72,7 +74,7 @@ import {ActivatedRoute, Router} from '@angular/router';
                   {{ showAll ? 'Hide unavailable seasons' : 'Show all seasons' }}
                 </button>
               </mat-menu>
-            </header>
+            </nav>
             <div class="tabs-content">
               <app-show-info *ngIf="isSelectedInfo() | async" [show]="show"></app-show-info>
               <ng-container *ngFor="let season of getSeasons(show)">
@@ -321,9 +323,7 @@ export class ShowComponent implements OnInit {
       show.files
         .filter(file => file.seasonNumber === season.season_number)
         .map(file => `s${file.seasonNumber}e${file.episodeNumber}`)
-    ))/*.map(id =>
-      this.show.files.find(file => `s${file.seasonNumber}e${file.episodeNumber}` === id)
-    )*/.length;
+    )).length;
   }
 
   hasEmptySeasons(show: Show): boolean {

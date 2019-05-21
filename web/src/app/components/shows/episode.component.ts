@@ -5,6 +5,7 @@ import {CoreService} from '@app/services/core.service';
 import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
 import {Episode, Show} from '@app/models/show';
 import {LibraryFile} from '@app/models';
+import {ActivatedRoute} from '@angular/router';
 
 @Component({
   selector: 'app-episode',
@@ -13,24 +14,22 @@ import {LibraryFile} from '@app/models';
         <img *ngIf="getStillSource(episode) | async as source" [src]="source" alt="Still">
       </div>
       <div class="content">
-        <header class="tabs">
+        <nav class="tabs">
           <a class="tab"
-             [class.selected]="tabIndex === 0"
-             (click)="tabIndex = 0"
-             (keydown.enter)="tabIndex = 0"
-             tabindex="0">
+             [routerLink]="['./', { season: episode.season_number, episode: episode.episode_number }]"
+             [ngClass]="{'selected': isSelectedInfo() | async}"
+             queryParamsHandling="preserve">
             Episode {{ episode.episode_number }}
           </a>
           <a class="tab"
-             [class.selected]="tabIndex === i + 1"
-             (click)="tabIndex = i + 1"
-             (keydown.enter)="tabIndex = i + 1"
-             tabindex="0"
+             [routerLink]="['./', { season: episode.season_number, episode: episode.episode_number, file: i + 1 }]"
+             queryParamsHandling="preserve"
+             [ngClass]="{'selected': isSelectedFile(i + 1) | async}"
              *ngFor="let file of files; index as i">
             File Info <ng-container *ngIf="files.length > 1">({{ i + 1 }})</ng-container>
           </a>
-        </header>
-        <ng-container *ngIf="tabIndex === 0">
+        </nav>
+        <ng-container *ngIf="isSelectedInfo() | async">
           <app-dl class="info">
             <dt>Name</dt>
             <dd>{{ episode.name }}</dd>
@@ -59,24 +58,26 @@ import {LibraryFile} from '@app/models';
           </app-dl>
           <app-overview>{{episode.overview}}</app-overview>
         </ng-container>
-        <section class="file-info" *ngFor="let file of files; index as i" [class.hidden]="tabIndex !== (i + 1)">
-          <app-dl>
-            <dt>Library</dt>
-            <dd>{{ file.libraryName }}</dd>
-            <dt>File name</dt>
-            <dd>{{ file.name }}</dd>
-            <dt>File size</dt>
-            <dd>{{ file.size | sgFileSize }}</dd>
-            <dt>Tags</dt>
-            <dd class="tags">
-              <mat-chip-list [selectable]="false" [disabled]="true">
-                <mat-chip *ngFor="let tag of file.tags">
-                  {{ tag }}
-                </mat-chip>
-              </mat-chip-list>
-            </dd>
-          </app-dl>
-        </section>
+        <ng-container *ngFor="let file of files; index as i">
+          <section class="file-info" *ngIf="isSelectedFile(i + 1) | async">
+            <app-dl>
+              <dt>Library</dt>
+              <dd>{{ file.libraryName }}</dd>
+              <dt>File name</dt>
+              <dd>{{ file.name }}</dd>
+              <dt>File size</dt>
+              <dd>{{ file.size | sgFileSize }}</dd>
+              <dt>Tags</dt>
+              <dd class="tags">
+                <mat-chip-list [selectable]="false" [disabled]="true">
+                  <mat-chip *ngFor="let tag of file.tags">
+                    {{ tag }}
+                  </mat-chip>
+                </mat-chip-list>
+              </dd>
+            </app-dl>
+          </section>
+        </ng-container>
       </div>
   `,
   styles: [`
@@ -110,6 +111,7 @@ import {LibraryFile} from '@app/models';
       margin: 0 0 -1px 0;
       padding: .75rem 0;
       cursor: pointer;
+      text-decoration: none;
     }
     .tab:hover, .tab:focus {
       border-bottom: 2px solid;
@@ -122,9 +124,6 @@ import {LibraryFile} from '@app/models';
       float: left;
       width: 380px;
       box-sizing: border-box;
-    }
-    .hidden {
-      display: none;
     }
     .tags mat-chip {
       opacity: 1 !important;
@@ -140,9 +139,8 @@ export class EpisodeComponent implements OnInit {
 
   files: LibraryFile[];
 
-  tabIndex = 0;
-
   constructor(
+    private route: ActivatedRoute,
     private core: CoreService,
     private sanitizer: DomSanitizer,
   ) {
@@ -176,6 +174,18 @@ export class EpisodeComponent implements OnInit {
 
   getDirectors(episode: Episode): string[] {
     return episode.crew.filter(p => p.job === 'Director').map(p => p.name);
+  }
+
+  isSelectedFile(index: number): Observable<boolean> {
+    return this.route.paramMap.pipe(
+      map(params => +params.get('file') === index)
+    );
+  }
+
+  isSelectedInfo(): Observable<boolean> {
+    return this.route.paramMap.pipe(
+      map(params => params.get('file') === null)
+    );
   }
 
 }
