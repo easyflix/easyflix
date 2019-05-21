@@ -57,7 +57,7 @@ import {LibraryFile} from '@app/models';
               <dd>&nbsp;</dd>
             </ng-template>
           </dl>
-          <p class="overview">{{episode.overview}}</p>
+          <app-overview>{{episode.overview}}</app-overview>
         </ng-container>
         <section class="file-info" *ngFor="let file of files; index as i" [class.hidden]="tabIndex !== (i + 1)">
           <dl>
@@ -148,13 +148,6 @@ import {LibraryFile} from '@app/models';
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-    }
-    .overview {
-      margin: 0;
-      font-weight: 300;
-      line-height: 30px;
-      max-height: 120px;
-      overflow-y: auto;
     }
     .hidden {
       display: none;

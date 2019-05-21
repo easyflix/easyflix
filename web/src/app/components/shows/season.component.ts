@@ -76,7 +76,7 @@ const slideDown = [
             {{ season.episode_count }}
           </dd>
         </dl>
-        <p class="overview">{{ season.overview }}</p>
+        <app-overview>{{ season.overview }}</app-overview>
       </div>
     </section>
     <section class="episodes">
@@ -132,13 +132,6 @@ const slideDown = [
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-    }
-    .overview {
-      font-weight: 300;
-      line-height: 30px;
-      margin: 0;
-      max-height: 120px;
-      overflow-y: auto;
     }
     .episodes {
       display: flex;

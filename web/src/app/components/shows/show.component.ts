@@ -47,9 +47,7 @@ import {ActivatedRoute, Router} from '@angular/router';
                 PLAY
               </button>
             </div>
-            <p class="overview">
-              {{ show.overview }}
-            </p>
+            <app-overview>{{ show.overview }}</app-overview>
             <header class="tabs">
               <a class="tab"
                  [routerLink]="['./', {}]"
@@ -185,12 +183,8 @@ import {ActivatedRoute, Router} from '@angular/router';
       padding-left: 0.6rem;
       margin-left: 2rem;
     }
-    .overview {
-      font-weight: 300;
-      line-height: 30px;
-      margin: 0 0 15px 0;
-      max-height: 120px;
-      overflow-y: auto;
+    app-overview {
+      margin-bottom: 15px;
     }
     .tabs {
       display: flex;

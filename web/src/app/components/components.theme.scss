@@ -165,6 +165,15 @@
     }
   }
 
+  app-overview {
+    p::-webkit-scrollbar-thumb {
+      background-color: mat-color($foreground, disabled-button, 0.15);
+    }
+    p:hover::-webkit-scrollbar-thumb {
+      background-color: mat-color($foreground, disabled-button, 0.3);
+    }
+  }
+
   app-loading-bar {
     .mat-progress-bar-buffer {
       background-color: mat-color($background, card) !important;
