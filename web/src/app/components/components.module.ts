@@ -15,20 +15,21 @@ import {MainComponent} from './main.component';
 import {VideoListComponent} from './common/video-list/video-list.component';
 import {MoviesComponent} from './movies/movies.component';
 import {GlobalComponent} from './settings/global/global.component';
-import {LocalComponent} from '@app/components/settings/local/local.component';
-import {LibraryCreationDialogComponent} from '@app/components/dialogs/library-creation-dialog/library-creation-dialog.component';
-import {ConfirmDialogComponent} from '@app/components/dialogs/confirm-dialog.component';
-import {MovieComponent} from '@app/components/movies/movie.component';
-import {FiltersComponent} from '@app/components/filters.component';
-import {ShowsComponent} from '@app/components/shows/shows.component';
-import {ShowComponent} from '@app/components/shows/show.component';
-import {SeasonComponent} from '@app/components/shows/season.component';
-import {ShowInfoComponent} from '@app/components/shows/show-info.component';
-import {EpisodeComponent} from '@app/components/shows/episode.component';
-import {DetailsComponent} from '@app/components/details.component';
-import {LoadingBarComponent} from '@app/components/common/loading-bar.component';
-import {OverviewComponent} from '@app/components/common/overview.component';
-import {DescriptionListComponent} from '@app/components/common/description.component';
+import {LocalComponent} from './settings/local/local.component';
+import {LibraryCreationDialogComponent} from './dialogs/library-creation-dialog/library-creation-dialog.component';
+import {ConfirmDialogComponent} from './dialogs/confirm-dialog.component';
+import {MovieComponent} from './movies/movie.component';
+import {FiltersComponent} from './filters.component';
+import {ShowsComponent} from './shows/shows.component';
+import {ShowComponent} from './shows/show.component';
+import {SeasonComponent} from './shows/season.component';
+import {ShowInfoComponent} from './shows/show-info.component';
+import {EpisodeComponent} from './shows/episode.component';
+import {DetailsComponent} from './details.component';
+import {LoadingBarComponent} from './common/loading-bar.component';
+import {OverviewComponent} from './common/overview.component';
+import {DescriptionListComponent} from './common/description.component';
+import {TabsComponent} from './common/tabs.component';
 
 const COMPONENTS = [
   FileListComponent,
@@ -60,6 +61,7 @@ const COMPONENTS = [
   LoadingBarComponent,
   OverviewComponent,
   DescriptionListComponent,
+  TabsComponent,
 ];
 
 @NgModule({

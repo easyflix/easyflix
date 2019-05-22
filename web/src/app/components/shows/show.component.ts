@@ -20,7 +20,7 @@ import {ActivatedRoute, Router} from '@angular/router';
               <img *ngIf="getShowPosterSource(show) | async as poster"
                    [src]="poster"
                    [class.visible]="isSelectedInfo() | async" alt="Show poster"/>
-              <ng-container *ngFor="let season of getSeasons(show)">
+              <ng-container *ngFor="let season of seasons$ | async">
                 <img *ngIf="getSeasonPosterSource(season) | async as poster"
                      [src]="poster"
                      [class.visible]="isSelectedSeason(season) | async" alt="Season poster"/>
@@ -48,36 +48,26 @@ import {ActivatedRoute, Router} from '@angular/router';
               </button>
             </div>
             <app-overview>{{ show.overview }}</app-overview>
-            <nav class="tabs">
-              <a class="tab"
-                 [routerLink]="['./', {}]"
-                 [class.selected]="isSelectedInfo() | async"
-                 queryParamsHandling="preserve">
-                Show Info
-              </a>
-              <a class="tab"
-                 *ngFor="let season of getSeasons(show)"
-                 [routerLink]="['./', {season: season.season_number}]"
-                 queryParamsHandling="preserve"
-                 [ngClass]="{
-                   'selected': isSelectedSeason(season) | async,
-                   'hidden': getAvailableEpisodesCount(show, season) === 0 && !showAll,
-                   'disabled': getAvailableEpisodesCount(show, season) === 0
-                 }">
-                Season {{ season.season_number }}
-              </a>
-              <button mat-icon-button class="settings" [matMenuTriggerFor]="rootMenu" *ngIf="hasEmptySeasons(show)">
-                <mat-icon>more_vert</mat-icon>
-              </button>
-              <mat-menu #rootMenu="matMenu" xPosition="before" yPosition="below">
-                <button mat-menu-item (click)="showAll = !showAll">
-                  {{ showAll ? 'Hide unavailable seasons' : 'Show all seasons' }}
-                </button>
-              </mat-menu>
-            </nav>
+            <app-tabs>
+              <nav mat-tab-nav-bar>
+                <a mat-tab-link
+                   [routerLink]="['./', {}]"
+                   [active]="isSelectedInfo() | async"
+                   queryParamsHandling="preserve">
+                  Show Info
+                </a>
+                <a mat-tab-link
+                   *ngFor="let season of seasons$ | async"
+                   [routerLink]="['./', {season: season.season_number}]"
+                   [active]="isSelectedSeason(season) | async"
+                   queryParamsHandling="preserve">
+                  Season {{ season.season_number }}
+                </a>
+              </nav>
+            </app-tabs>
             <div class="tabs-content">
               <app-show-info *ngIf="isSelectedInfo() | async" [show]="show"></app-show-info>
-              <ng-container *ngFor="let season of getSeasons(show)">
+              <ng-container *ngFor="let season of seasons$ | async">
                 <app-season [show]="show" [season]="season" *ngIf="isSelectedSeason(season) | async"></app-season>
               </ng-container>
             </div>
@@ -188,36 +178,11 @@ import {ActivatedRoute, Router} from '@angular/router';
     app-overview {
       margin-bottom: 15px;
     }
-    .tabs {
-      display: flex;
-      flex-direction: row;
-      margin-bottom: 15px;
-      border-bottom: 1px solid;
-      position: relative;
-      padding-right: 40px;
+    app-tabs {
+      margin-bottom: 11px;
     }
-    .tabs .settings {
-      position: absolute;
-      right: 0;
-    }
-    .tab {
-      font-weight: 400;
-      font-size: 16px;
-      width: 7.5rem;
-      text-align: center;
-      margin: 0 0 -1px 0;
-      padding: .75rem 0;
-      cursor: pointer;
-      text-decoration: none;
-    }
-    .tab:hover, .tab:focus {
-      border-bottom: 2px solid;
-    }
-    .tab.selected {
-      border-bottom: 2px solid;
-    }
-    .tab.hidden.selected {
-      display: unset !important;
+    app-tabs a {
+      min-width: 120px;
     }
     .tabs-content {
       position: relative;
@@ -228,17 +193,13 @@ import {ActivatedRoute, Router} from '@angular/router';
     a.search:hover {
       text-decoration: underline;
     }
-    .hidden {
-      display: none;
-    }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ShowComponent implements OnInit {
 
   show$: Observable<Show>;
-
-  showAll = false;
+  seasons$: Observable<Season[]>;
 
   constructor(
     private core: CoreService,
@@ -253,6 +214,12 @@ export class ShowComponent implements OnInit {
   ngOnInit() {
     this.show$ = this.route.data.pipe(
       switchMap((data: { show$: Observable<Show> }) => data.show$)
+    );
+    this.seasons$ = this.show$.pipe(
+      filter(show => show.details !== undefined),
+      map(show => show.details.seasons.filter(
+        season => this.getAvailableEpisodesCount(show, season) > 0)
+      )
     );
   }
 
@@ -314,22 +281,12 @@ export class ShowComponent implements OnInit {
     return Math.floor(show.vote_average * 10);
   }
 
-  getSeasons(show: Show): Season[] {
-    return show.details ? show.details.seasons.filter(season => season.season_number !== 0) : [];
-  }
-
   getAvailableEpisodesCount(show: Show, season: Season): number {
     return Array.from(new Set(
       show.files
         .filter(file => file.seasonNumber === season.season_number)
         .map(file => `s${file.seasonNumber}e${file.episodeNumber}`)
     )).length;
-  }
-
-  hasEmptySeasons(show: Show): boolean {
-    return this.getSeasons(show).find(
-      season => this.getAvailableEpisodesCount(show, season) === 0
-    ) !== undefined;
   }
 
   play(show: Show) {

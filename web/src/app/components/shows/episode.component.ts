@@ -14,21 +14,23 @@ import {ActivatedRoute} from '@angular/router';
         <img *ngIf="getStillSource(episode) | async as source" [src]="source" alt="Still">
       </div>
       <div class="content">
-        <nav class="tabs">
-          <a class="tab"
-             [routerLink]="['./', { season: episode.season_number, episode: episode.episode_number }]"
-             [ngClass]="{'selected': isSelectedInfo() | async}"
-             queryParamsHandling="preserve">
-            Episode {{ episode.episode_number }}
-          </a>
-          <a class="tab"
-             [routerLink]="['./', { season: episode.season_number, episode: episode.episode_number, file: i + 1 }]"
-             queryParamsHandling="preserve"
-             [ngClass]="{'selected': isSelectedFile(i + 1) | async}"
-             *ngFor="let file of files; index as i">
-            File Info <ng-container *ngIf="files.length > 1">({{ i + 1 }})</ng-container>
-          </a>
-        </nav>
+        <app-tabs>
+          <nav mat-tab-nav-bar>
+            <a mat-tab-link
+               [routerLink]="['./', { season: episode.season_number, episode: episode.episode_number }]"
+               [active]="isSelectedInfo() | async"
+               queryParamsHandling="preserve">
+              Episode {{ episode.episode_number }}
+            </a>
+            <a mat-tab-link
+               *ngFor="let file of files; index as i"
+               [routerLink]="['./', { season: episode.season_number, episode: episode.episode_number, file: i + 1 }]"
+               [active]="isSelectedFile(i + 1) | async"
+               queryParamsHandling="preserve">
+              File Info <ng-container *ngIf="files.length > 1">({{ i + 1 }})</ng-container>
+            </a>
+          </nav>
+        </app-tabs>
         <ng-container *ngIf="isSelectedInfo() | async">
           <app-dl class="info">
             <dt>Name</dt>
@@ -96,28 +98,11 @@ import {ActivatedRoute} from '@angular/router';
     .content {
       min-width: calc(100% - 330px);
     }
-    .tabs {
-      margin-top: 0;
-      display: flex;
-      flex-direction: row;
-      margin-bottom: 15px;
-      border-bottom: 1px solid;
+    app-tabs {
+      margin-bottom: 11px;
     }
-    .tab {
-      font-weight: 400;
-      font-size: 16px;
-      width: 8.5rem;
-      text-align: center;
-      margin: 0 0 -1px 0;
-      padding: .75rem 0;
-      cursor: pointer;
-      text-decoration: none;
-    }
-    .tab:hover, .tab:focus {
-      border-bottom: 2px solid;
-    }
-    .tab.selected {
-      border-bottom: 2px solid;
+    app-tabs a {
+      min-width: 120px;
     }
     .info {
       padding: 0 1rem 0 0;
