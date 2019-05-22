@@ -21,13 +21,13 @@ import {detailsAnimations} from '@app/animations';
     <section class="details" cdkTrapFocus tabindex="0" #container [@detailsAnimation]="getAnimationData(details)">
       <router-outlet #details="outlet"></router-outlet>
       <button mat-icon-button
-              [disabled]="nextDisabled() | async"
+              [disabled]="nextDisabled | async"
               (click)="next()"
               class="right">
         <mat-icon>keyboard_arrow_right</mat-icon>
       </button>
       <button mat-icon-button
-              [disabled]="previousDisabled() | async"
+              [disabled]="prevDisabled | async"
               (click)="previous()"
               class="left">
         <mat-icon>keyboard_arrow_left</mat-icon>
@@ -40,7 +40,7 @@ import {detailsAnimations} from '@app/animations';
     </section>
   `,
   styles: [`
-    .details {
+    :host {
       display: flex;
       flex-direction: column;
       position: absolute;
@@ -48,6 +48,11 @@ import {detailsAnimations} from '@app/animations';
       width: 100%;
       height: 100%;
       z-index: 20;
+    }
+    .details {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
     }
     .details:focus {
       outline: none;
@@ -80,7 +85,10 @@ export class DetailsComponent implements OnInit, OnDestroy {
   subscriptions: Subscription[] = [];
 
   nextId: Observable<number | undefined>;
-  previousId: Observable<number | undefined>;
+  prevId: Observable<number | undefined>;
+
+  nextDisabled: Observable<boolean>;
+  prevDisabled: Observable<boolean>;
 
   constructor(
     private movies: MoviesService,
@@ -97,12 +105,12 @@ export class DetailsComponent implements OnInit, OnDestroy {
 
     // Keyboard events
     this.subscriptions.push(
-      this.keyboard.ArrowLeft.subscribe(
+/*      this.keyboard.ArrowLeft.subscribe(
         () => this.previous()
       ),
       this.keyboard.ArrowRight.subscribe(
         () => this.next()
-      )
+      )*/
     );
 
     // NextId and PreviousId observables
@@ -127,10 +135,16 @@ export class DetailsComponent implements OnInit, OnDestroy {
         map(fn(array, 1))
       ))
     );
-    this.previousId = items$.pipe(
+    this.prevId = items$.pipe(
       switchMap(movies => id$().pipe(
         map(fn(movies, -1))
       ))
+    );
+    this.nextDisabled = this.nextId.pipe(
+      map(id => id === undefined)
+    );
+    this.prevDisabled = this.prevId.pipe(
+      map(id => id === undefined)
     );
 
   }
@@ -150,25 +164,13 @@ export class DetailsComponent implements OnInit, OnDestroy {
   }
 
   previous(): void {
-    this.previousId.pipe(
+    this.prevId.pipe(
       take(1),
       tap(id => id !== undefined && this.router.navigate(
         ['/', { outlets: { details: [this.type, id.toString()] } }],
         { relativeTo: this.route, state: { transition: 'left', id }, queryParamsHandling: 'preserve' }
       ))
     ).subscribe();
-  }
-
-  nextDisabled(): Observable<boolean> {
-    return this.nextId.pipe(
-      map(id => id === undefined)
-    );
-  }
-
-  previousDisabled(): Observable<boolean> {
-    return this.previousId.pipe(
-      map(id => id === undefined)
-    );
   }
 
   @HostListener('keydown.esc')
