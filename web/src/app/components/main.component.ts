@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {Location} from '@angular/common';
-import {DEFAULT_TIMING, mainAnimations} from '../animations';
+import {debugAnimation, DEFAULT_TIMING, mainAnimations} from '../animations';
 import {Router, RouterOutlet} from '@angular/router';
 import {Observable} from 'rxjs';
 import {CoreService} from '@app/services/core.service';
@@ -12,15 +12,17 @@ const detailsTransitions = [
   transition('detailsOn => detailsOff', [
     query('.details', style({ background: 'none' })),
     query(
-      ':leave router-outlet ~ *',
-      [animate(DEFAULT_TIMING, style({opacity: 0}))],
-      { optional: true }
+      ':leave router-outlet + *',
+      [
+        style({ opacity: 1 }),
+        animate(DEFAULT_TIMING, style({ opacity: 0 }))
+      ]
     ),
   ]),
   transition('detailsOff => detailsOn', [
     query('.details', style({ background: 'none' })),
     query(
-      ':enter router-outlet ~ *',
+      ':enter router-outlet + *',
       [
         style({ opacity: 0 }),
         animate(DEFAULT_TIMING, style({ opacity: 1 }))
