@@ -218,14 +218,14 @@ export class ShowComponent implements OnInit {
     this.seasons$ = this.show$.pipe(
       filter(show => show.details !== undefined),
       map(show => show.details.seasons.filter(
-        season => this.getAvailableEpisodesCount(show, season) > 0)
-      )
+        season => this.getAvailableEpisodesCount(show, season) > 0
+      ))
     );
   }
 
   isSelectedSeason(season: Season): Observable<boolean> {
     return this.route.paramMap.pipe(
-      map(params => +params.get('season') === season.season_number)
+      map(params => params.get('season') !== null && +params.get('season') === season.season_number)
     );
   }
 

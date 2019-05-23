@@ -1,19 +1,20 @@
 import {
   AfterContentInit,
-  ChangeDetectionStrategy, ChangeDetectorRef,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   ContentChild,
   ContentChildren,
   ElementRef,
   forwardRef,
-  HostBinding,
   HostListener,
-  OnInit,
-  QueryList, ViewChild
+  OnDestroy,
+  QueryList,
+  ViewChild
 } from '@angular/core';
 import {MatTabLink, MatTabNav} from '@angular/material';
-import {interval, timer} from "rxjs";
-import {map, takeUntil, takeWhile} from "rxjs/operators";
+import {Subscription, timer} from 'rxjs';
+import {map, takeWhile, tap} from 'rxjs/operators';
 
 @Component({
   selector: 'app-tabs',
@@ -57,7 +58,7 @@ import {map, takeUntil, takeWhile} from "rxjs/operators";
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TabsComponent implements AfterContentInit {
+export class TabsComponent implements AfterContentInit, OnDestroy {
 
   scrollButtonsEnabled = false;
 
@@ -95,6 +96,8 @@ export class TabsComponent implements AfterContentInit {
     return this.currentOffset <= d1;
   }
 
+  private subscription = new Subscription();
+
   constructor(private cdr: ChangeDetectorRef) {}
 
   ngAfterContentInit(): void {
@@ -105,13 +108,11 @@ export class TabsComponent implements AfterContentInit {
     this.tabNavEl.style.transition = 'transform .4s ease';
     this.tabNavEl.style.minWidth = '100%';
 
-    // Enable scroll buttons if necessary
-    const tabNavWidth = this.tabNavEl.offsetWidth;
-    const containerWidth = this.containerEl.offsetWidth;
-    this.scrollButtonsEnabled = tabNavWidth > containerWidth;
-
-    // Update itemWidth, making the assumption that all links have the same width
-    this.itemWidth = this.tabLinks.first._elementRef.nativeElement.offsetWidth;
+    // Update and register to tabLinks changes
+    this.update();
+    this.subscription.add(this.tabLinks.changes.pipe(
+      tap(() => this.update())
+    ).subscribe());
 
     // Disable tab focus on MatTabLinks
     this.currentFocusIndex = 0;
@@ -133,6 +134,16 @@ export class TabsComponent implements AfterContentInit {
       }
       return false;
     });
+  }
+
+  update() {
+    // Enable scroll buttons if necessary
+    const tabNavWidth = this.tabNavEl.offsetWidth;
+    const containerWidth = this.containerEl.offsetWidth;
+    this.scrollButtonsEnabled = tabNavWidth > containerWidth;
+
+    // Update itemWidth, making the assumption that all links have the same width
+    this.itemWidth = this.tabLinks.first._elementRef.nativeElement.offsetWidth;
   }
 
   scrollNext(): void {
@@ -193,6 +204,10 @@ export class TabsComponent implements AfterContentInit {
         link._elementRef.nativeElement.tabIndex = index === this.currentFocusIndex ? 0 : -1
       );
     });
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 
 }
