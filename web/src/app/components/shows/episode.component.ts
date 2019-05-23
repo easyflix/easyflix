@@ -163,7 +163,7 @@ export class EpisodeComponent implements OnInit {
 
   isSelectedFile(index: number): Observable<boolean> {
     return this.route.paramMap.pipe(
-      map(params => +params.get('file') === index)
+      map(params => params.get('file') !== null && +params.get('file') === index)
     );
   }
 

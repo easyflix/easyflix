@@ -133,17 +133,14 @@ import {ActivatedRoute, Router} from '@angular/router';
       height: unset;
     }
     .title {
-      display: flex;
-      align-items: center;
       font-size: 3rem;
       margin: 0 0 15px 0;
       font-weight: 500;
-      height: 60px;
+      line-height: 55px;
     }
     .year {
       font-size: 2rem;
       font-weight: 400;
-      margin-left: 1rem;
     }
     .actions {
       display: flex;

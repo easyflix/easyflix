@@ -47,18 +47,27 @@ import {ActivatedRoute, Router} from '@angular/router';
                   PLAY
                 </button>
               </div>
-              <p class="overview">
-                {{ movie.overview }}
-              </p>
-              <div class="information">
-                <header>
-                  <h3 (click)="tabIndex = 0" [class.selected]="tabIndex === 0">Movie Info</h3>
-                  <h3 (click)="tabIndex = i + 1" [class.selected]="tabIndex === i + 1" *ngFor="let file of movie.files; index as i">
+              <app-overview>{{ movie.overview }}</app-overview>
+              <app-tabs>
+                <nav mat-tab-nav-bar>
+                  <a mat-tab-link
+                     [routerLink]="['./', {}]"
+                     [active]="isSelectedInfo() | async"
+                     queryParamsHandling="preserve">
+                    Show Info
+                  </a>
+                  <a mat-tab-link
+                     *ngFor="let files of movie.files; index as i"
+                     [routerLink]="['./', {file: i + 1}]"
+                     [active]="isSelectedFile(i + 1) | async"
+                     queryParamsHandling="preserve">
                     File Info <ng-container *ngIf="movie.files.length > 1">({{ i + 1 }})</ng-container>
-                  </h3>
-                </header>
-                <section class="movie-info" *ngIf="tabIndex === 0">
-                  <dl class="left">
+                  </a>
+                </nav>
+              </app-tabs>
+              <div class="tabs-content">
+                <section class="info" *ngIf="isSelectedInfo() | async">
+                  <app-dl>
                     <dt>Original title</dt>
                     <dd>{{ movie.original_title }}</dd>
                     <dt>Release date</dt>
@@ -73,8 +82,8 @@ import {ActivatedRoute, Router} from '@angular/router';
                     <dd *ngIf="movie.details as details; else loading">
                       {{ details.runtime | sgTime }}
                     </dd>
-                  </dl>
-                  <dl class="right">
+                  </app-dl>
+                  <app-dl>
                     <dt>Language</dt>
                     <dd>
                       <a class="search" (click)="searchLanguage(movie.original_language)">
@@ -98,26 +107,28 @@ import {ActivatedRoute, Router} from '@angular/router';
                     <ng-template #loading>
                       <dd class="loading">Loading...</dd>
                     </ng-template>
-                  </dl>
+                  </app-dl>
                 </section>
-                <section class="file-info" *ngFor="let file of movie.files; index as i" [class.hidden]="tabIndex !== (i + 1)">
-                  <dl>
-                    <dt>Library</dt>
-                    <dd>{{ file.libraryName }}</dd>
-                    <dt>File name</dt>
-                    <dd>{{ file.name }}</dd>
-                    <dt>File size</dt>
-                    <dd>{{ file.size | sgFileSize }}</dd>
-                    <dt>Tags</dt>
-                    <dd class="tags">
-                      <mat-chip-list [selectable]="false" [disabled]="true">
-                        <mat-chip *ngFor="let tag of file.tags" (click)="searchTag(tag)">
-                          {{ tag }}
-                        </mat-chip>
-                      </mat-chip-list>
-                    </dd>
-                  </dl>
-                </section>
+                <ng-container *ngFor="let file of movie.files; index as i">
+                  <section class="file-info" *ngIf="isSelectedFile(i + 1) | async">
+                    <app-dl>
+                      <dt>Library</dt>
+                      <dd>{{ file.libraryName }}</dd>
+                      <dt>File name</dt>
+                      <dd>{{ file.name }}</dd>
+                      <dt>File size</dt>
+                      <dd>{{ file.size | sgFileSize }}</dd>
+                      <dt>Tags</dt>
+                      <dd class="tags">
+                        <mat-chip-list [selectable]="false" [disabled]="true">
+                          <mat-chip *ngFor="let tag of file.tags" (click)="searchTag(tag)">
+                            {{ tag }}
+                          </mat-chip>
+                        </mat-chip-list>
+                      </dd>
+                    </app-dl>
+                  </section>
+                </ng-container>
               </div>
             </div>
             <div class="cast" *ngIf="movie.details as details; else castLoading">
@@ -131,7 +142,16 @@ import {ActivatedRoute, Router} from '@angular/router';
               </div>
             </div>
             <ng-template #castLoading>
-              <!--TODO -->
+              <div class="cast">
+                <div class="people" *ngFor="let i of [0,1,2,3,4,5,6]">
+                  <div class="profile">
+                    <mat-icon>person</mat-icon>
+                  </div>
+                  <div class="name">
+                    <app-loading-bar></app-loading-bar>
+                  </div>
+                </div>
+              </div>
             </ng-template>
           </div>
         </div>
@@ -163,47 +183,48 @@ import {ActivatedRoute, Router} from '@angular/router';
       align-items: center;
     }
     .movie {
-      display: grid;
-      max-width: 1300px;
-      grid-template-columns: 300px auto;
-      grid-template-rows: auto 306px;
-      grid-template-areas:
-        "poster meta"
-        "cast cast";
-      justify-items: stretch;
-      padding: 2rem;
+      display: block;
       box-sizing: border-box;
+      max-width: 1360px;
+      padding: 60px;
+      min-width: 100%;
+    }
+    @media (min-width: 1360px) {
+      .movie {
+        min-width: 1360px;
+      }
     }
     .poster {
-      grid-area: poster;
-      min-height: 450px;
-      font-size: 0;
-    }
-    .meta {
-      grid-area: meta;
-      margin-left: 2rem;
-      max-width: 900px;
+      float: left;
+      width: 300px;
+      min-height: 465px;
+      margin-right: 30px;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
     }
     .title {
       font-size: 3rem;
-      margin: 0 0 .5rem 0;
+      margin: 0 0 5px 0;
       font-weight: 500;
+      line-height: 55px;
     }
     .tagline {
-      margin: 0;
+      margin: 0 0 15px 0;
       font-weight: 300;
-      font-size: 1.25rem;
+      font-size: 21px;
     }
     .year {
       font-size: 2rem;
-      vertical-align: middle;
       font-weight: 400;
     }
     .actions {
       display: flex;
       flex-direction: row;
       align-items: center;
-      margin: 1.5rem 0;
+      height: 60px;
+      margin-bottom: 15px;
     }
     .score {
       position: relative;
@@ -229,61 +250,17 @@ import {ActivatedRoute, Router} from '@angular/router';
       padding-left: 0.6rem;
       margin-left: 2rem;
     }
-    .overview {
-      font-weight: 300;
-      line-height: 1.5;
-      margin: 0
+    app-overview {
+      margin-bottom: 15px;
     }
-    .information header {
+    app-tabs {
+      margin-bottom: 11px;
+    }
+    app-tabs a {
+      min-width: 120px;
+    }
+    .info, .file-info {
       display: flex;
-      flex-direction: row;
-      margin: 1rem 0;
-      border-bottom: 1px solid;
-    }
-    .information h3 {
-      font-weight: 400;
-      font-size: 16px;
-      width: 8.5rem;
-      text-align: center;
-      margin: 0 0 -1px 0;
-      padding: .75rem 0;
-      cursor: pointer;
-    }
-    .information h3.selected {
-      border-bottom: 2px solid;
-    }
-    dl {
-      display: inline-flex;
-      flex-direction: row;
-      flex-wrap: wrap;
-      font-weight: 300;
-      margin: 0;
-      width: 100%;
-      min-height: 120px;
-    }
-    dl.left, dl.right {
-      width: 50%;
-    }
-    dt {
-      width: 9rem;
-      padding-right: 1rem;
-      box-sizing: border-box;
-      margin: .3rem 0;
-      text-align: right;
-      font-weight: 400;
-    }
-    dd {
-      width: calc(100% - 9rem);
-      margin: .3rem 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .right dt {
-      width: 7rem;
-    }
-    .right dd {
-      width: calc(100% - 7rem);
     }
     .tags {
       overflow: visible;
@@ -296,11 +273,13 @@ import {ActivatedRoute, Router} from '@angular/router';
       cursor: pointer;
     }
     .cast {
-      grid-area: cast;
       display: flex;
       flex-direction: row;
       justify-content: space-between;
-      margin-top: 3rem;
+      max-width: 1300px;
+      width: 100%;
+      height: 258px;
+      padding-top: 2rem;
     }
     .people {
       display: flex;
@@ -336,9 +315,6 @@ import {ActivatedRoute, Router} from '@angular/router';
     a.search:hover {
       text-decoration: underline;
     }
-    .hidden {
-      display: none;
-    }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -361,6 +337,18 @@ export class MovieComponent implements OnInit {
   ngOnInit() {
     this.movie$ = this.route.data.pipe(
       switchMap((data: { movie$: Observable<Movie> }) => data.movie$)
+    );
+  }
+
+  isSelectedInfo(): Observable<boolean> {
+    return this.route.paramMap.pipe(
+      map(params => params.get('file') === null)
+    );
+  }
+
+  isSelectedFile(index: number): Observable<boolean> {
+    return this.route.paramMap.pipe(
+      map(params => params.get('file') !== null && +params.get('file') === index)
     );
   }
 
@@ -430,7 +418,7 @@ export class MovieComponent implements OnInit {
   }
 
   searchYear(year: string) {
-    this.router.navigate(['/', {outlets: {movie: null}}], {queryParamsHandling: 'preserve'}).then(
+    this.router.navigate(['/', {outlets: {details: null}}], {queryParamsHandling: 'preserve'}).then(
       () => {
         this.filters.clear();
         this.filters.setYears([year]);
@@ -439,7 +427,7 @@ export class MovieComponent implements OnInit {
   }
 
   searchLanguage(language: string) {
-    this.router.navigate(['/', {outlets: {movie: null}}], {queryParamsHandling: 'preserve'}).then(
+    this.router.navigate(['/', {outlets: {details: null}}], {queryParamsHandling: 'preserve'}).then(
       () => {
         this.filters.clear();
         this.filters.setLanguages([language]);
@@ -448,7 +436,7 @@ export class MovieComponent implements OnInit {
   }
 
   searchGenre(genre: string) {
-    this.router.navigate(['/', {outlets: {movie: null}}], {queryParamsHandling: 'preserve'}).then(
+    this.router.navigate(['/', {outlets: {details: null}}], {queryParamsHandling: 'preserve'}).then(
       () => {
         this.filters.clear();
         this.filters.setGenres([genre]);
@@ -457,7 +445,7 @@ export class MovieComponent implements OnInit {
   }
 
   searchPeople(person: string) {
-    this.router.navigate(['/', {outlets: {movie: null}}], {queryParamsHandling: 'preserve'}).then(
+    this.router.navigate(['/', {outlets: {details: null}}], {queryParamsHandling: 'preserve'}).then(
       () => {
         this.filters.clear();
         this.filters.setSearch(person);
@@ -466,7 +454,7 @@ export class MovieComponent implements OnInit {
   }
 
   searchTag(tag: string) {
-    this.router.navigate(['/', {outlets: {movie: null}}], {queryParamsHandling: 'preserve'}).then(
+    this.router.navigate(['/', {outlets: {details: null}}], {queryParamsHandling: 'preserve'}).then(
       () => {
         this.filters.clear();
         this.filters.setTags([tag]);
