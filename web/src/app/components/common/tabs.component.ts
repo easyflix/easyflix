@@ -60,8 +60,6 @@ import {map, takeWhile, tap} from 'rxjs/operators';
 })
 export class TabsComponent implements AfterContentInit, OnDestroy {
 
-  scrollButtonsEnabled = false;
-
   @ContentChild(forwardRef(() => MatTabNav), { static: true })
   tabNav: MatTabNav;
 
@@ -75,20 +73,21 @@ export class TabsComponent implements AfterContentInit, OnDestroy {
   private containerEl: HTMLElement;
   private currentOffset = 0;
   private itemWidth;
+  private currentFocusIndex = 0;
 
-  private currentIndex;
-  get currentFocusIndex() {
-    return this.currentIndex;
-  }
-  set currentFocusIndex(value: number) {
-    this.currentIndex = value;
-    this.updateLinksTabIndexes();
+  get scrollButtonsEnabled() {
+    if (this.tabNavEl && this.containerEl) {
+      const tabNavWidth = this.tabNavEl.offsetWidth;
+      const containerWidth = this.containerEl.offsetWidth;
+      return tabNavWidth > containerWidth;
+    } else {
+      return false;
+    }
   }
 
   get prevDisabled() {
     return this.currentOffset >= 0;
   }
-
   get nextDisabled() {
     const a = this.container.nativeElement as HTMLElement;
     const b = this.tabNav._elementRef.nativeElement as HTMLElement;
@@ -109,18 +108,21 @@ export class TabsComponent implements AfterContentInit, OnDestroy {
     this.tabNavEl.style.minWidth = '100%';
 
     // Update and register to tabLinks changes
-    this.update();
+    this.updateItemWidth();
+    this.updateTabIndexes();
     this.subscription.add(this.tabLinks.changes.pipe(
-      tap(() => this.update())
+      tap(() => setTimeout(() => {
+        this.updateItemWidth();
+        this.updateTabIndexes();
+        this.cdr.markForCheck();
+      }))
     ).subscribe());
 
-    // Disable tab focus on MatTabLinks
-    this.currentFocusIndex = 0;
-
-    // Scroll to the currently selected tab
+    // Scroll to the currently selected tab and disable tab focus selectively
     this.tabLinks.find((tab, index) => {
       if (tab.active) {
         this.currentFocusIndex = index;
+        this.updateTabIndexes();
         timer(0, 400).pipe(
           map(() => {
             if (!this.isElementVisible(tab._elementRef.nativeElement)) {
@@ -136,14 +138,13 @@ export class TabsComponent implements AfterContentInit, OnDestroy {
     });
   }
 
-  update() {
-    // Enable scroll buttons if necessary
-    const tabNavWidth = this.tabNavEl.offsetWidth;
-    const containerWidth = this.containerEl.offsetWidth;
-    this.scrollButtonsEnabled = tabNavWidth > containerWidth;
-
+  updateItemWidth() {
     // Update itemWidth, making the assumption that all links have the same width
-    this.itemWidth = this.tabLinks.first._elementRef.nativeElement.offsetWidth;
+    if (this.tabLinks.first) {
+      this.itemWidth = this.tabLinks.first._elementRef.nativeElement.offsetWidth;
+    } else {
+      this.itemWidth = 0;
+    }
   }
 
   scrollNext(): void {
@@ -152,43 +153,36 @@ export class TabsComponent implements AfterContentInit, OnDestroy {
     const t2 = (t1 % this.itemWidth) - t1;
     this.currentOffset = Math.max(t2, d1);
     this.tabNavEl.style.transform = `translate(${this.currentOffset}px)`;
-    this.cdr.markForCheck();
   }
 
   scrollPrev(): void {
     const t1 = Math.floor((this.currentOffset + this.containerEl.clientWidth) / this.itemWidth) * this.itemWidth;
     this.currentOffset = Math.min(t1, 0);
     this.tabNavEl.style.transform = `translate(${this.currentOffset}px)`;
-    this.cdr.markForCheck();
   }
 
   @HostListener('keydown.arrowDown')
   @HostListener('keydown.arrowRight')
   focusNext(): void {
-    const nextIndex = this.currentFocusIndex + 1;
-    const links = this.tabLinks.toArray();
-    if (links[nextIndex]) {
-      const nextLink = links[nextIndex]._elementRef.nativeElement as HTMLElement;
-      nextLink.focus({ preventScroll: true });
-      this.currentFocusIndex = nextIndex;
-      if (!this.isElementVisible(nextLink)) {
-        this.scrollNext();
-      }
-    }
+    this.focus(this.currentFocusIndex + 1);
   }
 
   @HostListener('keydown.arrowUp')
   @HostListener('keydown.arrowLeft')
   focusPrev(): void {
-    const prevIndex = this.currentFocusIndex - 1;
+    this.focus(this.currentFocusIndex - 1);
+  }
+
+  focus(index: number) {
     const links = this.tabLinks.toArray();
-    if (links[prevIndex]) {
-      const prevLink = links[prevIndex]._elementRef.nativeElement as HTMLElement;
+    if (links[index]) {
+      const prevLink = links[index]._elementRef.nativeElement as HTMLElement;
       prevLink.focus({ preventScroll: true });
-      this.currentFocusIndex = prevIndex;
       if (!this.isElementVisible(prevLink)) {
-        this.scrollPrev();
+        index < this.currentFocusIndex ? this.scrollPrev() : this.scrollNext();
       }
+      this.currentFocusIndex = index;
+      this.updateTabIndexes();
     }
   }
 
@@ -198,11 +192,9 @@ export class TabsComponent implements AfterContentInit, OnDestroy {
     return c1 && c2;
   }
 
-  updateLinksTabIndexes(): void {
+  updateTabIndexes(): void {
     this.tabLinks.forEach((link, index) => {
-      setTimeout(() =>
-        link._elementRef.nativeElement.tabIndex = index === this.currentFocusIndex ? 0 : -1
-      );
+      link._elementRef.nativeElement.tabIndex = index === this.currentFocusIndex ? 0 : -1;
     });
   }
 
