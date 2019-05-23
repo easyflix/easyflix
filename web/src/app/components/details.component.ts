@@ -120,7 +120,8 @@ export class DetailsComponent implements OnInit, OnDestroy {
     const shows$ = this.shows.getAll().pipe(
       filter(shows => shows.length > 0)
     );
-    const id$ = () => this.route.firstChild.paramMap.pipe(
+    const id$ = this.route.url.pipe(
+      switchMap(() => this.route.firstChild.paramMap),
       map(params => +params.get('id'))
     );
     const items$: Observable<{id: number}[]> = this.type === 'movie' ? movies$ : shows$;
@@ -131,12 +132,12 @@ export class DetailsComponent implements OnInit, OnDestroy {
     };
 
     this.nextId = items$.pipe(
-      switchMap(array => id$().pipe(
+      switchMap(array => id$.pipe(
         map(fn(array, 1))
       ))
     );
     this.prevId = items$.pipe(
-      switchMap(movies => id$().pipe(
+      switchMap(movies => id$.pipe(
         map(fn(movies, -1))
       ))
     );
