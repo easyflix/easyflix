@@ -76,52 +76,8 @@ import {ActivatedRoute, Router} from '@angular/router';
       </div>
     </ng-container>
   `,
+  styleUrls: ['../styles/details.scss'],
   styles: [`
-    :host {
-      display: flex;
-      flex-direction: column;
-      flex-grow: 1;
-    }
-    .container {
-      background-size: cover;
-      background-position: 50% 50%;
-      display: flex;
-      flex-direction: column;
-      flex-grow: 1;
-    }
-    .container:focus {
-      outline: none;
-    }
-    .filter {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      flex-grow: 1;
-      justify-content: center;
-      align-items: center;
-    }
-    .show {
-      display: block;
-      box-sizing: border-box;
-      max-width: 1360px;
-      padding: 60px;
-      min-width: 100%;
-    }
-    @media (min-width: 1360px) {
-      .show {
-        min-width: 1360px;
-      }
-    }
-    .poster {
-      float: left;
-      width: 300px;
-      min-height: 465px;
-      margin-right: 30px;
-      position: relative;
-      z-index: 1;
-      display: flex;
-      align-items: center;
-    }
     .poster img {
       position: absolute;
       transition: opacity 300ms ease-in-out;
@@ -131,64 +87,6 @@ import {ActivatedRoute, Router} from '@angular/router';
     .poster img.visible {
       opacity: 1 !important;
       height: unset;
-    }
-    .title {
-      font-size: 3rem;
-      margin: 0 0 15px 0;
-      font-weight: 500;
-      line-height: 55px;
-    }
-    .year {
-      font-size: 2rem;
-      font-weight: 400;
-    }
-    .actions {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      height: 60px;
-      margin-bottom: 15px;
-    }
-    .score {
-      position: relative;
-    }
-    .score span {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 60px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .user-score {
-      display: inline-block;
-      font-size: 14px;
-      font-weight: 500;
-      margin-left: 0.5rem;
-    }
-    .play {
-      padding-left: 0.6rem;
-      margin-left: 2rem;
-    }
-    app-overview {
-      margin-bottom: 15px;
-    }
-    app-tabs {
-      margin-bottom: 11px;
-    }
-    app-tabs a {
-      min-width: 120px;
-    }
-    .tabs-content {
-      position: relative;
-    }
-    a.search {
-      cursor: pointer;
-    }
-    a.search:hover {
-      text-decoration: underline;
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush

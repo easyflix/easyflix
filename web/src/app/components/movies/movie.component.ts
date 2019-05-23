@@ -110,7 +110,7 @@ import {ActivatedRoute, Router} from '@angular/router';
                   </app-dl>
                 </section>
                 <ng-container *ngFor="let file of movie.files; index as i">
-                  <section class="file-info" *ngIf="isSelectedFile(i + 1) | async">
+                  <section class="info" *ngIf="isSelectedFile(i + 1) | async">
                     <app-dl>
                       <dt>Library</dt>
                       <dd>{{ file.libraryName }}</dd>
@@ -158,162 +158,23 @@ import {ActivatedRoute, Router} from '@angular/router';
       </div>
     </ng-container>
   `,
+  styleUrls: [
+    '../styles/details.scss',
+    '../styles/cast.scss'
+  ],
   styles: [`
-    :host {
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-    }
-    .container {
-      background-size: cover;
-      background-position: 50% 50%;
-      display: flex;
-      flex-direction: column;
-      flex-grow: 1;
-    }
-    .container:focus {
-      outline: none;
-    }
-    .filter {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      flex-grow: 1;
-      justify-content: center;
-      align-items: center;
-    }
-    .movie {
-      display: block;
-      box-sizing: border-box;
-      max-width: 1360px;
-      padding: 60px;
-      min-width: 100%;
-    }
-    @media (min-width: 1360px) {
-      .movie {
-        min-width: 1360px;
-      }
-    }
-    .poster {
-      float: left;
-      width: 300px;
-      min-height: 465px;
-      margin-right: 30px;
-      position: relative;
-      z-index: 1;
-      display: flex;
-      align-items: center;
-    }
-    .title {
-      font-size: 3rem;
-      margin: 0 0 5px 0;
-      font-weight: 500;
-      line-height: 55px;
-    }
     .tagline {
       margin: 0 0 15px 0;
       font-weight: 300;
       font-size: 21px;
     }
-    .year {
-      font-size: 2rem;
-      font-weight: 400;
-    }
-    .actions {
+    .info {
       display: flex;
-      flex-direction: row;
-      align-items: center;
-      height: 60px;
-      margin-bottom: 15px;
-    }
-    .score {
-      position: relative;
-    }
-    .score span {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 55px;
-      height: 55px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .user-score {
-      display: inline-block;
-      width: 2.4rem;
-      font-size: 14px;
-      font-weight: 500;
-      margin-left: 0.5rem;
-    }
-    .play {
-      padding-left: 0.6rem;
-      margin-left: 2rem;
-    }
-    app-overview {
-      margin-bottom: 15px;
-    }
-    app-tabs {
-      margin-bottom: 11px;
-    }
-    app-tabs a {
-      min-width: 120px;
-    }
-    .info, .file-info {
-      display: flex;
-    }
-    .tags {
-      overflow: visible;
     }
     .tags mat-chip {
-      margin-top: 0;
-      margin-bottom: 0;
       opacity: 1 !important;
       font-weight: 300;
       cursor: pointer;
-    }
-    .cast {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      max-width: 1300px;
-      width: 100%;
-      height: 258px;
-      padding-top: 2rem;
-    }
-    .people {
-      display: flex;
-      flex-direction: column;
-      width: 140px; /* 185 */
-    }
-    .profile {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 210px; /* 278 */
-      background-size: cover;
-      background-position: 50% 50%;
-    }
-    .profile mat-icon {
-      font-size: 6rem;
-      height: 6rem;
-      width: 6rem;
-    }
-    .name {
-      font-weight: 400;
-      font-size: 14px;
-      height: 3rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 0 .5rem;
-    }
-    a.search {
-      cursor: pointer;
-    }
-    a.search:hover {
-      text-decoration: underline;
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush

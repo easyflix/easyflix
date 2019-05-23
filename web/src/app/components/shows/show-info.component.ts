@@ -87,49 +87,13 @@ import {FilterService} from '@app/services/filter.service';
       </div>
     </ng-template>
   `,
+  styleUrls: ['../styles/cast.scss'],
   styles: [`
     :host {
       display: block;
     }
     .info {
       display: flex;
-    }
-    .cast {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      max-width: 1300px;
-      width: 100%;
-      height: 258px;
-      padding-top: 2rem;
-    }
-    .people {
-      display: flex;
-      flex-direction: column;
-      width: 140px; /* 185 */
-    }
-    .profile {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 210px; /* 278 */
-      background-size: cover;
-      background-position: 50% 50%;
-    }
-    .profile mat-icon {
-      font-size: 6rem;
-      height: 6rem;
-      width: 6rem;
-    }
-    .name {
-      font-weight: 400;
-      font-size: 14px;
-      height: 3rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 0 .5rem;
     }
     a.search {
       cursor: pointer;
