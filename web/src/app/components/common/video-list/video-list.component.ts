@@ -33,8 +33,8 @@ export class VideoListComponent implements OnInit, OnDestroy {
   @HostListener('window:resize')
   resize() {}
 
-  @HostListener('keydown.tab')
-  tab() {
+  @HostListener('keydown.tab', ['$event'])
+  tab(event: KeyboardEvent) {
     const target = event.target as HTMLElement;
     const next = target.nextElementSibling as HTMLElement;
     if (next) {
@@ -47,7 +47,7 @@ export class VideoListComponent implements OnInit, OnDestroy {
   }
 
   @HostListener('keydown.shift.tab', ['$event'])
-  altTab(event) {
+  altTab(event: KeyboardEvent) {
     const target = event.target as HTMLElement;
     const previous = target.previousElementSibling as HTMLElement;
     if (previous) {
@@ -87,7 +87,7 @@ export class VideoListComponent implements OnInit, OnDestroy {
   }
 
   isItemVisible(item: HTMLElement): boolean {
-    const c1 = item.offsetLeft + item.offsetWidth + this.translation < this.root.nativeElement.offsetWidth;
+    const c1 = item.offsetLeft + item.offsetWidth + this.translation <= this.root.nativeElement.offsetWidth;
     const c2 = item.offsetLeft + this.translation >= 0;
     return c1 && c2;
   }
