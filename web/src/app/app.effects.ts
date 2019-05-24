@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {HttpErrorResponse} from '@angular/common/http';
 import {Action} from '@ngrx/store';
 import {Actions, Effect, ofType} from '@ngrx/effects';
-import {asapScheduler, Observable, of, scheduled} from 'rxjs';
+import {asapScheduler, EMPTY, Observable, of, scheduled} from 'rxjs';
 import {catchError, map, skip, switchMap, tap} from 'rxjs/operators';
 
 import {FilesActionTypes, LoadFiles, LoadFilesError, LoadFilesSuccess} from '@app/actions/files.actions';
@@ -29,7 +29,7 @@ import {Configuration} from '@app/models/configuration';
 import {LoadShowsError, LoadShowsSuccess, ShowsActionTypes} from '@app/actions/shows.actions';
 import {Show} from '@app/models/show';
 import {MovieFilters, MovieFiltersService} from '@app/services/movie-filters.service';
-import {ActivatedRoute, Router} from '@angular/router';
+import {ActivatedRoute, NavigationEnd, Router} from '@angular/router';
 import {ShowFilters, ShowFiltersService} from '@app/services/show-filters.service';
 
 @Injectable()
@@ -193,9 +193,11 @@ export class AppEffects {
       )
   );
 
+  // TODO set filters to default when param is null
   @Effect({ dispatch: false })
   moviesUrl2Filters$ =
     this.route.queryParamMap.pipe(
+      skip(1),
       map(params => {
         const search = params.get('movie_search');
         const rating = params.get('movie_rating');
@@ -220,6 +222,8 @@ export class AppEffects {
         }
         if (genres !== null) {
           this.movieFilters.setGenres(genres.split(','));
+        } else {
+          this.movieFilters.setGenres([]);
         }
       })
     );
@@ -247,9 +251,11 @@ export class AppEffects {
       )
     );
 
+  // TODO set filters to default when param is null
   @Effect({ dispatch: false })
   showsUrl2Filters$ =
     this.route.queryParamMap.pipe(
+      skip(1),
       map(params => {
         const search = params.get('show_search');
         const rating = params.get('show_rating');
@@ -286,6 +292,8 @@ export class AppEffects {
     private showFilters: ShowFiltersService,
     private router: Router,
     private route: ActivatedRoute
-  ) {}
+  ) {
+
+  }
 
 }

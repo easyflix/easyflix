@@ -13,7 +13,7 @@
   }
 
   mat-sidenav {
-    @include mat-elevation(2);
+    @include mat-elevation(4);
   }
 
   app-sidenav {
@@ -42,7 +42,7 @@
 
   app-main {
     > header {
-      @include mat-elevation(2);
+      @include mat-elevation(3);
       background-color: mat-color($background, app-bar);
       a {
         color: mat-color($foreground, text);
@@ -54,7 +54,7 @@
     }
   }
 
-  app-filters {
+  app-filters-movies, app-filters-shows {
     input {
       @include cdk-text-field-autofill-color(transparent, mat-color($foreground, text))
     }
@@ -170,6 +170,15 @@
     }
     .mat-progress-bar-fill::after {
       background-color: mat-color($foreground, divider, 0.05) !important;
+    }
+  }
+
+  app-file-selection {
+    .size {
+      color: mat-color($foreground, secondary-text);
+    }
+    .file:focus, .file:focus .size {
+      color: mat-color($primary) !important;
     }
   }
 

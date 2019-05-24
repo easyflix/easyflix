@@ -36,8 +36,9 @@ export class ShowFiltersService {
     return show.vote_average * 10 >= (filters.rating || 0);
   }
 
+  // TODO should check each season
   static isWithinYears(show: Show, filters: ShowFilters): boolean {
-    return filters.years.length === 0 || filters.years.includes(show.first_air_date.substring(0, 4)); // TODO
+    return filters.years.length === 0 || filters.years.includes(show.first_air_date.substring(0, 4));
   }
 
   static isWithinLanguages(show: Show, filters: ShowFilters): boolean {

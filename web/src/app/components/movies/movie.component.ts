@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
-import {Movie} from '@app/models';
+import {LibraryFile, Movie} from '@app/models';
 import {DomSanitizer, SafeStyle, SafeUrl} from '@angular/platform-browser';
 import {CoreService} from '@app/services/core.service';
 import {EMPTY, Observable} from 'rxjs';
@@ -9,6 +9,8 @@ import {VideoService} from '@app/services/video.service';
 import {FilesService} from '@app/services/files.service';
 import {MovieFiltersService} from '@app/services/movie-filters.service';
 import {ActivatedRoute, Router} from '@angular/router';
+import {FileSelectionComponent} from '@app/components/dialogs/file-selection.component';
+import {MatDialog} from '@angular/material';
 
 @Component({
   selector: 'app-movie',
@@ -190,6 +192,7 @@ export class MovieComponent implements OnInit {
     private files: FilesService,
     private video: VideoService,
     private filters: MovieFiltersService,
+    private dialog: MatDialog,
     private route: ActivatedRoute,
     private router: Router,
     private sanitizer: DomSanitizer,
@@ -272,8 +275,24 @@ export class MovieComponent implements OnInit {
     return crew.map(director => director.name);
   }
 
+  // TODO check the file parameter to select a file
   play(movie: Movie) {
-    this.files.getByPath(movie.files[0].path).subscribe( // TODO present a dialog to select file to play
+    let file$;
+    if (movie.files.length > 1) {
+      const fileRef = this.dialog.open(FileSelectionComponent, {
+        minWidth: '650px',
+        maxWidth: '85%',
+        data: {files: movie.files}
+      });
+      file$ = fileRef.afterClosed().pipe(
+        switchMap((file: LibraryFile) =>
+          file ? this.files.getByPath(file.path) : EMPTY
+        )
+      );
+    } else {
+      file$ = this.files.getByPath(movie.files[0].path);
+    }
+    file$.subscribe(
       file => this.video.playVideo(file)
     );
   }

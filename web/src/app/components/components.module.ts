@@ -31,6 +31,7 @@ import {DescriptionListComponent} from './common/description.component';
 import {TabsComponent} from './common/tabs.component';
 import {MovieFiltersComponent} from './dialogs/movie-filters.component';
 import {ShowFiltersComponent} from './dialogs/show-filters.component';
+import {FileSelectionComponent} from './dialogs/file-selection.component';
 
 const COMPONENTS = [
   FileListComponent,
@@ -63,7 +64,8 @@ const COMPONENTS = [
   DescriptionListComponent,
   TabsComponent,
   MovieFiltersComponent,
-  ShowFiltersComponent
+  ShowFiltersComponent,
+  FileSelectionComponent
 ];
 
 @NgModule({
@@ -76,7 +78,8 @@ const COMPONENTS = [
     LibraryCreationDialogComponent,
     ConfirmDialogComponent,
     MovieFiltersComponent,
-    ShowFiltersComponent
+    ShowFiltersComponent,
+    FileSelectionComponent
   ]
 })
 export class ComponentsModule {}

@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {CoreService} from '@app/services/core.service';
 import {MoviesService} from '@app/services/movies.service';
 import {EMPTY, Observable} from 'rxjs';
-import {Movie} from '@app/models';
+import {LibraryFile, Movie} from '@app/models';
 import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
 import {filter, map, switchMap, take} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
@@ -11,6 +11,7 @@ import {MovieFiltersService} from '@app/services/movie-filters.service';
 import {Router} from '@angular/router';
 import {MovieFiltersComponent} from '@app/components/dialogs/movie-filters.component';
 import {MatDialog} from '@angular/material';
+import {FileSelectionComponent} from '@app/components/dialogs/file-selection.component';
 
 @Component({
   selector: 'app-movies',
@@ -135,7 +136,22 @@ export class MoviesComponent implements OnInit {
   }
 
   play(movie: Movie) {
-    this.files.getByPath(movie.files[0].path).subscribe( // TODO present a dialog with file choice
+    let file$;
+    if (movie.files.length > 1) {
+      const fileRef = this.dialog.open(FileSelectionComponent, {
+        minWidth: '650px',
+        maxWidth: '85%',
+        data: {files: movie.files}
+      });
+      file$ = fileRef.afterClosed().pipe(
+        switchMap((file: LibraryFile) =>
+          file ? this.files.getByPath(file.path) : EMPTY
+        )
+      );
+    } else {
+      file$ = this.files.getByPath(movie.files[0].path);
+    }
+    file$.subscribe(
       file => this.video.playVideo(file)
     );
   }
