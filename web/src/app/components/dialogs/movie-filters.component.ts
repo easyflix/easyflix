@@ -100,23 +100,12 @@ export class MovieFiltersComponent implements OnInit, OnDestroy {
     private core: CoreService,
     private movies: MoviesService,
     private filters: MovieFiltersService,
-    private router: Router,
-    private route: ActivatedRoute,
     @Inject(MAT_DIALOG_DATA) public data: ConfirmData
   ) {}
 
   ngOnInit(): void {
 
-    this.showClear$ = this.filters.getFilters().pipe(
-      map(filters => filters.tags.length > 0 ||
-        filters.rating !== 0 ||
-        filters.languages.length > 0 ||
-        filters.years.length > 0 ||
-        filters.search !== '' ||
-        filters.tags.length > 0 ||
-        filters.genres.length > 0
-      )
-    );
+    this.showClear$ = this.filters.hasAppliedFilters();
 
     this.ratings$ = this.filters.getFilters().pipe(
       switchMap(filters => this.movies.getAll().pipe(
@@ -158,7 +147,9 @@ export class MovieFiltersComponent implements OnInit, OnDestroy {
           MovieFiltersService.isWithinGenres(movie, filters)
         )),
         // TODO get other files tags
-        map(movies => movies.map(movie => movie.files[0].tags).reduce((previous, current) => [...previous, ...current], [])),
+        map(movies => movies.map(movie => movie.files[0].tags)
+          .reduce((previous, current) => [...previous, ...current], [])
+        ),
         map(tags => Array.from(new Set(tags)).sort())
       ))
     );

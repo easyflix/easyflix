@@ -2,18 +2,26 @@ import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {CoreService} from '@app/services/core.service';
 import {EMPTY, Observable} from 'rxjs';
 import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
-import {filter, map, take} from 'rxjs/operators';
+import {filter, map, switchMap, take} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
 import {VideoService} from '@app/services/video.service';
-import {MovieFiltersService} from '@app/services/movie-filters.service';
 import {Router} from '@angular/router';
 import {ShowsService} from '@app/services/shows.service';
 import {Show} from '@app/models/show';
+import {ShowFiltersService} from '@app/services/show-filters.service';
+import {ShowFiltersComponent} from '@app/components/dialogs/show-filters.component';
+import {MatDialog} from '@angular/material';
 
 @Component({
   selector: 'app-shows',
   template: `
-    <nav>
+    <button mat-icon-button class="filters" (click)="showFiltersDialog()" *ngIf="!(hasAppliedFilters$ | async)">
+      <mat-icon>filter_list</mat-icon>
+    </button>
+    <button mat-mini-fab color="accent" class="filters" (click)="showFiltersDialog()" *ngIf="hasAppliedFilters$ | async">
+      <mat-icon>filter_list</mat-icon>
+    </button>
+    <section class="shows">
       <div class="item"
            *ngFor="let show of shows$ | async; trackBy: trackByFunc" tabindex="0"
            (click)="openShow(show)"
@@ -24,7 +32,7 @@ import {Show} from '@app/models/show';
           <mat-icon>play_arrow</mat-icon>
         </button>-->
       </div>
-    </nav>
+    </section>
   `,
   styles: [`
     :host {
@@ -33,7 +41,13 @@ import {Show} from '@app/models/show';
       flex-direction: column;
       overflow: hidden;
     }
-    nav {
+    .filters {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 11;
+    }
+    .shows {
       display: flex;
       flex-direction: row;
       flex-wrap: wrap;
@@ -81,32 +95,26 @@ import {Show} from '@app/models/show';
 export class ShowsComponent implements OnInit {
 
   shows$: Observable<Show[]>;
+  hasAppliedFilters$: Observable<boolean>;
 
   constructor(
     private core: CoreService,
     private files: FilesService,
     private video: VideoService,
     private shows: ShowsService,
-    private filters: MovieFiltersService,
+    private filters: ShowFiltersService,
     private router: Router,
+    private dialog: MatDialog,
     private sanitizer: DomSanitizer,
   ) {
 
   }
 
   ngOnInit() {
-    this.shows$ = this.shows.getAll(); /*.pipe(
-      switchMap(movies => this.filters.getFilters().pipe(
-        map(filters => movies.filter(movie =>
-          FiltersComponent.isWithinSearch(movie, filters) &&
-          FiltersComponent.isWithinRating(movie, filters) &&
-          FiltersComponent.isWithinTags(movie, filters) &&
-          FiltersComponent.isWithinLanguages(movie, filters) &&
-          FiltersComponent.isWithinYears(movie, filters) &&
-          FiltersComponent.isWithinGenres(movie, filters)
-        ))
-      ))
-    );*/
+    this.shows$ = this.shows.getAll().pipe(
+      switchMap(shows => this.filters.filterShows(shows))
+    );
+    this.hasAppliedFilters$ = this.filters.hasAppliedFilters();
   }
 
   getStyle(show: Show): Observable<SafeStyle> {
@@ -138,6 +146,12 @@ export class ShowsComponent implements OnInit {
       ['/', { outlets: { details: ['show', show.id] } }],
       { queryParamsHandling: 'preserve' }
     );
+  }
+
+  showFiltersDialog() {
+    this.dialog.open(ShowFiltersComponent, {
+      maxWidth: '750px'
+    });
   }
 
 }

@@ -1,15 +1,14 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {CoreService} from '@app/services/core.service';
 import {MoviesService} from '@app/services/movies.service';
-import {Observable} from 'rxjs';
+import {EMPTY, Observable} from 'rxjs';
 import {Movie} from '@app/models';
 import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
 import {filter, map, switchMap, take} from 'rxjs/operators';
-import {Configuration} from '@app/models/configuration';
 import {FilesService} from '@app/services/files.service';
 import {VideoService} from '@app/services/video.service';
 import {MovieFiltersService} from '@app/services/movie-filters.service';
-import {ActivatedRoute, Router} from '@angular/router';
+import {Router} from '@angular/router';
 import {MovieFiltersComponent} from '@app/components/dialogs/movie-filters.component';
 import {MatDialog} from '@angular/material';
 
@@ -28,7 +27,7 @@ import {MatDialog} from '@angular/material';
            (click)="openMovie(movie)"
            (keydown.enter)="openMovie(movie)"
            (keydown.space)="openMovie(movie)">
-        <div class="poster" [style]="getStyle(movie)"></div>
+        <div class="poster" [style]="getStyle(movie) | async"></div>
         <button class="play" mat-mini-fab color="primary" (click)="$event.stopPropagation(); play(movie);" tabindex="-1">
           <mat-icon>play_arrow</mat-icon>
         </button>
@@ -98,8 +97,6 @@ export class MoviesComponent implements OnInit {
   movies$: Observable<Movie[]>;
   hasAppliedFilters$: Observable<boolean>;
 
-  config: Configuration;
-
   constructor(
     private core: CoreService,
     private files: FilesService,
@@ -107,32 +104,29 @@ export class MoviesComponent implements OnInit {
     private movies: MoviesService,
     private filters: MovieFiltersService,
     private router: Router,
-    private route: ActivatedRoute,
     private dialog: MatDialog,
     private sanitizer: DomSanitizer,
-    private cdr: ChangeDetectorRef
   ) {
-    this.core.getConfig().pipe(filter(s => !!s), take(1)).subscribe(
-      conf => {
-        this.config = conf;
-        this.cdr.markForCheck();
-      }
-    );
   }
 
   ngOnInit() {
-    this.showFiltersDialog();
     this.movies$ = this.movies.getAll().pipe(
       switchMap(movies => this.filters.filterMovies(movies))
     );
     this.hasAppliedFilters$ = this.filters.hasAppliedFilters();
   }
 
-  getStyle(movie: Movie): SafeStyle {
-    if (this.config !== undefined) {
-      return this.sanitizer.bypassSecurityTrustStyle(
-        `background-image: url(${this.config.images.secure_base_url}w300${movie.poster})`
+  getStyle(movie: Movie): Observable<SafeStyle> {
+    if (movie.poster) {
+      return this.core.getConfig().pipe(
+        filter(s => !!s),
+        take(1),
+        map(config => this.sanitizer.bypassSecurityTrustStyle(
+          `background-image: url(${config.images.secure_base_url}w300${movie.poster})`
+        ))
       );
+    } else {
+      return EMPTY;
     }
   }
 

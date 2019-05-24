@@ -27,6 +27,7 @@ import {MovieFiltersService} from '@app/services/movie-filters.service';
 import {ShowsService} from '@app/services/shows.service';
 import {CustomRouteReuseStrategy} from '@app/route-reuse.strategy';
 import {KeyboardService} from '@app/services/keyboard.service';
+import {ShowFiltersService} from '@app/services/show-filters.service';
 
 @NgModule({
   declarations: [
@@ -62,6 +63,7 @@ import {KeyboardService} from '@app/services/keyboard.service';
     LibrariesLoadedGuard,
     HttpSocketClientService,
     MovieFiltersService,
+    ShowFiltersService,
     KeyboardService
   ],
   bootstrap: [AppComponent]
