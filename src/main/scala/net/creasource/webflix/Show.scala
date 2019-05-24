@@ -16,7 +16,7 @@ case class Show(
     backdrop: Option[String],
     overview: String,
     vote_average: Float,
-    files: Seq[LibraryFile],
+    files: Set[LibraryFile],
     details: Option[Show.Details],
     episodes: List[Episode]) {
 

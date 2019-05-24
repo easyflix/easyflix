@@ -75,7 +75,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
 
   val movieActor: ActorRef = context.actorOf(Props(new Actor {
     var movies: Map[Int, Movie] = Map.empty
-    var movieSearches: Map[MovieSearchContext, Seq[LibraryFile]] = Map.empty
+    var movieSearches: Map[MovieSearchContext, Set[LibraryFile]] = Map.empty
     override def receive: Receive = {
       // Public actor API
       case GetMovies => sender() ! movies.values.toSeq
@@ -89,10 +89,10 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
         val searchContext = MovieSearchContext(name, year)
         movieSearches.get(searchContext) match {
           case Some(files) =>
-            movieSearches += searchContext -> (files :+ file)
+            movieSearches += searchContext -> (files + file)
           case None =>
             tmdbActor ! createRequest(searchContext)
-            movieSearches += searchContext -> Seq(file)
+            movieSearches += searchContext -> Set(file)
         }
       case (searchContext: MovieSearchContext, result: tmdb.SearchMovies) =>
         movieSearches.get(searchContext).foreach(files =>
@@ -141,7 +141,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
 
   val tvActor: ActorRef = context.actorOf(Props(new Actor {
     var shows: Map[Int, Show] = Map.empty
-    var showSearches: Map[TVSearchContext, Seq[LibraryFile]] = Map.empty
+    var showSearches: Map[TVSearchContext, Set[LibraryFile]] = Map.empty
     override def receive: Receive = {
       // Public actor API
       case GetShows => sender() ! shows.values.toSeq
@@ -155,10 +155,10 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
         val searchContext = TVSearchContext(name)
         showSearches.get(searchContext) match {
           case Some(files) =>
-            showSearches += searchContext -> (files :+ file)
+            showSearches += searchContext -> (files + file)
           case None =>
             tmdbActor ! createRequest(searchContext)
-            showSearches += searchContext -> Seq(file)
+            showSearches += searchContext -> Set(file)
         }
       case (searchContext: TVSearchContext, result: tmdb.SearchTVShows) =>
         showSearches.get(searchContext).foreach(files =>
@@ -189,7 +189,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
             show.files.map(
               file => TVEpisodeContext(show.id, file.seasonNumber.get, file.episodeNumber.get)
             )
-            .distinct
+            // .distinct
             // Filter episodes for which we already have a result
             .filter(context => !shows.values
               .filter(_.id == show.id)

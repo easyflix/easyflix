@@ -14,7 +14,7 @@ case class Movie(
     backdrop: Option[String],
     overview: String,
     vote_average: Float,
-    files: Seq[LibraryFile],
+    files: Set[LibraryFile],
     details: Option[Movie.Details]) {
 
   def withDetails(details: Movie.Details): Movie = copy(details = Some(details))
