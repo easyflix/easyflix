@@ -8,13 +8,17 @@ import {filter, map, switchMap, take} from 'rxjs/operators';
 import {Configuration} from '@app/models/configuration';
 import {FilesService} from '@app/services/files.service';
 import {VideoService} from '@app/services/video.service';
-import {FilterService} from '@app/services/filter.service';
-import {FiltersComponent} from '@app/components/filters.component';
+import {MovieFiltersService} from '@app/services/movie-filters.service';
 import {Router} from '@angular/router';
+import {MovieFiltersComponent} from '@app/components/dialogs/movie-filters.component';
+import {MatDialog} from '@angular/material';
 
 @Component({
   selector: 'app-movies',
   template: `
+    <button mat-icon-button class="filters" (click)="showFiltersDialog()">
+      <mat-icon>filter_list</mat-icon>
+    </button>
     <section class="movies">
       <div class="item"
            *ngFor="let movie of movies$ | async; trackBy: trackByFunc" tabindex="0"
@@ -34,6 +38,12 @@ import {Router} from '@angular/router';
       display: flex;
       flex-direction: column;
       overflow: hidden;
+    }
+    .filters {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 11;
     }
     .movies {
       display: flex;
@@ -90,8 +100,9 @@ export class MoviesComponent implements OnInit {
     private files: FilesService,
     private video: VideoService,
     private movies: MoviesService,
-    private filters: FilterService,
+    private filters: MovieFiltersService,
     private router: Router,
+    private dialog: MatDialog,
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef
   ) {
@@ -104,15 +115,16 @@ export class MoviesComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.showFiltersDialog();
     this.movies$ = this.movies.getAll().pipe(
       switchMap(movies => this.filters.getFilters().pipe(
         map(filters => movies.filter(movie =>
-          FiltersComponent.isWithinSearch(movie, filters) &&
-          FiltersComponent.isWithinRating(movie, filters) &&
-          FiltersComponent.isWithinTags(movie, filters) &&
-          FiltersComponent.isWithinLanguages(movie, filters) &&
-          FiltersComponent.isWithinYears(movie, filters) &&
-          FiltersComponent.isWithinGenres(movie, filters)
+          MovieFiltersService.isWithinSearch(movie, filters) &&
+          MovieFiltersService.isWithinRating(movie, filters) &&
+          MovieFiltersService.isWithinTags(movie, filters) &&
+          MovieFiltersService.isWithinLanguages(movie, filters) &&
+          MovieFiltersService.isWithinYears(movie, filters) &&
+          MovieFiltersService.isWithinGenres(movie, filters)
         ))
       ))
     );
@@ -141,6 +153,12 @@ export class MoviesComponent implements OnInit {
       ['/', { outlets: { details: ['movie', movie.id] } }],
       { queryParamsHandling: 'preserve' }
     );
+  }
+
+  showFiltersDialog() {
+    this.dialog.open(MovieFiltersComponent, {
+      maxWidth: '750px'
+    });
   }
 
 }

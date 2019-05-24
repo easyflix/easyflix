@@ -8,7 +8,7 @@ import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
 import {CoreService} from '@app/services/core.service';
 import {FilesService} from '@app/services/files.service';
 import {VideoService} from '@app/services/video.service';
-import {FilterService} from '@app/services/filter.service';
+import {MovieFiltersService} from '@app/services/movie-filters.service';
 
 @Component({
   selector: 'app-show-info',
@@ -112,7 +112,7 @@ export class ShowInfoComponent implements OnInit {
     private core: CoreService,
     private files: FilesService,
     private video: VideoService,
-    private filters: FilterService,
+    private filters: MovieFiltersService,
     private router: Router,
     private route: ActivatedRoute,
     private sanitizer: DomSanitizer,

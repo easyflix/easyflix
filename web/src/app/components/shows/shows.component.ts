@@ -5,7 +5,7 @@ import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
 import {filter, map, take} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
 import {VideoService} from '@app/services/video.service';
-import {FilterService} from '@app/services/filter.service';
+import {MovieFiltersService} from '@app/services/movie-filters.service';
 import {Router} from '@angular/router';
 import {ShowsService} from '@app/services/shows.service';
 import {Show} from '@app/models/show';
@@ -87,7 +87,7 @@ export class ShowsComponent implements OnInit {
     private files: FilesService,
     private video: VideoService,
     private shows: ShowsService,
-    private filters: FilterService,
+    private filters: MovieFiltersService,
     private router: Router,
     private sanitizer: DomSanitizer,
   ) {

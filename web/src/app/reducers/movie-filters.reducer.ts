@@ -1,10 +1,9 @@
-import {FiltersActionsUnion, FiltersActionTypes} from '@app/actions/filters.actions';
+import {MovieFiltersActionsUnion, MovieFiltersActionTypes} from '@app/actions/movie-filters.actions';
 
 /**
  * State
  */
 export interface State {
-  show: boolean;
   search: string;
   rating: number;
   years: string[];
@@ -14,7 +13,6 @@ export interface State {
 }
 
 const initialState: State = {
-  show: false,
   search: '',
   rating: 0,
   years: [],
@@ -28,62 +26,49 @@ const initialState: State = {
  */
 export function reducer(
   state: State = initialState,
-  action: FiltersActionsUnion
+  action: MovieFiltersActionsUnion
 ): State {
   switch (action.type) {
 
-    case FiltersActionTypes.ShowFilters:
-      return {
-        ...state,
-        show: true
-      };
-
-    case FiltersActionTypes.HideFilters:
-      return {
-        ...state,
-        show: false
-      };
-
-    case FiltersActionTypes.SetSearch:
+    case MovieFiltersActionTypes.SetSearch:
       return {
         ...state,
         search: action.payload
       };
 
-    case FiltersActionTypes.SetRating:
+    case MovieFiltersActionTypes.SetRating:
       return {
         ...state,
         rating: (action.payload || 0)
       };
 
-    case FiltersActionTypes.SetYears:
+    case MovieFiltersActionTypes.SetYears:
       return {
         ...state,
         years: action.payload
       };
 
-    case FiltersActionTypes.SetLanguages:
+    case MovieFiltersActionTypes.SetLanguages:
       return {
         ...state,
         languages: action.payload
       };
 
-    case FiltersActionTypes.SetTags:
+    case MovieFiltersActionTypes.SetTags:
       return {
         ...state,
         tags: action.payload
       };
 
-    case FiltersActionTypes.SetGenres:
+    case MovieFiltersActionTypes.SetGenres:
       return {
         ...state,
         genres: action.payload
       };
 
-    case FiltersActionTypes.ClearFilters:
+    case MovieFiltersActionTypes.ClearFilters:
       return {
-        ...initialState,
-        show: state.show
+        ...initialState
       };
 
     default:
@@ -94,7 +79,6 @@ export function reducer(
 /**
  * Selectors
  */
-export const getShow = (state: State) => state.show;
 export const getSearch = (state: State) => state.search;
 export const getRating = (state: State) => state.rating;
 export const getYears = (state: State) => state.years;

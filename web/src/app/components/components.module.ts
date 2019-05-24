@@ -30,6 +30,8 @@ import {LoadingBarComponent} from './common/loading-bar.component';
 import {OverviewComponent} from './common/overview.component';
 import {DescriptionListComponent} from './common/description.component';
 import {TabsComponent} from './common/tabs.component';
+import {MovieFiltersComponent} from './dialogs/movie-filters.component';
+import {ShowFiltersComponent} from './dialogs/show-filters.component';
 
 const COMPONENTS = [
   FileListComponent,
@@ -62,6 +64,8 @@ const COMPONENTS = [
   OverviewComponent,
   DescriptionListComponent,
   TabsComponent,
+  MovieFiltersComponent,
+  ShowFiltersComponent
 ];
 
 @NgModule({
@@ -72,7 +76,9 @@ const COMPONENTS = [
     LibraryListComponent,
     FileListComponent,
     LibraryCreationDialogComponent,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    MovieFiltersComponent,
+    ShowFiltersComponent
   ]
 })
 export class ComponentsModule {}

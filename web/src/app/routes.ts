@@ -108,12 +108,12 @@ export const routes: Routes = [
   },
   {
     path: '',
-    outlet: 'nav',
+    outlet: 'nav', // TODO router component
     children: navRoutes
   },
   {
     path: '',
-    outlet: 'details',
+    outlet: 'details', // TODO router component
     children: detailsRoutes
   },
   {

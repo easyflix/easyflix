@@ -46,14 +46,6 @@ const detailsTransitions = [
         <a routerLink="/shows" routerLinkActive="active" queryParamsHandling="preserve">TV Shows</a>
         <a routerLink="/others" routerLinkActive="active" queryParamsHandling="preserve">Others</a>
       </nav>
-      <!--<mat-icon (click)="searchInput.focus()">search</mat-icon>
-      <input #searchInput
-             placeholder="Titles, people, genres"
-             value="" type="search" autocomplete="off"
-             [class.active]="searchFocused"
-             (focus)="searchFocused = true"
-             (blur)="searchFocused = false">-->
-      <app-filters></app-filters>
     </header>
     <main [@mainAnimation]="getAnimationData(main)">
       <router-outlet #main="outlet"></router-outlet>
@@ -104,15 +96,6 @@ const detailsTransitions = [
     a:not(:first-child) {
       border-left: 1px solid;
     }
-    app-filters {
-      margin-left: auto;
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      flex-wrap: nowrap;
-      height: 60px;
-      overflow: hidden;
-    }
     main {
       flex-grow: 1;
       overflow: hidden;
@@ -133,20 +116,12 @@ const detailsTransitions = [
 })
 export class MainComponent implements OnInit {
 
-  searchFocused = false;
   showMenuButton$: Observable<boolean>;
 
-  viewGrid = true;
-
   constructor(
-    private core: CoreService,
-    private router: Router,
-    private location: Location
+    private core: CoreService
   ) {
     this.showMenuButton$ = core.getShowSidenav().pipe(map(b => !b));
-    router.events.subscribe(() => {
-      this.viewGrid = !location.path().startsWith('/movies/list');
-    });
   }
 
   ngOnInit() {}

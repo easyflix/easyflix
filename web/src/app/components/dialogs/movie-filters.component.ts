@@ -1,31 +1,26 @@
-import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
-import {Observable, of} from 'rxjs';
+import {ChangeDetectionStrategy, Component, Inject, OnInit} from '@angular/core';
+import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material';
+import {ConfirmData} from '@app/components/dialogs/confirm-dialog.component';
+import {FormControl} from '@angular/forms';
+import {Observable} from 'rxjs';
 import {filter, map, skip, switchMap, take} from 'rxjs/operators';
 import {CoreService} from '@app/services/core.service';
 import {MoviesService} from '@app/services/movies.service';
-import {FormControl} from '@angular/forms';
 import {MovieFiltersService} from '@app/services/movie-filters.service';
 import {ActivatedRoute, Router} from '@angular/router';
 
 @Component({
-  selector: 'app-filters',
+  selector: 'app-filters-movies',
   template: `
-<!--    <mat-form-field floatLabel="never">
-      <mat-label>Genre</mat-label>
-      <mat-select multiple>
-        <mat-option value="test">
-          Test
-        </mat-option>
-      </mat-select>
-    </mat-form-field>-->
+    <h3 mat-dialog-title>Movie filters</h3>
+    <div mat-dialog-content class="container">
       <mat-form-field appearance="standard">
         <input [formControl]="search" matInput name="movie-search" placeholder="Search" spellcheck="false" />
       </mat-form-field>
       <mat-form-field appearance="standard">
-        <mat-select [formControl]="rating" placeholder="Rating">
-          <mat-option>All</mat-option>
-          <mat-option *ngFor="let rating of ratings$ | async" [value]="rating">
-            Above {{rating}}%
+        <mat-select multiple [formControl]="genres" placeholder="Genres">
+          <mat-option *ngFor="let genre of genres$ | async" [value]="genre">
+            {{ genre }}
           </mat-option>
         </mat-select>
       </mat-form-field>
@@ -51,32 +46,37 @@ import {ActivatedRoute, Router} from '@angular/router';
         </mat-select>
       </mat-form-field>
       <mat-form-field appearance="standard">
-        <mat-select multiple [formControl]="genres" placeholder="Genres">
-          <mat-option *ngFor="let genre of genres$ | async" [value]="genre">
-            {{ genre }}
+        <mat-select [formControl]="rating" placeholder="Rating">
+          <mat-option>All</mat-option>
+          <mat-option *ngFor="let rating of ratings$ | async" [value]="rating">
+            Above {{rating}}%
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <a class="clear" *ngIf="showClear$ | async" (click)="clearFilters()">clear</a>
+    </div>
+    <div mat-dialog-actions>
+      <button mat-raised-button [mat-dialog-close]="true">Close</button>
+      <button mat-raised-button *ngIf="showClear$ | async"
+              color="warn"
+              (click)="clearFilters()"
+              [mat-dialog-close]="false">Clear</button>
+    </div>
   `,
   styles: [`
-    mat-form-field {
-      margin: 0 0 0 1rem;
-      height: 90px;
-      width: 180px;
+    .container {
+      display: flex;
+      flex-wrap: wrap;
     }
-    .clear {
-      text-decoration: underline;
-      position: absolute;
-      right: 16px;
-      cursor: pointer;
-      font-weight: 300;
-      font-size: 14px;
+    mat-form-field {
+      flex-basis: calc(50% - .5rem);
+    }
+    mat-form-field:nth-child(2n + 1) {
+      margin-right: 1rem;
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class FiltersComponent implements OnInit {
+export class MovieFiltersComponent implements OnInit {
 
   search = new FormControl();
   rating = new FormControl();
@@ -94,13 +94,14 @@ export class FiltersComponent implements OnInit {
   showClear$: Observable<boolean>;
 
   constructor(
+    private dialogRef: MatDialogRef<MovieFiltersComponent>,
     private core: CoreService,
     private movies: MoviesService,
     private filters: MovieFiltersService,
     private router: Router,
-    private route: ActivatedRoute
-  ) {
-  }
+    private route: ActivatedRoute,
+    @Inject(MAT_DIALOG_DATA) public data: ConfirmData
+  ) {}
 
   ngOnInit(): void {
     this.showClear$ = this.filters.getFilters().pipe(
@@ -295,5 +296,4 @@ export class FiltersComponent implements OnInit {
   clearFilters(): void {
     this.filters.clear();
   }
-
 }

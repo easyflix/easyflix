@@ -6,7 +6,7 @@ import {EMPTY, Observable} from 'rxjs';
 import {filter, map, switchMap, take} from 'rxjs/operators';
 import {VideoService} from '@app/services/video.service';
 import {FilesService} from '@app/services/files.service';
-import {FilterService} from '@app/services/filter.service';
+import {MovieFiltersService} from '@app/services/movie-filters.service';
 import {ActivatedRoute, Router} from '@angular/router';
 
 @Component({
@@ -100,7 +100,7 @@ export class ShowComponent implements OnInit {
     private core: CoreService,
     private files: FilesService,
     private video: VideoService,
-    private filters: FilterService,
+    private filters: MovieFiltersService,
     private router: Router,
     private route: ActivatedRoute,
     private sanitizer: DomSanitizer,

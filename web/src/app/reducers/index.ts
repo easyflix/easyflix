@@ -8,7 +8,7 @@ import * as fromFiles from './files.reducer';
 import * as fromLibraries from './libraries.reducer';
 import * as fromMovies from './movies.reducer';
 import * as fromShows from './shows.reducer';
-import * as fromFilters from './filters.reducer';
+import * as fromMovieFilters from './movie-filters.reducer';
 
 import {Library, LibraryFile} from '@app/models';
 import {FilesUtils} from '@app/utils/files.utils';
@@ -20,7 +20,7 @@ export interface State {
   libraries: fromLibraries.State;
   movies: fromMovies.State;
   shows: fromShows.State;
-  filters: fromFilters.State;
+  movie_filters: fromMovieFilters.State;
 }
 
 export const reducers: ActionReducerMap<State> = {
@@ -30,7 +30,7 @@ export const reducers: ActionReducerMap<State> = {
   libraries: fromLibraries.reducer,
   movies: fromMovies.reducer,
   shows: fromShows.reducer,
-  filters: fromFilters.reducer,
+  movie_filters: fromMovieFilters.reducer,
 };
 
 export const metaReducers: MetaReducer<State>[] = !environment.production ? [] : [];
@@ -41,7 +41,7 @@ export const getFilesState = (state: State) => state.files;
 export const getLibrariesState = (state: State) => state.libraries;
 export const getMoviesState = (state: State) => state.movies;
 export const getShowsState = (state: State) => state.shows;
-export const getFiltersState = (state: State) => state.filters;
+export const getMovieFiltersState = (state: State) => state.movie_filters;
 
 export const getShowSidenav = createSelector(
   getCoreState,
@@ -170,37 +170,32 @@ export const getShowById = createSelector(
   (entities, id) => entities[id]
 );
 
-export const getShowFilters = createSelector(
-  getFiltersState,
-  fromFilters.getShow
+export const getMovieSearchFilter = createSelector(
+  getMovieFiltersState,
+  fromMovieFilters.getSearch
 );
 
-export const getSearchFilter = createSelector(
-  getFiltersState,
-  fromFilters.getSearch
+export const getMovieRatingFilter = createSelector(
+  getMovieFiltersState,
+  fromMovieFilters.getRating
 );
 
-export const getRatingFilter = createSelector(
-  getFiltersState,
-  fromFilters.getRating
+export const getMovieYearsFilter = createSelector(
+  getMovieFiltersState,
+  fromMovieFilters.getYears
 );
 
-export const getYearsFilter = createSelector(
-  getFiltersState,
-  fromFilters.getYears
+export const getMovieLanguagesFilter = createSelector(
+  getMovieFiltersState,
+  fromMovieFilters.getLanguages
 );
 
-export const getLanguagesFilter = createSelector(
-  getFiltersState,
-  fromFilters.getLanguages
+export const getMovieTagsFilter = createSelector(
+  getMovieFiltersState,
+  fromMovieFilters.getTags
 );
 
-export const getTagsFilter = createSelector(
-  getFiltersState,
-  fromFilters.getTags
-);
-
-export const getGenresFilter = createSelector(
-  getFiltersState,
-  fromFilters.getGenres
+export const getMovieGenresFilter = createSelector(
+  getMovieFiltersState,
+  fromMovieFilters.getGenres
 );

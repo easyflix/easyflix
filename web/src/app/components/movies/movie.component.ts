@@ -7,7 +7,7 @@ import {filter, map, switchMap, take} from 'rxjs/operators';
 import {Cast, Crew, MovieDetails} from '@app/models/movie';
 import {VideoService} from '@app/services/video.service';
 import {FilesService} from '@app/services/files.service';
-import {FilterService} from '@app/services/filter.service';
+import {MovieFiltersService} from '@app/services/movie-filters.service';
 import {ActivatedRoute, Router} from '@angular/router';
 
 @Component({
@@ -189,7 +189,7 @@ export class MovieComponent implements OnInit {
     private core: CoreService,
     private files: FilesService,
     private video: VideoService,
-    private filters: FilterService,
+    private filters: MovieFiltersService,
     private route: ActivatedRoute,
     private router: Router,
     private sanitizer: DomSanitizer,

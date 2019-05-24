@@ -23,7 +23,7 @@ import {LibrariesLoadedGuard} from '@app/guards/libraries-loaded.guard';
 import {LibrariesService} from '@app/services/libraries.service';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 import {MoviesService} from '@app/services/movies.service';
-import {FilterService} from '@app/services/filter.service';
+import {MovieFiltersService} from '@app/services/movie-filters.service';
 import {ShowsService} from '@app/services/shows.service';
 import {CustomRouteReuseStrategy} from '@app/route-reuse.strategy';
 import {KeyboardService} from '@app/services/keyboard.service';
@@ -61,7 +61,7 @@ import {KeyboardService} from '@app/services/keyboard.service';
     // FilesLoadedGuard,
     LibrariesLoadedGuard,
     HttpSocketClientService,
-    FilterService,
+    MovieFiltersService,
     KeyboardService
   ],
   bootstrap: [AppComponent]
