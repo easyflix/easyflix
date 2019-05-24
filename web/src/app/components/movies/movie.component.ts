@@ -37,7 +37,7 @@ import {ActivatedRoute, Router} from '@angular/router';
                 <div class="score">
                   <mat-progress-spinner mode="determinate"
                                         [value]="movie.vote_average * 10"
-                                        diameter="55" color="accent">
+                                        diameter="60" color="accent">
                   </mat-progress-spinner>
                   <span>{{ getScore(movie) }}%</span>
                 </div>
