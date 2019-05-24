@@ -2,8 +2,8 @@ import {Injectable} from '@angular/core';
 import {HttpErrorResponse} from '@angular/common/http';
 import {Action} from '@ngrx/store';
 import {Actions, Effect, ofType} from '@ngrx/effects';
-import {asapScheduler, EMPTY, Observable, of, scheduled} from 'rxjs';
-import {catchError, map, skip, switchMap, tap} from 'rxjs/operators';
+import {asapScheduler, Observable, of, scheduled} from 'rxjs';
+import {catchError, filter, map, skip, switchMap, tap} from 'rxjs/operators';
 
 import {FilesActionTypes, LoadFiles, LoadFilesError, LoadFilesSuccess} from '@app/actions/files.actions';
 import {Library, LibraryFile, Movie} from '@app/models';
@@ -29,8 +29,9 @@ import {Configuration} from '@app/models/configuration';
 import {LoadShowsError, LoadShowsSuccess, ShowsActionTypes} from '@app/actions/shows.actions';
 import {Show} from '@app/models/show';
 import {MovieFilters, MovieFiltersService} from '@app/services/movie-filters.service';
-import {ActivatedRoute, NavigationEnd, Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {ShowFilters, ShowFiltersService} from '@app/services/show-filters.service';
+import {CoreService} from '@app/services/core.service';
 
 @Injectable()
 export class AppEffects {
@@ -192,7 +193,6 @@ export class AppEffects {
         })
       )
   );
-
   // TODO set filters to default when param is null
   @Effect({ dispatch: false })
   moviesUrl2Filters$ =
@@ -250,7 +250,6 @@ export class AppEffects {
         })
       )
     );
-
   // TODO set filters to default when param is null
   @Effect({ dispatch: false })
   showsUrl2Filters$ =
@@ -284,7 +283,26 @@ export class AppEffects {
       })
     );
 
+  /**
+   * Sidenav
+   */
+  @Effect({ dispatch: false })
+  sidenav$ = this.core.getShowSidenav().pipe(
+    skip(1),
+    tap(show => this.router.navigate(
+      [],
+      { queryParams: { sidenav: show ? '1' : null }, queryParamsHandling: 'merge' })
+    )
+  );
+  @Effect({ dispatch: false })
+  sidenavUrl$ = this.route.queryParamMap.pipe(
+    map(params => params.get('sidenav')),
+    filter(sidenav => sidenav !== null),
+    tap(sidenav => +sidenav === 1 ? this.core.openSidenav() : this.core.closeSidenav())
+  );
+
   constructor(
+    private core: CoreService,
     private actions$: Actions,
     private socketClient: HttpSocketClientService,
     private overlayContainer: OverlayContainer,
