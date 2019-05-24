@@ -12,6 +12,7 @@ import {Router} from '@angular/router';
 import {MovieFiltersComponent} from '@app/components/dialogs/movie-filters.component';
 import {MatDialog} from '@angular/material';
 import {FileSelectionComponent} from '@app/components/dialogs/file-selection.component';
+import {animate, style, transition, trigger} from '@angular/animations';
 
 @Component({
   selector: 'app-movies',
@@ -24,6 +25,7 @@ import {FileSelectionComponent} from '@app/components/dialogs/file-selection.com
     </button>
     <section class="movies">
       <div class="item"
+           @gridAnimation
            *ngFor="let movie of movies$ | async; trackBy: trackByFunc" tabindex="0"
            (click)="openMovie(movie)"
            (keydown.enter)="openMovie(movie)"
@@ -53,6 +55,7 @@ import {FileSelectionComponent} from '@app/components/dialogs/file-selection.com
       flex-direction: row;
       flex-wrap: wrap;
       overflow-y: auto;
+      overflow-x: hidden;
       padding: 22px 0 60px 44px;
     }
     .item {
@@ -91,6 +94,16 @@ import {FileSelectionComponent} from '@app/components/dialogs/file-selection.com
       transform: scale(0.77);
     }
   `],
+  animations: [trigger('gridAnimation', [
+    // transition(debugAnimation('grid'), []),
+    transition(':enter', [
+      style({ width: 0, paddingLeft: 0, paddingRight: 0, opacity: 0 }),
+      animate('300ms ease-in-out', style({ width: '170px', paddingLeft: '16px', paddingRight: '16px', opacity: 1 }))
+    ]),
+    transition(':leave', [
+      animate('300ms ease-in-out', style({ width: 0, paddingLeft: 0, paddingRight: 0, opacity: 0 }))
+    ])
+  ])],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MoviesComponent implements OnInit {

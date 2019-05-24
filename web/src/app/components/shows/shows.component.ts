@@ -11,6 +11,7 @@ import {Show} from '@app/models/show';
 import {ShowFiltersService} from '@app/services/show-filters.service';
 import {ShowFiltersComponent} from '@app/components/dialogs/show-filters.component';
 import {MatDialog} from '@angular/material';
+import {animate, style, transition, trigger} from '@angular/animations';
 
 @Component({
   selector: 'app-shows',
@@ -23,6 +24,7 @@ import {MatDialog} from '@angular/material';
     </button>
     <section class="shows">
       <div class="item"
+           @gridAnimation
            *ngFor="let show of shows$ | async; trackBy: trackByFunc" tabindex="0"
            (click)="openShow(show)"
            (keydown.enter)="openShow(show)"
@@ -52,6 +54,7 @@ import {MatDialog} from '@angular/material';
       flex-direction: row;
       flex-wrap: wrap;
       overflow-y: auto;
+      overflow-x: hidden;
       padding: 22px 0 60px 44px;
     }
     .item {
@@ -90,6 +93,16 @@ import {MatDialog} from '@angular/material';
       transform: scale(0.77);
     }*/
   `],
+  animations: [trigger('gridAnimation', [
+    // transition(debugAnimation('grid'), []),
+    transition(':enter', [
+      style({ width: 0, paddingLeft: 0, paddingRight: 0, opacity: 0 }),
+      animate('300ms ease-in-out', style({ width: '170px', paddingLeft: '16px', paddingRight: '16px', opacity: 1 }))
+    ]),
+    transition(':leave', [
+      animate('300ms ease-in-out', style({ width: 0, paddingLeft: 0, paddingRight: 0, opacity: 0 }))
+    ])
+  ])],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ShowsComponent implements OnInit {
