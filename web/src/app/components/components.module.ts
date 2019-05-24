@@ -19,7 +19,6 @@ import {LocalComponent} from './settings/local/local.component';
 import {LibraryCreationDialogComponent} from './dialogs/library-creation-dialog/library-creation-dialog.component';
 import {ConfirmDialogComponent} from './dialogs/confirm-dialog.component';
 import {MovieComponent} from './movies/movie.component';
-import {FiltersComponent} from './filters.component';
 import {ShowsComponent} from './shows/shows.component';
 import {ShowComponent} from './shows/show.component';
 import {SeasonComponent} from './shows/season.component';
@@ -53,7 +52,6 @@ const COMPONENTS = [
   LibraryCreationDialogComponent,
   ConfirmDialogComponent,
   MovieComponent,
-  FiltersComponent,
   ShowsComponent,
   ShowComponent,
   SeasonComponent,
