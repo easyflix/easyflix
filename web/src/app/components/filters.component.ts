@@ -103,16 +103,7 @@ export class FiltersComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.showClear$ = this.filters.getFilters().pipe(
-      map(filters => filters.tags.length > 0 ||
-        filters.rating !== 0 ||
-        filters.languages.length > 0 ||
-        filters.years.length > 0 ||
-        filters.search !== '' ||
-        filters.tags.length > 0 ||
-        filters.genres.length > 0
-      )
-    );
+    this.showClear$ = this.filters.hasAppliedFilters();
 
     this.ratings$ = this.filters.getFilters().pipe(
       switchMap(filters => this.movies.getAll().pipe(

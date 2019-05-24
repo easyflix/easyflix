@@ -1,8 +1,8 @@
-import {ChangeDetectionStrategy, Component, Inject, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Inject, OnDestroy, OnInit} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material';
 import {ConfirmData} from '@app/components/dialogs/confirm-dialog.component';
 import {FormControl} from '@angular/forms';
-import {Observable} from 'rxjs';
+import {Observable, Subscription} from 'rxjs';
 import {filter, map, skip, switchMap, take} from 'rxjs/operators';
 import {CoreService} from '@app/services/core.service';
 import {MoviesService} from '@app/services/movies.service';
@@ -76,7 +76,7 @@ import {ActivatedRoute, Router} from '@angular/router';
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MovieFiltersComponent implements OnInit {
+export class MovieFiltersComponent implements OnInit, OnDestroy {
 
   search = new FormControl();
   rating = new FormControl();
@@ -93,6 +93,8 @@ export class MovieFiltersComponent implements OnInit {
 
   showClear$: Observable<boolean>;
 
+  subscriptions: Subscription[] = [];
+
   constructor(
     private dialogRef: MatDialogRef<MovieFiltersComponent>,
     private core: CoreService,
@@ -104,6 +106,7 @@ export class MovieFiltersComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+
     this.showClear$ = this.filters.getFilters().pipe(
       map(filters => filters.tags.length > 0 ||
         filters.rating !== 0 ||
@@ -129,6 +132,7 @@ export class MovieFiltersComponent implements OnInit {
         ))
       ))
     );
+
     this.years$ = this.filters.getFilters().pipe(
       switchMap(filters => this.movies.getAll().pipe(
         map(movies => movies.filter(movie =>
@@ -142,6 +146,7 @@ export class MovieFiltersComponent implements OnInit {
         map(years => Array.from(new Set(years)).sort().reverse())
       ))
     );
+
     this.tags$ = this.filters.getFilters().pipe(
       switchMap(filters => this.movies.getAll().pipe(
         map(movies => movies.filter(movie =>
@@ -157,6 +162,7 @@ export class MovieFiltersComponent implements OnInit {
         map(tags => Array.from(new Set(tags)).sort())
       ))
     );
+
     this.languages$ = this.core.getConfig().pipe(
       filter(c => !!c),
       take(1),
@@ -182,6 +188,7 @@ export class MovieFiltersComponent implements OnInit {
         ))
       ))
     );
+
     this.genres$ = this.filters.getFilters().pipe(
       switchMap(filters => this.movies.getAll().pipe(
         map(movies => movies.filter(movie =>
@@ -202,50 +209,53 @@ export class MovieFiltersComponent implements OnInit {
       ))
     );
 
-    this.search.valueChanges.subscribe(
-      val => this.filters.setSearch(val)
-    );
-    this.rating.valueChanges.subscribe(
-      val => this.filters.setRating(val)
-    );
-    this.years.valueChanges.subscribe(
-      val => this.filters.setYears(val)
-    );
-    this.languages.valueChanges.subscribe(
-      val => this.filters.setLanguages(val)
-    );
-    this.tags.valueChanges.subscribe(
-      val => this.filters.setTags(val)
-    );
-    this.genres.valueChanges.subscribe(
-      val => this.filters.setGenres(val)
+    this.subscriptions.push(
+      this.search.valueChanges.subscribe(
+        val => this.filters.setSearch(val)
+      ),
+      this.rating.valueChanges.subscribe(
+        val => this.filters.setRating(val)
+      ),
+      this.years.valueChanges.subscribe(
+        val => this.filters.setYears(val)
+      ),
+      this.languages.valueChanges.subscribe(
+        val => this.filters.setLanguages(val)
+      ),
+      this.tags.valueChanges.subscribe(
+        val => this.filters.setTags(val)
+      ),
+      this.genres.valueChanges.subscribe(
+        val => this.filters.setGenres(val)
+      ),
+
+      this.filters.getSearch().subscribe(
+        val => this.search.value !== val ?
+          this.search.setValue(val) : {}
+      ),
+      this.filters.getRating().subscribe(
+        val => this.rating.value !== val ?
+          this.rating.setValue(val) : {}
+      ),
+      this.filters.getYears().subscribe(
+        val => this.years.value !== val ?
+          this.years.setValue(val) : {}
+      ),
+      this.filters.getLanguages().subscribe(
+        val => this.languages.value !== val ?
+          this.languages.setValue(val) : {}
+      ),
+      this.filters.getTags().subscribe(
+        val => this.tags.value !== val ?
+          this.tags.setValue(val) : {}
+      ),
+      this.filters.getGenres().subscribe(
+        val => this.genres.value !== val ?
+          this.genres.setValue(val) : {}
+      )
     );
 
-    this.filters.getSearch().subscribe(
-      val => this.search.value !== val ?
-        this.search.setValue(val) : {}
-    );
-    this.filters.getRating().subscribe(
-      val => this.rating.value !== val ?
-        this.rating.setValue(val) : {}
-    );
-    this.filters.getYears().subscribe(
-      val => this.years.value !== val ?
-        this.years.setValue(val) : {}
-    );
-    this.filters.getLanguages().subscribe(
-      val => this.languages.value !== val ?
-        this.languages.setValue(val) : {}
-    );
-    this.filters.getTags().subscribe(
-      val => this.tags.value !== val ?
-        this.tags.setValue(val) : {}
-    );
-    this.filters.getGenres().subscribe(
-      val => this.genres.value !== val ?
-        this.genres.setValue(val) : {}
-    );
-
+    // TODO move to effects
     this.filters.getFilters().pipe(skip(1)).subscribe(
       filters => this.router.navigate(
         [],
@@ -261,39 +271,14 @@ export class MovieFiltersComponent implements OnInit {
           queryParamsHandling: 'merge'
         })
     );
-
-    this.route.queryParamMap.pipe(
-      skip(1), // TODO: Not sure why, figure this out
-      take(1)
-    ).subscribe(params => {
-      const search = params.get('movie_search');
-      const rating = params.get('rating');
-      const years = params.get('years');
-      const languages = params.get('languages');
-      const tags = params.get('tags');
-      const genres = params.get('genres');
-      if (search !== null) {
-        this.filters.setSearch(search);
-      }
-      if (rating !== null) {
-        this.filters.setRating(+rating);
-      }
-      if (years !== null) {
-        this.filters.setYears(years.split(','));
-      }
-      if (languages !== null) {
-        this.filters.setLanguages(languages.split(','));
-      }
-      if (tags !== null) {
-        this.filters.setTags(tags.split(','));
-      }
-      if (genres !== null) {
-        this.filters.setGenres(genres.split(','));
-      }
-    });
   }
 
   clearFilters(): void {
     this.filters.clear();
   }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
 }

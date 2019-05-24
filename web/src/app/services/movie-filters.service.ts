@@ -128,6 +128,32 @@ export class MovieFiltersService {
     );
   }
 
+  filterMovies(movies: Movie[]): Observable<Movie[]> {
+    return this.getFilters().pipe(
+      map(filters => movies.filter(movie =>
+        MovieFiltersService.isWithinSearch(movie, filters) &&
+        MovieFiltersService.isWithinRating(movie, filters) &&
+        MovieFiltersService.isWithinTags(movie, filters) &&
+        MovieFiltersService.isWithinLanguages(movie, filters) &&
+        MovieFiltersService.isWithinYears(movie, filters) &&
+        MovieFiltersService.isWithinGenres(movie, filters)
+      ))
+    );
+  }
+
+  hasAppliedFilters(): Observable<boolean> {
+    return this.getFilters().pipe(
+      map(filters =>
+        filters.tags.length > 0 ||
+        filters.rating !== 0 ||
+        filters.languages.length > 0 ||
+        filters.years.length > 0 ||
+        filters.search !== '' ||
+        filters.genres.length > 0
+      )
+    );
+  }
+
   clear(): void {
     this.store.dispatch(new ClearMovieFilters());
   }

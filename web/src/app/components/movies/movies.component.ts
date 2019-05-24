@@ -9,14 +9,17 @@ import {Configuration} from '@app/models/configuration';
 import {FilesService} from '@app/services/files.service';
 import {VideoService} from '@app/services/video.service';
 import {MovieFiltersService} from '@app/services/movie-filters.service';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {MovieFiltersComponent} from '@app/components/dialogs/movie-filters.component';
 import {MatDialog} from '@angular/material';
 
 @Component({
   selector: 'app-movies',
   template: `
-    <button mat-icon-button class="filters" (click)="showFiltersDialog()">
+    <button mat-icon-button class="filters" (click)="showFiltersDialog()" *ngIf="!(hasAppliedFilters$ | async)">
+      <mat-icon>filter_list</mat-icon>
+    </button>
+    <button mat-mini-fab color="accent" class="filters" (click)="showFiltersDialog()" *ngIf="hasAppliedFilters$ | async">
       <mat-icon>filter_list</mat-icon>
     </button>
     <section class="movies">
@@ -93,6 +96,8 @@ import {MatDialog} from '@angular/material';
 export class MoviesComponent implements OnInit {
 
   movies$: Observable<Movie[]>;
+  hasAppliedFilters$: Observable<boolean>;
+
   config: Configuration;
 
   constructor(
@@ -102,6 +107,7 @@ export class MoviesComponent implements OnInit {
     private movies: MoviesService,
     private filters: MovieFiltersService,
     private router: Router,
+    private route: ActivatedRoute,
     private dialog: MatDialog,
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef
@@ -117,17 +123,39 @@ export class MoviesComponent implements OnInit {
   ngOnInit() {
     this.showFiltersDialog();
     this.movies$ = this.movies.getAll().pipe(
-      switchMap(movies => this.filters.getFilters().pipe(
-        map(filters => movies.filter(movie =>
-          MovieFiltersService.isWithinSearch(movie, filters) &&
-          MovieFiltersService.isWithinRating(movie, filters) &&
-          MovieFiltersService.isWithinTags(movie, filters) &&
-          MovieFiltersService.isWithinLanguages(movie, filters) &&
-          MovieFiltersService.isWithinYears(movie, filters) &&
-          MovieFiltersService.isWithinGenres(movie, filters)
-        ))
-      ))
+      switchMap(movies => this.filters.filterMovies(movies))
     );
+    this.hasAppliedFilters$ = this.filters.hasAppliedFilters();
+
+    // TODO move to effects
+    this.route.queryParamMap.pipe(
+      take(1)
+    ).subscribe(params => {
+      const search = params.get('movie_search');
+      const rating = params.get('rating');
+      const years = params.get('years');
+      const languages = params.get('languages');
+      const tags = params.get('tags');
+      const genres = params.get('genres');
+      if (search !== null) {
+        this.filters.setSearch(search);
+      }
+      if (rating !== null) {
+        this.filters.setRating(+rating);
+      }
+      if (years !== null) {
+        this.filters.setYears(years.split(','));
+      }
+      if (languages !== null) {
+        this.filters.setLanguages(languages.split(','));
+      }
+      if (tags !== null) {
+        this.filters.setTags(tags.split(','));
+      }
+      if (genres !== null) {
+        this.filters.setGenres(genres.split(','));
+      }
+    });
   }
 
   getStyle(movie: Movie): SafeStyle {

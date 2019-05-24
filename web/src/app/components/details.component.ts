@@ -14,6 +14,7 @@ import {ShowsService} from '@app/services/shows.service';
 import {MoviesService} from '@app/services/movies.service';
 import {KeyboardService} from '@app/services/keyboard.service';
 import {detailsAnimations} from '@app/animations';
+import {MovieFiltersService} from '@app/services/movie-filters.service';
 
 @Component({
   selector: 'app-details',
@@ -92,6 +93,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
 
   constructor(
     private movies: MoviesService,
+    private movieFilters: MovieFiltersService,
     private shows: ShowsService,
     private keyboard: KeyboardService,
     private route: ActivatedRoute,
@@ -115,7 +117,8 @@ export class DetailsComponent implements OnInit, OnDestroy {
 
     // NextId and PreviousId observables
     const movies$ = this.movies.getAll().pipe(
-      filter(movies => movies.length > 0)
+      filter(movies => movies.length > 0),
+      switchMap(movies => this.movieFilters.filterMovies(movies))
     );
     const shows$ = this.shows.getAll().pipe(
       filter(shows => shows.length > 0)
@@ -132,13 +135,13 @@ export class DetailsComponent implements OnInit, OnDestroy {
     };
 
     this.nextId = items$.pipe(
-      switchMap(array => id$.pipe(
-        map(fn(array, 1))
+      switchMap(items => id$.pipe(
+        map(fn(items, 1))
       ))
     );
     this.prevId = items$.pipe(
-      switchMap(movies => id$.pipe(
-        map(fn(movies, -1))
+      switchMap(items => id$.pipe(
+        map(fn(items, -1))
       ))
     );
     this.nextDisabled = this.nextId.pipe(
