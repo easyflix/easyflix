@@ -254,23 +254,6 @@ export class MovieFiltersComponent implements OnInit, OnDestroy {
           this.genres.setValue(val) : {}
       )
     );
-
-    // TODO move to effects
-    this.filters.getFilters().pipe(skip(1)).subscribe(
-      filters => this.router.navigate(
-        [],
-        {
-          queryParams: {
-            movie_search: filters.search !== '' ? filters.search : undefined,
-            rating: filters.rating > 0 ? filters.rating : undefined,
-            years: filters.years.length > 0 ? filters.years.join(',') : undefined,
-            languages: filters.languages.length > 0 ? filters.languages.join(',') : undefined,
-            tags: filters.tags.length > 0 ? filters.tags.join(',') : undefined,
-            genres: filters.genres.length > 0 ? filters.genres.join(',') : undefined,
-          },
-          queryParamsHandling: 'merge'
-        })
-    );
   }
 
   clearFilters(): void {

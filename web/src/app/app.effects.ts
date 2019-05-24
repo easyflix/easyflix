@@ -3,7 +3,7 @@ import {HttpErrorResponse} from '@angular/common/http';
 import {Action} from '@ngrx/store';
 import {Actions, Effect, ofType} from '@ngrx/effects';
 import {asapScheduler, Observable, of, scheduled} from 'rxjs';
-import {catchError, map, switchMap, tap} from 'rxjs/operators';
+import {catchError, map, skip, switchMap, take, tap} from 'rxjs/operators';
 
 import {FilesActionTypes, LoadFiles, LoadFilesError, LoadFilesSuccess} from '@app/actions/files.actions';
 import {Library, LibraryFile, Movie} from '@app/models';
@@ -28,6 +28,8 @@ import {LoadMoviesError, LoadMoviesSuccess, MoviesActionTypes} from '@app/action
 import {Configuration} from '@app/models/configuration';
 import {LoadShowsError, LoadShowsSuccess, ShowsActionTypes} from '@app/actions/shows.actions';
 import {Show} from '@app/models/show';
+import {MovieFilters, MovieFiltersService} from "@app/services/movie-filters.service";
+import {ActivatedRoute, Router} from "@angular/router";
 
 @Injectable()
 export class AppEffects {
@@ -167,10 +169,67 @@ export class AppEffects {
       )
     );
 
+  /**
+   * Movie filters
+   */
+  @Effect({ dispatch: false })
+  moviesFilters2Url$: Observable<MovieFilters> =
+    this.filters.getFilters().pipe(
+      skip(1),
+      tap(filters => this.router.navigate(
+        [],
+        {
+          queryParams: {
+            movie_search: filters.search !== '' ? filters.search : undefined,
+            rating: filters.rating > 0 ? filters.rating : undefined,
+            years: filters.years.length > 0 ? filters.years.join(',') : undefined,
+            languages: filters.languages.length > 0 ? filters.languages.join(',') : undefined,
+            tags: filters.tags.length > 0 ? filters.tags.join(',') : undefined,
+            genres: filters.genres.length > 0 ? filters.genres.join(',') : undefined,
+          },
+          queryParamsHandling: 'merge'
+        })
+      )
+  );
+
+  @Effect({ dispatch: false })
+  moviesUrl2Filters$ =
+    this.route.queryParamMap.pipe(
+      map(params => {
+        const search = params.get('movie_search');
+        const rating = params.get('rating');
+        const years = params.get('years');
+        const languages = params.get('languages');
+        const tags = params.get('tags');
+        const genres = params.get('genres');
+        if (search !== null) {
+          this.filters.setSearch(search);
+        }
+        if (rating !== null) {
+          this.filters.setRating(+rating);
+        }
+        if (years !== null) {
+          this.filters.setYears(years.split(','));
+        }
+        if (languages !== null) {
+          this.filters.setLanguages(languages.split(','));
+        }
+        if (tags !== null) {
+          this.filters.setTags(tags.split(','));
+        }
+        if (genres !== null) {
+          this.filters.setGenres(genres.split(','));
+        }
+      })
+    );
+
   constructor(
     private actions$: Actions,
     private socketClient: HttpSocketClientService,
     private overlayContainer: OverlayContainer,
+    private filters: MovieFiltersService,
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
 }

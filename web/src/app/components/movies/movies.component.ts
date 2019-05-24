@@ -126,36 +126,6 @@ export class MoviesComponent implements OnInit {
       switchMap(movies => this.filters.filterMovies(movies))
     );
     this.hasAppliedFilters$ = this.filters.hasAppliedFilters();
-
-    // TODO move to effects
-    this.route.queryParamMap.pipe(
-      take(1)
-    ).subscribe(params => {
-      const search = params.get('movie_search');
-      const rating = params.get('rating');
-      const years = params.get('years');
-      const languages = params.get('languages');
-      const tags = params.get('tags');
-      const genres = params.get('genres');
-      if (search !== null) {
-        this.filters.setSearch(search);
-      }
-      if (rating !== null) {
-        this.filters.setRating(+rating);
-      }
-      if (years !== null) {
-        this.filters.setYears(years.split(','));
-      }
-      if (languages !== null) {
-        this.filters.setLanguages(languages.split(','));
-      }
-      if (tags !== null) {
-        this.filters.setTags(tags.split(','));
-      }
-      if (genres !== null) {
-        this.filters.setGenres(genres.split(','));
-      }
-    });
   }
 
   getStyle(movie: Movie): SafeStyle {
