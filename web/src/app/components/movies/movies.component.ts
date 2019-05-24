@@ -178,7 +178,8 @@ export class MoviesComponent implements OnInit {
 
   showFiltersDialog() {
     this.dialog.open(MovieFiltersComponent, {
-      maxWidth: '750px'
+      maxWidth: '750px',
+      minWidth: '500px'
     });
   }
 

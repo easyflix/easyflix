@@ -163,7 +163,8 @@ export class ShowsComponent implements OnInit {
 
   showFiltersDialog() {
     this.dialog.open(ShowFiltersComponent, {
-      maxWidth: '750px'
+      maxWidth: '750px',
+      minWidth: '500px'
     });
   }
 
