@@ -3,7 +3,7 @@ import {HttpErrorResponse} from '@angular/common/http';
 import {Action} from '@ngrx/store';
 import {Actions, Effect, ofType} from '@ngrx/effects';
 import {asapScheduler, Observable, of, scheduled} from 'rxjs';
-import {catchError, map, skip, switchMap, take, tap} from 'rxjs/operators';
+import {catchError, map, skip, switchMap, tap} from 'rxjs/operators';
 
 import {FilesActionTypes, LoadFiles, LoadFilesError, LoadFilesSuccess} from '@app/actions/files.actions';
 import {Library, LibraryFile, Movie} from '@app/models';
@@ -28,8 +28,9 @@ import {LoadMoviesError, LoadMoviesSuccess, MoviesActionTypes} from '@app/action
 import {Configuration} from '@app/models/configuration';
 import {LoadShowsError, LoadShowsSuccess, ShowsActionTypes} from '@app/actions/shows.actions';
 import {Show} from '@app/models/show';
-import {MovieFilters, MovieFiltersService} from "@app/services/movie-filters.service";
-import {ActivatedRoute, Router} from "@angular/router";
+import {MovieFilters, MovieFiltersService} from '@app/services/movie-filters.service';
+import {ActivatedRoute, Router} from '@angular/router';
+import {ShowFilters, ShowFiltersService} from '@app/services/show-filters.service';
 
 @Injectable()
 export class AppEffects {
@@ -174,18 +175,18 @@ export class AppEffects {
    */
   @Effect({ dispatch: false })
   moviesFilters2Url$: Observable<MovieFilters> =
-    this.filters.getFilters().pipe(
+    this.movieFilters.getFilters().pipe(
       skip(1),
       tap(filters => this.router.navigate(
         [],
         {
           queryParams: {
             movie_search: filters.search !== '' ? filters.search : undefined,
-            rating: filters.rating > 0 ? filters.rating : undefined,
-            years: filters.years.length > 0 ? filters.years.join(',') : undefined,
-            languages: filters.languages.length > 0 ? filters.languages.join(',') : undefined,
-            tags: filters.tags.length > 0 ? filters.tags.join(',') : undefined,
-            genres: filters.genres.length > 0 ? filters.genres.join(',') : undefined,
+            movie_rating: filters.rating > 0 ? filters.rating : undefined,
+            movie_years: filters.years.length > 0 ? filters.years.join(',') : undefined,
+            movie_languages: filters.languages.length > 0 ? filters.languages.join(',') : undefined,
+            movie_tags: filters.tags.length > 0 ? filters.tags.join(',') : undefined,
+            movie_genres: filters.genres.length > 0 ? filters.genres.join(',') : undefined,
           },
           queryParamsHandling: 'merge'
         })
@@ -197,28 +198,82 @@ export class AppEffects {
     this.route.queryParamMap.pipe(
       map(params => {
         const search = params.get('movie_search');
-        const rating = params.get('rating');
-        const years = params.get('years');
-        const languages = params.get('languages');
-        const tags = params.get('tags');
-        const genres = params.get('genres');
+        const rating = params.get('movie_rating');
+        const years = params.get('movie_years');
+        const languages = params.get('movie_languages');
+        const tags = params.get('movie_tags');
+        const genres = params.get('movie_genres');
         if (search !== null) {
-          this.filters.setSearch(search);
+          this.movieFilters.setSearch(search);
         }
         if (rating !== null) {
-          this.filters.setRating(+rating);
+          this.movieFilters.setRating(+rating);
         }
         if (years !== null) {
-          this.filters.setYears(years.split(','));
+          this.movieFilters.setYears(years.split(','));
         }
         if (languages !== null) {
-          this.filters.setLanguages(languages.split(','));
+          this.movieFilters.setLanguages(languages.split(','));
         }
         if (tags !== null) {
-          this.filters.setTags(tags.split(','));
+          this.movieFilters.setTags(tags.split(','));
         }
         if (genres !== null) {
-          this.filters.setGenres(genres.split(','));
+          this.movieFilters.setGenres(genres.split(','));
+        }
+      })
+    );
+
+  /**
+   * Show filters
+   */
+  @Effect({ dispatch: false })
+  showsFilters2Url$: Observable<ShowFilters> =
+    this.showFilters.getFilters().pipe(
+      skip(1),
+      tap(filters => this.router.navigate(
+        [],
+        {
+          queryParams: {
+            show_search: filters.search !== '' ? filters.search : undefined,
+            show_rating: filters.rating > 0 ? filters.rating : undefined,
+            show_years: filters.years.length > 0 ? filters.years.join(',') : undefined,
+            show_languages: filters.languages.length > 0 ? filters.languages.join(',') : undefined,
+            show_networks: filters.networks.length > 0 ? filters.networks.join(',') : undefined,
+            show_genres: filters.genres.length > 0 ? filters.genres.join(',') : undefined,
+          },
+          queryParamsHandling: 'merge'
+        })
+      )
+    );
+
+  @Effect({ dispatch: false })
+  showsUrl2Filters$ =
+    this.route.queryParamMap.pipe(
+      map(params => {
+        const search = params.get('show_search');
+        const rating = params.get('show_rating');
+        const years = params.get('show_years');
+        const languages = params.get('show_languages');
+        const networks = params.get('show_networks');
+        const genres = params.get('show_genres');
+        if (search !== null) {
+          this.showFilters.setSearch(search);
+        }
+        if (rating !== null) {
+          this.showFilters.setRating(+rating);
+        }
+        if (years !== null) {
+          this.showFilters.setYears(years.split(','));
+        }
+        if (languages !== null) {
+          this.showFilters.setLanguages(languages.split(','));
+        }
+        if (networks !== null) {
+          this.showFilters.setNetworks(networks.split(','));
+        }
+        if (genres !== null) {
+          this.showFilters.setGenres(genres.split(','));
         }
       })
     );
@@ -227,7 +282,8 @@ export class AppEffects {
     private actions$: Actions,
     private socketClient: HttpSocketClientService,
     private overlayContainer: OverlayContainer,
-    private filters: MovieFiltersService,
+    private movieFilters: MovieFiltersService,
+    private showFilters: ShowFiltersService,
     private router: Router,
     private route: ActivatedRoute
   ) {}

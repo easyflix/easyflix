@@ -46,7 +46,7 @@ export class ShowFiltersService {
 
   static isWithinNetworks(show: Show, filters: ShowFilters): boolean {
     return filters.networks.length === 0 ||
-      filters.networks.every(network =>
+      filters.networks.some(network =>
         show.details && show.details.networks.map(net => net.name).includes(network)
       );
   }

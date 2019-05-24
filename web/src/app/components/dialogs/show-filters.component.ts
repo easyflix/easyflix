@@ -142,7 +142,7 @@ export class ShowFiltersComponent implements OnInit, OnDestroy {
           ShowFiltersService.isWithinRating(show, filters) &&
           ShowFiltersService.isWithinLanguages(show, filters) &&
           ShowFiltersService.isWithinYears(show, filters) &&
-          ShowFiltersService.isWithinNetworks(show, filters) &&
+          // ShowFiltersService.isWithinNetworks(show, filters) &&
           ShowFiltersService.isWithinGenres(show, filters)
         )),
         map(shows => shows.filter(show => show.details !== undefined)),
