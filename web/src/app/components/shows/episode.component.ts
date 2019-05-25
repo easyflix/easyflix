@@ -11,7 +11,12 @@ import {ActivatedRoute} from '@angular/router';
   selector: 'app-episode',
   template: `
       <div class="still">
-        <img *ngIf="getStillSource(episode) | async as source" [src]="source" alt="Still">
+        <img *ngIf="getStillSource(episode) | async as source; else noStill" [src]="source" alt="Still" />
+        <ng-template #noStill>
+          <div class="no-still">
+            <mat-icon>movie</mat-icon>
+          </div>
+        </ng-template>
       </div>
       <div class="content">
         <app-tabs>
@@ -94,6 +99,17 @@ import {ActivatedRoute} from '@angular/router';
       margin-right: 30px;
       font-size: 0;
       min-width: 300px;
+    }
+    .no-still {
+      height: 169px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .no-still mat-icon {
+      font-size: 4rem;
+      height: 4rem;
+      width: 4rem;
     }
     .content {
       min-width: calc(100% - 330px);
