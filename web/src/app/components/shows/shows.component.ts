@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, HostListener, OnInit} from '@angular/core';
 import {CoreService} from '@app/services/core.service';
 import {EMPTY, Observable} from 'rxjs';
 import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
@@ -161,6 +161,7 @@ export class ShowsComponent implements OnInit {
     );
   }
 
+  @HostListener('keydown.f')
   showFiltersDialog() {
     this.dialog.open(ShowFiltersComponent, {
       maxWidth: '750px',

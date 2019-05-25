@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, HostListener, OnInit} from '@angular/core';
 import {CoreService} from '@app/services/core.service';
 import {MoviesService} from '@app/services/movies.service';
 import {EMPTY, Observable} from 'rxjs';
@@ -176,6 +176,7 @@ export class MoviesComponent implements OnInit {
     );
   }
 
+  @HostListener('keydown.f')
   showFiltersDialog() {
     this.dialog.open(MovieFiltersComponent, {
       maxWidth: '750px',
