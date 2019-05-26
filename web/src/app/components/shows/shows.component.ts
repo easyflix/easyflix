@@ -169,4 +169,9 @@ export class ShowsComponent implements OnInit {
     });
   }
 
+  @HostListener('keydown.space', ['$event'])
+  noScroll(event: KeyboardEvent) {
+    event.preventDefault();
+  }
+
 }

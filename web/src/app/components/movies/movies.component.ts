@@ -184,4 +184,9 @@ export class MoviesComponent implements OnInit {
     });
   }
 
+  @HostListener('keydown.space', ['$event'])
+  noScroll(event: KeyboardEvent) {
+    event.preventDefault();
+  }
+
 }

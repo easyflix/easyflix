@@ -44,7 +44,10 @@ import {MatDialog} from '@angular/material';
                   <span>{{ getScore(movie) }}%</span>
                 </div>
                 <span class="user-score">User Score</span>
-                <button class="play" mat-button mat-raised-button color="primary" (click)="play(movie)">
+                <button class="play" mat-raised-button color="primary"
+                        (click)="play(movie)"
+                        (keydown.space)="$event.preventDefault();"
+                        (keydown.shift.space)="$event.preventDefault();">
                   <mat-icon>play_arrow</mat-icon>
                   PLAY
                 </button>
@@ -233,7 +236,7 @@ export class MovieComponent implements OnInit {
       filter(s => !!s),
       take(1),
       map(config => this.sanitizer.bypassSecurityTrustStyle(
-        `background-image: url(${config.images.secure_base_url}original${movie.backdrop})`
+        `background-image: url(${config.images.secure_base_url}w1280${movie.backdrop})`
       ))
     );
   }

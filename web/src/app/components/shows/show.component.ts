@@ -42,7 +42,10 @@ import {ActivatedRoute, Router} from '@angular/router';
                 <span>{{ getScore(show) }}%</span>
               </div>
               <span class="user-score">User<br/>Score</span>
-              <button class="play" mat-button mat-raised-button color="primary" (click)="play(show)">
+              <button class="play" mat-button mat-raised-button color="primary"
+                      (click)="play(show)"
+                      (keydown.space)="$event.preventDefault();"
+                      (keydown.shift.space)="$event.preventDefault();">
                 <mat-icon>play_arrow</mat-icon>
                 PLAY
               </button>

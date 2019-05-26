@@ -8,6 +8,7 @@ import {KeyboardService} from '@app/services/keyboard.service';
 import {detailsAnimations} from '@app/animations';
 import {MovieFiltersService} from '@app/services/movie-filters.service';
 import {FocusTrap, FocusTrapFactory} from '@angular/cdk/a11y';
+import {ShowFiltersService} from '@app/services/show-filters.service';
 
 @Component({
   selector: 'app-details',
@@ -17,17 +18,20 @@ import {FocusTrap, FocusTrapFactory} from '@angular/cdk/a11y';
       <button mat-icon-button
               [disabled]="nextDisabled | async"
               (click)="next()"
+              (keydown.space)="$event.stopPropagation()"
               class="right">
         <mat-icon>keyboard_arrow_right</mat-icon>
       </button>
       <button mat-icon-button
               [disabled]="prevDisabled | async"
               (click)="previous()"
+              (keydown.space)="$event.stopPropagation()"
               class="left">
         <mat-icon>keyboard_arrow_left</mat-icon>
       </button>
       <button mat-icon-button
               (click)="close()"
+              (keydown.space)="$event.stopPropagation()"
               class="close">
         <mat-icon>close</mat-icon>
       </button>
@@ -86,6 +90,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
     private appDetails: ElementRef,
     private movies: MoviesService,
     private movieFilters: MovieFiltersService,
+    private showFilters: ShowFiltersService,
     private shows: ShowsService,
     private keyboard: KeyboardService,
     private route: ActivatedRoute,
@@ -118,7 +123,8 @@ export class DetailsComponent implements OnInit, OnDestroy {
       switchMap(movies => this.movieFilters.filterMovies(movies))
     );
     const shows$ = this.shows.getAll().pipe(
-      filter(shows => shows.length > 0)
+      filter(shows => shows.length > 0),
+      switchMap(shows => this.showFilters.filterShows(shows))
     );
     const id$ = this.route.url.pipe(
       switchMap(() => this.route.firstChild.paramMap),
@@ -170,13 +176,15 @@ export class DetailsComponent implements OnInit, OnDestroy {
     ).subscribe();
   }
 
+  @HostListener('keydown.shift.space')
   previous(): void {
     this.prevId.pipe(
       take(1),
       tap(id => id !== undefined && this.router.navigate(
         ['/', { outlets: { details: [this.type, id.toString()] } }],
         { relativeTo: this.route, state: { transition: 'left', id }, queryParamsHandling: 'preserve' }
-      ))
+      )),
+      tap(() => setTimeout(() => this.focusTrap.focusFirstTabbableElementWhenReady(), 400))
     ).subscribe();
   }
 
