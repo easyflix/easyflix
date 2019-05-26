@@ -1,12 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  HostListener,
-  OnDestroy,
-  OnInit,
-  ViewChild
-} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, HostListener, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router, RouterOutlet} from '@angular/router';
 import {Observable, Subscription} from 'rxjs';
 import {filter, map, switchMap, take, tap} from 'rxjs/operators';
@@ -15,11 +7,12 @@ import {MoviesService} from '@app/services/movies.service';
 import {KeyboardService} from '@app/services/keyboard.service';
 import {detailsAnimations} from '@app/animations';
 import {MovieFiltersService} from '@app/services/movie-filters.service';
+import {FocusTrap, FocusTrapFactory} from '@angular/cdk/a11y';
 
 @Component({
   selector: 'app-details',
   template: `
-    <section class="details" cdkTrapFocus tabindex="0" #container [@detailsAnimation]="getAnimationData(details)">
+    <section class="details" [@detailsAnimation]="getAnimationData(details)">
       <router-outlet #details="outlet"></router-outlet>
       <button mat-icon-button
               [disabled]="nextDisabled | async"
@@ -55,9 +48,6 @@ import {MovieFiltersService} from '@app/services/movie-filters.service';
       display: flex;
       flex-direction: column;
     }
-    .details:focus {
-      outline: none;
-    }
     .close {
       position: absolute;
       top: 10px;
@@ -81,8 +71,6 @@ export class DetailsComponent implements OnInit, OnDestroy {
 
   type: string; // 'movie' or 'show'
 
-  @ViewChild('container', {static: true}) container: ElementRef;
-
   subscriptions: Subscription[] = [];
 
   nextId: Observable<number | undefined>;
@@ -91,19 +79,23 @@ export class DetailsComponent implements OnInit, OnDestroy {
   nextDisabled: Observable<boolean>;
   prevDisabled: Observable<boolean>;
 
+  previousActiveElement: HTMLElement;
+  focusTrap: FocusTrap;
+
   constructor(
+    private appDetails: ElementRef,
     private movies: MoviesService,
     private movieFilters: MovieFiltersService,
     private shows: ShowsService,
     private keyboard: KeyboardService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private focusTrapFactory: FocusTrapFactory
   ) {
   }
 
   ngOnInit(): void {
     this.type = this.route.snapshot.data.type;
-    this.container.nativeElement.focus();
 
     // Keyboard events
     this.subscriptions.push(
@@ -114,6 +106,11 @@ export class DetailsComponent implements OnInit, OnDestroy {
         () => this.next()
       )*/
     );
+
+    // Trap focus within component
+    this.focusTrap = this.focusTrapFactory.create(this.appDetails.nativeElement);
+    this.previousActiveElement = document.activeElement as HTMLElement;
+    setTimeout(() => this.focusTrap.focusFirstTabbableElementWhenReady());
 
     // NextId and PreviousId observables
     const movies$ = this.movies.getAll().pipe(
@@ -155,15 +152,21 @@ export class DetailsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.map(sub => sub.unsubscribe());
+    this.focusTrap.destroy();
+    if (this.previousActiveElement) {
+      this.previousActiveElement.focus();
+    }
   }
 
+  @HostListener('keydown.space')
   next(): void {
     this.nextId.pipe(
       take(1),
       tap(id => id !== undefined && this.router.navigate(
         ['/', { outlets: { details: [this.type, id.toString()] } }],
         { relativeTo: this.route, state: { transition: 'right', id }, queryParamsHandling: 'preserve' }
-      ))
+      )),
+      tap(() => setTimeout(() => this.focusTrap.focusFirstTabbableElementWhenReady(), 400))
     ).subscribe();
   }
 
