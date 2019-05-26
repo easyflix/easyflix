@@ -1,4 +1,12 @@
-import {ChangeDetectionStrategy, Component, HostListener, OnInit} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component, Directive,
+  ElementRef,
+  HostListener,
+  OnInit, QueryList,
+  ViewChild,
+  ViewChildren
+} from '@angular/core';
 import {CoreService} from '@app/services/core.service';
 import {MoviesService} from '@app/services/movies.service';
 import {EMPTY, Observable} from 'rxjs';
@@ -14,6 +22,11 @@ import {MatDialog} from '@angular/material';
 import {FileSelectionComponent} from '@app/components/dialogs/file-selection.component';
 import {animate, style, transition, trigger} from '@angular/animations';
 
+@Directive({ selector: '[appItem]' })
+export class ItemDirective {
+  constructor(public elementRef: ElementRef) {}
+}
+
 @Component({
   selector: 'app-movies',
   template: `
@@ -23,8 +36,8 @@ import {animate, style, transition, trigger} from '@angular/animations';
     <button mat-mini-fab color="accent" class="filters" (click)="showFiltersDialog()" *ngIf="hasAppliedFilters$ | async">
       <mat-icon>filter_list</mat-icon>
     </button>
-    <section class="movies">
-      <div class="item"
+    <section class="items" #items>
+      <div class="item" appItem
            @gridAnimation
            *ngFor="let movie of movies$ | async; trackBy: trackByFunc" tabindex="0"
            (click)="openMovie(movie)"
@@ -50,7 +63,7 @@ import {animate, style, transition, trigger} from '@angular/animations';
       right: 10px;
       z-index: 11;
     }
-    .movies {
+    .items {
       display: flex;
       flex-direction: row;
       flex-wrap: wrap;
@@ -111,7 +124,14 @@ export class MoviesComponent implements OnInit {
   movies$: Observable<Movie[]>;
   hasAppliedFilters$: Observable<boolean>;
 
+  @ViewChild('items', { static: true })
+  itemsContainer: ElementRef;
+
+  @ViewChildren(ItemDirective)
+  items: QueryList<ItemDirective>;
+
   constructor(
+    private element: ElementRef,
     private core: CoreService,
     private files: FilesService,
     private video: VideoService,
@@ -186,6 +206,68 @@ export class MoviesComponent implements OnInit {
 
   @HostListener('keydown.space', ['$event'])
   noScroll(event: KeyboardEvent) {
+    event.preventDefault();
+  }
+
+  @HostListener('keydown.arrowRight')
+  right() {
+    const elements = this.items.map(item => item.elementRef.nativeElement);
+    const activeElement = elements.find(i => i === document.activeElement);
+    const activeIndex = elements.indexOf(activeElement);
+    const nextElement = elements[activeIndex + 1];
+    if (nextElement) {
+      nextElement.focus();
+    } else if (activeElement) {
+      activeElement.focus();
+    }
+  }
+
+  @HostListener('keydown.arrowLeft')
+  left() {
+    const elements = this.items.map(item => item.elementRef.nativeElement);
+    const activeElement = elements.find(i => i === document.activeElement);
+    const activeIndex = elements.indexOf(activeElement);
+    const nextElement = elements[activeIndex - 1];
+    if (nextElement) {
+      nextElement.focus();
+    } else if (activeElement) {
+      activeElement.focus();
+    }
+  }
+
+  @HostListener('keydown.arrowUp', ['$event'])
+  up(event: KeyboardEvent) {
+    const numberPerLine = Math.floor(
+      this.itemsContainer.nativeElement.clientWidth / this.items.first.elementRef.nativeElement.clientWidth
+    );
+    const elements = this.items.map(item => item.elementRef.nativeElement);
+    const activeElement = elements.find(i => i === document.activeElement);
+    const activeIndex = elements.indexOf(activeElement);
+    const nextElement = elements[activeIndex - numberPerLine] as HTMLElement;
+    if (nextElement) {
+      nextElement.focus({ preventScroll: true });
+      nextElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (activeElement) {
+      activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    event.preventDefault();
+  }
+
+  @HostListener('keydown.arrowDown', ['$event'])
+  down(event: KeyboardEvent) {
+    const numberPerLine = Math.floor(
+      this.itemsContainer.nativeElement.clientWidth / this.items.first.elementRef.nativeElement.clientWidth
+    );
+    const elements = this.items.map(item => item.elementRef.nativeElement);
+    const activeElement = elements.find(i => i === document.activeElement);
+    const activeIndex = elements.indexOf(activeElement);
+    const nextElement = elements[activeIndex + numberPerLine];
+    if (nextElement) {
+      nextElement.focus({preventScroll: true});
+      nextElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (activeElement) {
+      activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
     event.preventDefault();
   }
 

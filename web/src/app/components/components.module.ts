@@ -13,7 +13,7 @@ import {SidenavComponent} from './sidenav.component';
 import {LibraryListComponent} from './library/library-list.component';
 import {MainComponent} from './main.component';
 import {VideoListComponent} from './common/video-list/video-list.component';
-import {MoviesComponent} from './movies/movies.component';
+import {ItemDirective, MoviesComponent} from './movies/movies.component';
 import {GlobalComponent} from './settings/global/global.component';
 import {LocalComponent} from './settings/local/local.component';
 import {LibraryCreationDialogComponent} from './dialogs/library-creation-dialog/library-creation-dialog.component';
@@ -65,7 +65,8 @@ const COMPONENTS = [
   TabsComponent,
   MovieFiltersComponent,
   ShowFiltersComponent,
-  FileSelectionComponent
+  FileSelectionComponent,
+  ItemDirective
 ];
 
 @NgModule({
