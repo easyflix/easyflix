@@ -1,5 +1,5 @@
 import {Routes} from '@angular/router';
-import {HomeComponent} from './components/home/home.component';
+import {HomeComponent} from './components/home.component';
 import {HistoryComponent} from './components/history/history.component';
 import {LibraryComponent} from './components/library/library.component';
 import {SettingsComponent} from './components/settings/settings.component';

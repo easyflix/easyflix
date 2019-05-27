@@ -1,4 +1,5 @@
 import {LibraryFile} from '@app/models/library-file';
+import {Item} from '@app/models/item';
 
 export interface Genre {
   id: number;
@@ -39,7 +40,8 @@ export interface MovieDetails {
   };
 }
 
-export interface Movie {
+export interface Movie extends Item {
+  type: 'movie';
   id: number;
   title: string;
   original_title: string;

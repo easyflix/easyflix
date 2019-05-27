@@ -1,5 +1,6 @@
 import {LibraryFile} from '@app/models/library-file';
 import {Cast, Crew, Genre} from '@app/models/movie';
+import {Item} from '@app/models/item';
 
 export interface Creator {
   id: number;
@@ -52,7 +53,8 @@ export interface Episode {
   vote_count: number;
 }
 
-export interface Show {
+export interface Show extends Item {
+  type: 'show';
   id: number;
   name: string;
   original_name: string;

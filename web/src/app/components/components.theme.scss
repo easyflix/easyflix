@@ -9,7 +9,7 @@
   $background: map-get($theme, background);
 
   *:focus {
-    outline-color: mat-color($accent) !important;
+    outline-color: mat-color($primary) !important;
   }
 
   mat-sidenav {
@@ -97,6 +97,12 @@
     }
     .item:focus .poster {
       outline-color: mat-color($primary) !important;
+    }
+  }
+
+  app-video-list {
+    .button {
+      background-color: mat-color($background, hover, 0.25);
     }
   }
 

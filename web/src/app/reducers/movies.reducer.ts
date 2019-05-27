@@ -14,6 +14,13 @@ export interface State extends EntityState<Movie> {}
 
 export const initialState: State = adapter.getInitialState({});
 
+const addType: (movie: Movie) => Movie = (movie: Movie) => {
+  return {
+    type: 'movie',
+    ...movie
+  };
+};
+
 /**
  * Reducer
  */
@@ -24,11 +31,11 @@ export function reducer(
   switch (action.type) {
 
     case MoviesActionTypes.LoadMoviesSuccess: {
-      return adapter.upsertMany(action.payload, state);
+      return adapter.upsertMany(action.payload.map(addType), state);
     }
 
     case MoviesActionTypes.AddMovies: {
-      return adapter.upsertMany(action.payload, state);
+      return adapter.upsertMany(action.payload.map(addType), state);
     }
 
     case MoviesActionTypes.UpdateMovies: {

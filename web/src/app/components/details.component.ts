@@ -9,6 +9,7 @@ import {detailsAnimations} from '@app/animations';
 import {MovieFiltersService} from '@app/services/movie-filters.service';
 import {FocusTrap, FocusTrapFactory} from '@angular/cdk/a11y';
 import {ShowFiltersService} from '@app/services/show-filters.service';
+import {Item} from '@app/models/item';
 
 @Component({
   selector: 'app-details',
@@ -103,14 +104,14 @@ export class DetailsComponent implements OnInit, OnDestroy {
     this.type = this.route.snapshot.data.type;
 
     // Keyboard events
-    this.subscriptions.push(
-/*      this.keyboard.ArrowLeft.subscribe(
+    /*this.subscriptions.push(
+      this.keyboard.ArrowLeft.subscribe(
         () => this.previous()
       ),
       this.keyboard.ArrowRight.subscribe(
         () => this.next()
-      )*/
-    );
+      )
+    );*/
 
     // Trap focus within component
     this.focusTrap = this.focusTrapFactory.create(this.appDetails.nativeElement);
@@ -130,23 +131,33 @@ export class DetailsComponent implements OnInit, OnDestroy {
       switchMap(() => this.route.firstChild.paramMap),
       map(params => +params.get('id'))
     );
-    const items$: Observable<{id: number}[]> = this.type === 'movie' ? movies$ : shows$;
+    const items$: Observable<Item[]> = this.type === 'movie' ? movies$ : shows$;
 
-    const fn = (array: {id: number}[], offset: 1 | -1) => (id: number) => {
-      const currentIndex = array.map(o => o.id).indexOf(id);
-      return (array[currentIndex + offset] && array[currentIndex + offset].id) || undefined;
-    };
+    // If ids are set in history state use those
+    if (history.state && history.state.ids) {
+      const ids = history.state.ids.split(',').map(id => +id);
+      this.nextId = id$.pipe(
+        map(id => ids[ids.indexOf(id) + 1])
+      );
+      this.prevId = id$.pipe(
+        map(id => ids[ids.indexOf(id) - 1])
+      );
+    // Otherwise get ids from items$
+    } else {
+      this.nextId = items$.pipe(
+        map(items => items.map(i => i.id)),
+        switchMap(ids => id$.pipe(
+          map(id => ids[ids.indexOf(id) + 1])
+        ))
+      );
+      this.prevId = items$.pipe(
+        map(items => items.map(i => i.id)),
+        switchMap(ids => id$.pipe(
+          map(id => ids[ids.indexOf(id) - 1])
+        ))
+      );
+    }
 
-    this.nextId = items$.pipe(
-      switchMap(items => id$.pipe(
-        map(fn(items, 1))
-      ))
-    );
-    this.prevId = items$.pipe(
-      switchMap(items => id$.pipe(
-        map(fn(items, -1))
-      ))
-    );
     this.nextDisabled = this.nextId.pipe(
       map(id => id === undefined)
     );
@@ -158,6 +169,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.map(sub => sub.unsubscribe());
+    // Release focus
     this.focusTrap.destroy();
     if (this.previousActiveElement) {
       this.previousActiveElement.focus();

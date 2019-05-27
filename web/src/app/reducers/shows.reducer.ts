@@ -14,6 +14,13 @@ export interface State extends EntityState<Show> {}
 
 export const initialState: State = adapter.getInitialState({});
 
+const addType: (show: Show) => Show = (show: Show) => {
+  return {
+    type: 'show',
+    ...show
+  };
+};
+
 /**
  * Reducer
  */
@@ -24,11 +31,11 @@ export function reducer(
   switch (action.type) {
 
     case ShowsActionTypes.LoadShowsSuccess: {
-      return adapter.upsertMany(action.payload, state);
+      return adapter.upsertMany(action.payload.map(addType), state);
     }
 
     case ShowsActionTypes.AddShows: {
-      return adapter.upsertMany(action.payload, state);
+      return adapter.upsertMany(action.payload.map(addType), state);
     }
 
     case ShowsActionTypes.UpdateShows: {
