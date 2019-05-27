@@ -4,7 +4,7 @@ import {Observable} from 'rxjs';
 import {FilesService} from '@app/services/files.service';
 import {LibraryFile} from '@app/models';
 import {VideoService} from '@app/services/video.service';
-import {AnimatableComponent} from '@app/components/library/library.component';
+import {AnimatableComponent} from '@app/components/nav/library/library.component';
 
 @Component({
   selector: 'app-folder',

@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, Component, ElementRef, EventEmitter, OnInit, Vi
 import {EMPTY, Observable} from 'rxjs';
 import {map, switchMap} from 'rxjs/operators';
 import {Library} from '@app/models';
-import {AnimatableComponent} from '@app/components/library/library.component';
+import {AnimatableComponent} from '@app/components/nav/library/library.component';
 import {LibrariesService} from '@app/services/libraries.service';
 import {MatDialog} from '@angular/material/dialog';
 import {MatSnackBar} from '@angular/material/snack-bar';
