@@ -32,6 +32,7 @@ import {TabsComponent} from './common/tabs.component';
 import {MovieFiltersComponent} from './dialogs/movie-filters.component';
 import {ShowFiltersComponent} from './dialogs/show-filters.component';
 import {FileSelectionComponent} from './dialogs/file-selection.component';
+import {NavRouterComponent} from './nav/nav-router.component';
 
 const COMPONENTS = [
   FileListComponent,
@@ -66,7 +67,8 @@ const COMPONENTS = [
   MovieFiltersComponent,
   ShowFiltersComponent,
   FileSelectionComponent,
-  ItemDirective
+  ItemDirective,
+  NavRouterComponent
 ];
 
 @NgModule({

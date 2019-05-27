@@ -60,7 +60,7 @@ const fadeOver = [
   fadeIn[0]
 ];
 
-const slideRight = [
+export const slideRight = [
   query(':enter, :leave', [
     style({
       position: 'absolute',
@@ -84,10 +84,12 @@ const slideRight = [
       ':leave',
       animate(DEFAULT_TIMING + ' ease-in-out', style({ transform: 'translate(100%)' }))
     )
-  ])
+  ]),
+  // FIX to prevent child routes to remove their component https://github.com/angular/angular/issues/15477
+  // query('router-outlet + *', [style({ opacity: 1 }), animate(1, style({ opacity: 0.99 }))], { optional: true }),
 ];
 
-const slideLeft = [
+export const slideLeft = [
   query(':enter, :leave', [
     style({
       position: 'absolute',
@@ -111,7 +113,9 @@ const slideLeft = [
       ':leave',
       animate(DEFAULT_TIMING + ' ease-in-out', style({ transform: 'translate(-100%)' }))
     )
-  ])
+  ]),
+  // FIX to prevent child routes to remove their component https://github.com/angular/angular/issues/15477
+  // query('router-outlet + *', [style({ opacity: 1 }), animate(1, style({ opacity: 0.99 }))], { optional: true }),
 ];
 
 export const playerAnimations = trigger('playerAnimation', [

@@ -17,6 +17,7 @@ import {ShowResolverService} from '@app/guards/show-resolver.service';
 import {DetailsComponent} from '@app/components/details.component';
 import {ShowComponent} from '@app/components/shows/show.component';
 import {MovieComponent} from '@app/components/movies/movie.component';
+import {NavRouterComponent} from '@app/components/nav/nav-router.component';
 
 export const detailsRoutes = [
   {
@@ -108,7 +109,8 @@ export const routes: Routes = [
   },
   {
     path: '',
-    outlet: 'nav', // TODO router component
+    outlet: 'nav',
+    component: NavRouterComponent,
     children: navRoutes
   },
   {
