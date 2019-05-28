@@ -46,6 +46,7 @@ import {Item} from '@app/models/item';
       box-sizing: border-box;
       transition-property: transform;
       transition: 300ms ease;
+      cursor: pointer;
     }
     .item:last-of-type {
       padding-right: 0;

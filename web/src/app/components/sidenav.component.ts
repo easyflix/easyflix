@@ -83,12 +83,13 @@ export class SidenavComponent implements OnInit, OnDestroy {
   first: ElementRef;
 
   private subscription: Subscription;
+  private previousActiveElement: HTMLElement;
 
   constructor(private core: CoreService) {}
 
   ngOnInit(): void {
     this.subscription = this.core.getShowSidenav().subscribe(
-      show => show ? this.focus() : {}
+      show => show ? this.focus() : this.releaseFocus()
     );
   }
 
@@ -97,8 +98,15 @@ export class SidenavComponent implements OnInit, OnDestroy {
   }
 
   focus() {
+    this.previousActiveElement = document.activeElement as HTMLElement;
     const firstElement = this.first.nativeElement as HTMLElement;
     setTimeout(() => firstElement.focus(), 400); // TODO export 400ms somewhere
+  }
+
+  releaseFocus() {
+    if (this.previousActiveElement) {
+      this.previousActiveElement.focus();
+    }
   }
 
 
