@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
   lazy val akkaHttpVersion = "10.1.7"
   lazy val akkaVersion     = "2.5.22"
-  lazy val alpakkaVersion  = "1.0.0+34-345363eb"
+  lazy val alpakkaVersion  = "1.0.1"
 
   // Tests
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5"
