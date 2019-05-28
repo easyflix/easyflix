@@ -9,8 +9,90 @@ import {FilesUtils} from '@app/utils/files.utils';
 
 @Component({
   selector: 'app-search',
-  templateUrl: './search.component.html',
-  styleUrls: ['./search.component.css'],
+  template: `
+    <header>
+      <h2>Search</h2>
+    </header>
+    <mat-divider></mat-divider>
+    <div class="search-container">
+      <mat-form-field [floatLabel]="'never'">
+        <mat-label>File path, name, extension</mat-label>
+        <input matInput
+               name="webflix-search"
+               [(ngModel)]="search"
+               spellcheck="false"/>
+        <mat-icon class="close" matSuffix (click)="search = ''" *ngIf="search !== ''">close</mat-icon>
+      </mat-form-field>
+      <span class="results">{{ (files$ | async)?.length || 0 }} results</span>
+    </div>
+    <mat-divider></mat-divider>
+    <cdk-virtual-scroll-viewport itemSize="60" [minBufferPx]="800" [maxBufferPx]="1000">
+      <mat-action-list dense>
+        <ng-template cdkVirtualFor let-file [cdkVirtualForOf]='files$ | async'>
+          <mat-list-item tabindex='0' (click)="playVideo(file)">
+            <mat-icon matListIcon class='material-icons-outlined'>
+              movie
+            </mat-icon>
+            <h3 matLine [innerHTML]="file.name | sgSearchTerms:searchTerms"></h3>
+            <span matLine class="subtext" [innerHTML]="getParentPath(file) | sgSearchTerms:searchTerms"></span>
+            <mat-divider></mat-divider>
+          </mat-list-item>
+        </ng-template>
+      </mat-action-list>
+    </cdk-virtual-scroll-viewport>
+  `,
+  styles: [`
+    :host {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      height: 59px;
+      padding: 0 1.25rem;
+      display: flex;
+      align-items: center;
+    }
+    h2 {
+      margin: 0 1.25rem 0 0;
+      font-size: 18px;
+      font-weight: 500;
+    }
+    .search-container {
+      height: 59px;
+      padding: 0 1.25rem;
+      display: flex;
+      align-items: center;
+    }
+    cdk-virtual-scroll-viewport {
+      flex-grow: 1;
+    }
+    mat-form-field {
+      flex-grow: 1;
+      margin: 0 1.25rem 0 0;
+      height: 59px;
+    }
+    .close {
+      font-size: 16px;
+      height: 16px;
+      width: 16px;
+      line-height: 16px;
+      vertical-align: middle;
+      cursor: pointer;
+    }
+    .results {
+      min-width: 70px;
+      text-align: right;
+      font-size: 14px;
+    }
+    mat-action-list[dense] {
+      padding: 0;
+    }
+    .subtext {
+      margin-top: 0.25rem !important;
+      font-size: 11px !important;
+    }
+  `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
