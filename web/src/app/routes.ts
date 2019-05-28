@@ -9,8 +9,6 @@ import {VideoComponent} from './components/video/video.component';
 import {MoviesComponent} from './components/movies/movies.component';
 import {VideoResolverService} from '@app/guards/video-resolver.service';
 import {LibrariesLoadedGuard} from '@app/guards/libraries-loaded.guard';
-import {GlobalComponent} from '@app/components/nav/settings/global/global.component';
-import {LocalComponent} from '@app/components/nav/settings/local/local.component';
 import {MovieResolverService} from '@app/guards/movie-resolver.service';
 import {ShowsComponent} from '@app/components/shows/shows.component';
 import {ShowResolverService} from '@app/guards/show-resolver.service';
@@ -72,18 +70,7 @@ export const navRoutes = [
   {
     path: 'settings',
     component: SettingsComponent,
-    canActivate: [LibrariesLoadedGuard],
     data: { animation: 'settings' },
-    children: [
-      {
-        path: '',
-        component: LocalComponent
-      },
-      {
-        path: 'server',
-        component: GlobalComponent
-      }
-    ]
   },
   {
     path: 'about',
@@ -96,13 +83,13 @@ export const routes: Routes = [
   { path: '', redirectTo: '/home(nav:library)', pathMatch: 'full' },
   { path: 'home', component: HomeComponent, data: { animation: 'home' } },
   {
-    path: 'movies',
+    path: 'movies', // TODO no need for children
     children: [
       { path: '', component: MoviesComponent, data: { animation: 'movies' } },
     ],
   },
   {
-    path: 'shows',
+    path: 'shows', // TODO no need for children
     children: [
       { path: '', component: ShowsComponent, data: { animation: 'shows' } },
     ],
@@ -122,10 +109,7 @@ export const routes: Routes = [
     path: ':id',
     outlet: 'player',
     component: VideoComponent,
-    // canActivate: [LibrariesLoadedGuard],
-    resolve: {
-      video: VideoResolverService
-    },
+    resolve: { video: VideoResolverService },
     data: { animation: 'player' }
   },
 ];

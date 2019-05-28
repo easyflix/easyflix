@@ -14,8 +14,8 @@ import {LibraryListComponent} from './nav/library/library-list.component';
 import {MainComponent} from './main.component';
 import {VideoListComponent} from './common/video-list.component';
 import {ItemDirective, MoviesComponent} from './movies/movies.component';
-import {GlobalComponent} from './nav/settings/global/global.component';
-import {LocalComponent} from './nav/settings/local/local.component';
+import {ServerSettingsComponent} from './nav/settings/server-settings.component';
+import {ClientSettingsComponent} from './nav/settings/client-settings.component';
 import {LibraryCreationDialogComponent} from './dialogs/library-creation-dialog/library-creation-dialog.component';
 import {ConfirmDialogComponent} from './dialogs/confirm-dialog.component';
 import {MovieComponent} from './movies/movie.component';
@@ -49,8 +49,8 @@ const COMPONENTS = [
   MainComponent,
   VideoListComponent,
   MoviesComponent,
-  GlobalComponent,
-  LocalComponent,
+  ServerSettingsComponent,
+  ClientSettingsComponent,
   LibraryCreationDialogComponent,
   ConfirmDialogComponent,
   MovieComponent,
