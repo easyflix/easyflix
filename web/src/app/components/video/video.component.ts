@@ -8,8 +8,63 @@ import {LibraryFile} from '@app/models';
 
 @Component({
   selector: 'app-video',
-  templateUrl: './video.component.html',
-  styleUrls: ['./video.component.sass'],
+  template: `
+    <video #video
+           autoplay
+           [src]="src$ | async"
+           [volume]="volume$ | async"
+           [currentTime]="currentTime"
+           (play)="onPlay()"
+           (playing)="onPlaying()"
+           (pause)="onPause()"
+           (ended)="onEnded()"
+           (canplay)="onCanPlay()"
+           (canplaythrough)="onCanPlayThrough()"
+           (loadedmetadata)="onLoadedMetadata($event)"
+           (timeupdate)="onTimeUpdate($event)"
+           (waiting)="onWaiting()"
+           (error)="onError($event)">
+    </video>
+    <app-controls
+      [playing]="playing$ | async"
+      [currentTime]="currentTime$ | async"
+      [duration]="duration$ | async"
+      [loading]="loading$ | async"
+      (seekTo)="seekTo($event)"
+      (openSidenav)="openSidenav()"
+      (resume)="play()"
+      (pause)="pause()"
+      (seekForward)="seekForward()"
+      (seekBackward)="seekBackward()"
+      (closeVideo)="closeVideo()">
+    </app-controls>
+  `,
+  styles: [`
+    :host {
+      height: 100%;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: black;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 30;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+    }
+    app-controls {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1;
+    }
+  `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class VideoComponent implements OnInit, OnDestroy {
@@ -174,12 +229,13 @@ export class VideoComponent implements OnInit, OnDestroy {
   }
 
   closeVideo() {
-    this.video.updateCurrentTime(0);
     this.router.navigate(
       [{ outlets: { player: null } }],
       { queryParams: { time: null, play: null }, queryParamsHandling: 'merge', replaceUrl: true }
     ).then(() => {
       this.video.setSource(null);
+      this.video.updateCurrentTime(0);
+      this.video.setDuration(0);
     });
   }
 
