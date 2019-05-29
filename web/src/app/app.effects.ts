@@ -193,7 +193,6 @@ export class AppEffects {
         })
       )
   );
-  // TODO set filters to default when param is null
   @Effect({ dispatch: false })
   moviesUrl2Filters$ =
     this.route.queryParamMap.pipe(
@@ -222,8 +221,6 @@ export class AppEffects {
         }
         if (genres !== null) {
           this.movieFilters.setGenres(genres.split(','));
-        } else {
-          this.movieFilters.setGenres([]);
         }
       })
     );
@@ -250,7 +247,6 @@ export class AppEffects {
         })
       )
     );
-  // TODO set filters to default when param is null
   @Effect({ dispatch: false })
   showsUrl2Filters$ =
     this.route.queryParamMap.pipe(
