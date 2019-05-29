@@ -11,7 +11,8 @@ import {LibraryFile} from '@app/models';
   template: `
     <video #video
            autoplay
-           [src]="src$ | async"
+           *ngIf="src$ | async as source"
+           [src]="source"
            [volume]="volume$ | async"
            [currentTime]="currentTime"
            (play)="onPlay()"
@@ -69,7 +70,7 @@ import {LibraryFile} from '@app/models';
 })
 export class VideoComponent implements OnInit, OnDestroy {
 
-  @ViewChild('video', { static: true })
+  @ViewChild('video', { static: false })
   videoRef: ElementRef;
 
   src$: Observable<string>;
@@ -103,7 +104,7 @@ export class VideoComponent implements OnInit, OnDestroy {
     this.loading$ = this.video.getLoading();
 
     this.route.data.subscribe(
-      (data: { video: LibraryFile }) => this.video.setSource(`http://localhost:8081/videos/${data.video.id}`)
+      (data: { video: LibraryFile }) => this.video.setSource(`http://localhost:8081/videos/${data.video.id}`) // TODO
     );
 
     this.route.queryParamMap.pipe(
@@ -211,10 +212,10 @@ export class VideoComponent implements OnInit, OnDestroy {
 
   onTimeUpdate(event) {
     // Fix for Edge ?
-    /* this.video.getLoading().pipe(
+    this.video.getLoading().pipe(
       take(1),
       tap(loading => loading ? this.video.setLoading(false) : {})
-    ).subscribe(); */
+    ).subscribe();
 
     this.video.updateCurrentTime(event.target.currentTime);
   }
@@ -226,6 +227,8 @@ export class VideoComponent implements OnInit, OnDestroy {
   onError(event) {
     // https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code
     console.error('VideoError', event.target.error);
+    this.video.setLoading(false);
+    // TODO show dialog
   }
 
   closeVideo() {

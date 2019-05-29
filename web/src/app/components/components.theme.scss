@@ -195,4 +195,10 @@
     }
   }
 
+  app-controls {
+    button.cdk-keyboard-focused{
+      color: mat-color($primary);
+    }
+  }
+
 }

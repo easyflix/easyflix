@@ -1,4 +1,17 @@
-import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component, ElementRef,
+  EventEmitter,
+  HostBinding,
+  HostListener,
+  Input, OnChanges, OnDestroy,
+  OnInit,
+  Output, SimpleChanges
+} from '@angular/core';
+import {asapScheduler, Observable, of, scheduled, Subject, Subscription, timer} from 'rxjs';
+import {filter, skipUntil, take, tap} from 'rxjs/operators';
+import {FocusTrap, FocusTrapFactory} from '@angular/cdk/a11y';
 
 @Component({
   selector: 'app-controls',
@@ -11,20 +24,12 @@ import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output}
         <mat-icon>close</mat-icon>
       </button>
     </section>
-
     <section class="middle">
-      <!--<button mat-icon-button class="next">
-        <mat-icon>arrow_right</mat-icon>
-      </button>-->
+      <mat-spinner *ngIf="loading$ | async" diameter="40"></mat-spinner>
     </section>
-
     <section class="bottom">
       <div class="seeker">
-        <mat-progress-bar
-          *ngIf="loading"
-          mode="indeterminate"></mat-progress-bar>
         <mat-slider
-          *ngIf="!loading"
           color="primary"
           [step]="1"
           [disabled]="!duration"
@@ -37,7 +42,7 @@ import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output}
         <span class="right">{{ duration | sgTime }}</span>
       </div>
       <div class="controls">
-        <div class="g1">
+        <div>
           <button mat-icon-button>
             <mat-icon class="material-icons-outlined">volume_up</mat-icon>
           </button>
@@ -45,7 +50,7 @@ import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output}
             <mat-icon class="material-icons-outlined">speaker_notes</mat-icon>
           </button>
         </div>
-        <div class="g2">
+        <div class="mid-controls">
           <button mat-icon-button class="md-36" (click)="seekBackward.emit()">
             <mat-icon class="material-icons-outlined">replay_10</mat-icon>
           </button>
@@ -59,9 +64,9 @@ import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output}
             <mat-icon class="material-icons-outlined">forward_30</mat-icon>
           </button>
         </div>
-        <div class="g3">
-          <button mat-icon-button>
-            <mat-icon class="material-icons-outlined">fullscreen</mat-icon>
+        <div>
+          <button mat-icon-button (click)="toggleFullscreen()">
+            <mat-icon class="material-icons-outlined">{{ isFullScreen() ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
           </button>
           <button mat-icon-button>
             <mat-icon class="material-icons-outlined">more_horiz</mat-icon>
@@ -77,6 +82,14 @@ import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output}
       display: flex;
       flex-direction: column;
       color: white;
+      transition: opacity 500ms ease;
+    }
+    :host.hidden {
+      opacity: 0;
+      cursor: none !important;
+    }
+    :host.hidden * {
+      cursor: none !important;
     }
     .top {
       height: 60px;
@@ -93,10 +106,12 @@ import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output}
       display: flex;
       flex-direction: row;
       align-items: center;
+      justify-content: center;
       padding: 0 1rem;
     }
-    .next {
-      margin-left: auto;
+    mat-spinner {
+      position: relative;
+      top: 60px;
     }
     .bottom {
       height: 200px;
@@ -114,11 +129,6 @@ import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output}
     mat-slider {
       width: 100%;
       cursor: pointer;
-    }
-    mat-progress-bar {
-      width: auto;
-      height: 2px;
-      margin: 23px 8px;
     }
     .time {
       display: flex;
@@ -138,21 +148,29 @@ import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output}
     button:not(:last-of-type) {
       margin-right: 1rem;
     }
-    .g2 {
+    .mid-controls {
       flex-grow: 1;
       display: flex;
       justify-content: center;
       align-items: center;
     }
-    button.cdk-keyboard-focused{
-      color: green;
-    }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ControlsComponent implements OnInit {
+export class ControlsComponent implements OnInit, OnDestroy, OnChanges {
+
+  HIDE_DELAY = 3000;
+
+  @HostBinding('class.hidden') hidden = false;
+
+  loadingSubject: Subject<boolean> = new Subject();
+  loading$: Observable<boolean> = this.loadingSubject.asObservable();
+  loadingSub: Subscription;
 
   @Input() playing: boolean;
+  @Input() loading: boolean;
+  @Input() currentTime: number;
+  @Input() duration: number;
 
   @Output() openSidenav: EventEmitter<void> = new EventEmitter();
   @Output() pause: EventEmitter<void> = new EventEmitter();
@@ -160,16 +178,103 @@ export class ControlsComponent implements OnInit {
   @Output() seekForward: EventEmitter<void> = new EventEmitter();
   @Output() seekBackward: EventEmitter<void> = new EventEmitter();
   @Output() closeVideo: EventEmitter<void> = new EventEmitter();
+  @Output() seekTo: EventEmitter<number> = new EventEmitter();
 
-  @Input() loading: boolean;
-  @Input() currentTime: number;
-  @Input() duration: number;
+  private mouseSubscription: Subscription;
+  private focusTrap: FocusTrap;
+  private previousFocusedElement: HTMLElement;
 
-  @Output() seekTo = new EventEmitter<number>();
+  @HostListener('keydown')
+  @HostListener('mouseleave')
+  @HostListener('mouseenter')
+  @HostListener('mousemove')
+  showControls() {
+    // Show controls and pointer
+    this.hidden = false;
+    // Schedule hiding controls and pointer in HIDE_DELAY ms unless loading
+    if (this.mouseSubscription) {
+      this.mouseSubscription.unsubscribe();
+    }
+    const notifier = this.loading ? this.loading$.pipe(filter(l => !l)) : scheduled([true], asapScheduler);
+    this.mouseSubscription = timer(this.HIDE_DELAY, this.HIDE_DELAY).pipe(
+      skipUntil(notifier),
+      tap(() => this.hidden = true),
+      tap(() => this.cdr.markForCheck()),
+      take(1)
+    ).subscribe();
+  }
 
-  constructor() { }
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private element: ElementRef,
+    private focusTrapFactory: FocusTrapFactory
+  ) { }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.loading) {
+      if (this.loadingSub) {
+        this.loadingSub.unsubscribe();
+      }
+      if (changes.loading.currentValue) {
+        this.loadingSub = timer(500).subscribe(
+          () => this.loadingSubject.next(true)
+        );
+      } else {
+        this.loadingSubject.next(false);
+      }
+    }
+  }
 
   ngOnInit() {
+    this.previousFocusedElement = document.activeElement as HTMLElement;
+    this.focusTrap = this.focusTrapFactory.create(this.element.nativeElement);
+    // Must happen after details focus...
+    setTimeout(() => this.focusTrap.focusInitialElement(), 500);
+  }
+
+  ngOnDestroy(): void {
+    if (this.mouseSubscription) {
+      this.mouseSubscription.unsubscribe();
+    }
+    if (this.previousFocusedElement) {
+      this.previousFocusedElement.focus();
+    }
+  }
+
+  isFullScreen(): boolean {
+    const keyName = 'webkitFullscreenElement'; // <- This is for Edge !
+    return !!document.fullscreenElement || !!document[keyName];
+  }
+
+  @HostListener('keydown.f11', ['$event'])
+  toggleFullscreen(event?: KeyboardEvent): void {
+    const keyName = 'webkitFullscreenElement'; // <- This is for Edge !
+    if (!document.fullscreenElement && !document[keyName]) {
+      const elem = document.documentElement as any;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.mozRequestFullScreen) { /* Firefox */
+        elem.mozRequestFullScreen();
+      } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) { /* IE/Edge */
+        elem.msRequestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else {
+        // @ts-ignore
+        if (document.webkitExitFullscreen) {
+          // @ts-ignore
+          document.webkitExitFullscreen();
+        }
+      }
+    }
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
   }
 
 }
