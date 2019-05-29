@@ -29,21 +29,20 @@ object TMDBActor {
   def props()(implicit application: Application): Props = Props(new TMDBActor)
 
   sealed trait Context
-  case object ConfigurationContext extends Context
-  case object LanguagesContext extends Context
+  private case object ConfigurationContext extends Context
+  private case object LanguagesContext extends Context
 
-  sealed abstract class RuntimeContext(val log: String) extends Context
-  case class MovieSearchContext(query: String, year: Int) extends RuntimeContext(s"Search movie: $query")
-  case class MovieDetailsContext(id: Int) extends RuntimeContext(s"Movie details: $id")
-  case class TVSearchContext(query: String) extends RuntimeContext(s"Search TV: $query")
-  case class TVDetailsContext(id: Int) extends RuntimeContext(s"TV Details: $id")
-  // case class TVSeasonContext(id: Int, season: Int) extends RuntimeContext(s"TV Season: $id - S$season")
-  case class TVEpisodeContext(id: Int, season: Int, episode: Int) extends RuntimeContext(s"TV Episode: $id - S$season/E$episode")
+  sealed private abstract class RuntimeContext(val log: String) extends Context
+  private case class MovieSearchContext(query: String, year: Int) extends RuntimeContext(s"Search movie: $query")
+  private case class MovieDetailsContext(id: Int) extends RuntimeContext(s"Movie details: $id")
+  private case class TVSearchContext(query: String) extends RuntimeContext(s"Search TV: $query")
+  private case class TVDetailsContext(id: Int) extends RuntimeContext(s"TV Details: $id")
+  private case class TVEpisodeContext(id: Int, season: Int, episode: Int) extends RuntimeContext(s"TV Episode: $id - S$season/E$episode")
 
   sealed trait Metadata
-  case class MovieMetadata(name: String, year: Int, file: LibraryFile) extends Metadata
-  case class TVEpisodeMetadata(name: String, season: Int, episode: Int, file: LibraryFile) extends Metadata
-  case class UnknownMetadata(file: LibraryFile) extends Metadata
+  private case class MovieMetadata(name: String, year: Int, file: LibraryFile) extends Metadata
+  private case class TVEpisodeMetadata(name: String, season: Int, episode: Int, file: LibraryFile) extends Metadata
+  private case class UnknownMetadata(file: LibraryFile) extends Metadata
 }
 
 class TMDBActor()(implicit application: Application) extends Actor with Stash {
@@ -99,7 +98,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
           if (result.total_results > 0) {
             val head = result.results.head
             val movie = movies.get(head.id)
-              .map(movie => movie.copy(files = movie.files ++ files))
+              .map(movie => movie.copy(files = movie.files ++ files)) // TODO keep newer movie
               .getOrElse(
                 Movie(
                   id = head.id,
@@ -137,9 +136,9 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
           movies += movie.id -> movie.withDetails(cleanedDetails)
         }
     }
-  }))
+  }), "movies")
 
-  val tvActor: ActorRef = context.actorOf(Props(new Actor {
+  val showsActor: ActorRef = context.actorOf(Props(new Actor {
     var shows: Map[Int, Show] = Map.empty
     var showSearches: Map[TVSearchContext, Set[LibraryFile]] = Map.empty
     override def receive: Receive = {
@@ -165,7 +164,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
           if (result.total_results > 0) {
             val head = result.results.head
             val show = shows.get(head.id)
-              .map(show => show.copy(files = show.files ++ files))
+              .map(show => show.copy(files = show.files ++ files)) // TODO keep newer show
               .getOrElse(
                 Show(
                   id = head.id,
@@ -223,12 +222,12 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
           application.bus.publish(ShowAdded(show.withEpisode(cleanedEpisode))) // TODO publish only an update
         }
     }
-  }))
+  }), "shows")
 
   override def receive: Receive = loading(Configuration(None, None))
 
-  case class Images(images: net.creasource.tmdb.Configuration.Images)
-  case class Languages(languages: net.creasource.tmdb.Configuration.Languages)
+  private[this] case class Images(images: net.creasource.tmdb.Configuration.Images)
+  private[this] case class Languages(languages: net.creasource.tmdb.Configuration.Languages)
 
   def loading(config: Configuration): Receive = {
 
@@ -247,11 +246,9 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
         case ConfigurationContext =>
           entity.discardBytes()
           logger.error("Got a non-200 response for configuration request.")
-          self ! PoisonPill // TODO
         case LanguagesContext =>
           entity.discardBytes()
           logger.error("Got a non-200 response for languages request.")
-          self ! PoisonPill // TODO
         case _ => stash()
       }
 
@@ -293,7 +290,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
           case meta: MovieMetadata =>
             movieActor ! meta
           case meta: TVEpisodeMetadata =>
-            tvActor ! meta
+            showsActor ! meta
           case UnknownMetadata(_) => // TODO
         }
 
@@ -305,11 +302,11 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
         case _: MovieDetailsContext =>
           parseEntity[Movie.Details](entity).foreach(movieActor ! _)
         case searchContext: TVSearchContext =>
-          parseEntity[tmdb.SearchTVShows](entity).foreach(tvActor ! (searchContext, _))
+          parseEntity[tmdb.SearchTVShows](entity).foreach(showsActor ! (searchContext, _))
         case _: TVDetailsContext =>
-          parseEntity[Show.Details](entity).foreach(tvActor ! _)
+          parseEntity[Show.Details](entity).foreach(showsActor ! _)
         case episodeContext: TVEpisodeContext =>
-          parseEntity[Episode](entity).foreach(tvActor ! (episodeContext, _))
+          parseEntity[Episode](entity).foreach(showsActor ! (episodeContext, _))
       }
 
     case (Success(HttpResponse(StatusCodes.TooManyRequests, headers, entity, _)), requestContext: RuntimeContext) =>
@@ -332,8 +329,8 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
     case GetConfig => sender() ! config
     case GetMovies => movieActor forward GetMovies
     case GetMovie(id) => movieActor forward GetMovie(id)
-    case GetShows => tvActor forward GetShows
-    case GetShow(id) => tvActor forward GetShow(id)
+    case GetShows => showsActor forward GetShows
+    case GetShow(id) => showsActor forward GetShow(id)
 
   }
 
@@ -360,6 +357,8 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
         tags +:= "mkv"
       if (lower.endsWith("mp4"))
         tags +:= "mp4"
+      if (lower.endsWith("avi"))
+        tags +:= "avi"
       if (lower.contains("720p"))
         tags +:= "720p"
       if (lower.contains("1080p"))
