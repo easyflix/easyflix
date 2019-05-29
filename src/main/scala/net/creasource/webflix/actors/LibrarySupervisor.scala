@@ -11,7 +11,7 @@ import me.nimavat.shortid.ShortId
 import net.creasource.Application
 import net.creasource.exceptions.{NotFoundException, ValidationException}
 import net.creasource.json.JsonSupport
-import net.creasource.webflix.events.{LibraryCreated, LibraryDeleted}
+import net.creasource.webflix.events.{FileDeleted, LibraryCreated, LibraryDeleted}
 import net.creasource.webflix.{Library, LibraryFile}
 
 import scala.concurrent.Future
@@ -115,9 +115,10 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
           context.stop(actorRef)
           app.bus.publish(LibraryDeleted(name))
           libraries -= name
-          paths --= paths.keys.filter(_.startsWith(library.name))
+          val pathsToDelete = paths.keys.filter(_.startsWith(library.name))
+          pathsToDelete.foreach(path => app.bus.publish(FileDeleted(path)))
+          paths --= pathsToDelete
         }
-      app.bus.publish(LibraryDeleted(name))
       sender() ! Done
 
     case GetFileById(id) =>

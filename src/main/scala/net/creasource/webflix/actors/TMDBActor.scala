@@ -56,6 +56,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
   private val api_key = application.config.getString("tmdb.api-key")
 
   application.bus.subscribe(self, classOf[FileAdded])
+  application.bus.subscribe(self, classOf[FileDeleted])
 
   val (tmdbActor: ActorRef, connectionPool: Http.HostConnectionPool) =
     Source.actorRef(10000, OverflowStrategy.dropNew)
@@ -72,7 +73,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
     .map(createRequest)
     .foreach(tmdbActor ! _)
 
-  val movieActor: ActorRef = context.actorOf(Props(new Actor {
+  val moviesActor: ActorRef = context.actorOf(Props(new Actor {
     var movies: Map[Int, Movie] = Map.empty
     var movieSearches: Map[MovieSearchContext, Set[LibraryFile]] = Map.empty
     override def receive: Receive = {
@@ -84,6 +85,17 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
           case _ => sender() ! Status.Failure(NotFoundException("Movie not found"))
         }
       // From parent
+      case FileDeleted(path) =>
+        movies.values.find(_.files.map(_.path).contains(path)).foreach{ movie =>
+          val updated = movie.copy(files = movie.files.filter(_.path != path))
+          if (updated.files.isEmpty) {
+            application.bus.publish(MovieDeleted(movie.id))
+            movies -= movie.id
+          } else {
+            application.bus.publish(MovieAdded(updated))
+            movies += movie.id -> updated
+          }
+        }
       case MovieMetadata(name, year, file) =>
         val searchContext = MovieSearchContext(name, year)
         movieSearches.get(searchContext) match {
@@ -149,7 +161,18 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
           case Some(show) => sender() ! show
           case _ => sender() ! Status.Failure(NotFoundException("TV show not found"))
         }
-      //
+      // From parent
+      case FileDeleted(path) =>
+        shows.values.find(_.files.map(_.path).contains(path)).foreach{ show =>
+          val updated = show.copy(files = show.files.filter(_.path != path))
+          if (updated.files.isEmpty) {
+            application.bus.publish(ShowDeleted(show.id))
+            shows -= show.id
+          } else {
+            application.bus.publish(ShowAdded(updated))
+            shows += show.id -> updated
+          }
+        }
       case TVEpisodeMetadata(name, _, _, file) =>
         val searchContext = TVSearchContext(name)
         showSearches.get(searchContext) match {
@@ -288,19 +311,23 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
         .map(extractMeta)
         .foreach {
           case meta: MovieMetadata =>
-            movieActor ! meta
+            moviesActor ! meta
           case meta: TVEpisodeMetadata =>
             showsActor ! meta
           case UnknownMetadata(_) => // TODO
         }
 
+    case fileDeleted: FileDeleted =>
+      moviesActor ! fileDeleted
+      showsActor ! fileDeleted
+
     // TMDB responses
     case (Success(HttpResponse(StatusCodes.OK, _, entity, _)), requestContext: RuntimeContext) =>
       requestContext match {
         case searchContext: MovieSearchContext =>
-          parseEntity[tmdb.SearchMovies](entity).foreach(movieActor ! (searchContext, _))
+          parseEntity[tmdb.SearchMovies](entity).foreach(moviesActor ! (searchContext, _))
         case _: MovieDetailsContext =>
-          parseEntity[Movie.Details](entity).foreach(movieActor ! _)
+          parseEntity[Movie.Details](entity).foreach(moviesActor ! _)
         case searchContext: TVSearchContext =>
           parseEntity[tmdb.SearchTVShows](entity).foreach(showsActor ! (searchContext, _))
         case _: TVDetailsContext =>
@@ -327,8 +354,8 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
 
     // Actor API
     case GetConfig => sender() ! config
-    case GetMovies => movieActor forward GetMovies
-    case GetMovie(id) => movieActor forward GetMovie(id)
+    case GetMovies => moviesActor forward GetMovies
+    case GetMovie(id) => moviesActor forward GetMovie(id)
     case GetShows => showsActor forward GetShows
     case GetShow(id) => showsActor forward GetShow(id)
 
