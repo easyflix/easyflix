@@ -4,13 +4,12 @@ import java.nio.file.Path
 
 import akka.actor.{Actor, Props, Status}
 import akka.event.Logging
-import akka.stream.alpakka.file.DirectoryChange
 import akka.stream.scaladsl.{Keep, Sink}
 import akka.stream.{KillSwitches, SharedKillSwitch, UniqueKillSwitch}
 import net.creasource.Application
 import net.creasource.exceptions.NotFoundException
 import net.creasource.webflix.events.{FileAdded, LibraryUpdate}
-import net.creasource.webflix.{Library, LibraryFile}
+import net.creasource.webflix.{Library, LibraryFile, LibraryFileChange}
 
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
@@ -66,7 +65,7 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
       app.bus.publish(FileAdded(file))
       files += (file.path -> file)
 
-    case (file: LibraryFile, DirectoryChange.Creation) =>
+    case LibraryFileChange.Creation(file: LibraryFile) =>
       logger.info(s"File created: ${file.path}")
       files += (file.path -> file)
       if (file.isDirectory) {
@@ -90,24 +89,23 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
           .run()
       }
 
-    // TODO wrap in an object and only pass the path here: don't create a LibraryFile for a file that has been deleted
-    case (file: LibraryFile, DirectoryChange.Deletion) =>
-      if (files.isDefinedAt(file.path)) {
-        if (files(file.path).isDirectory) { // check in our map if it was a directory, see TODO above
+    case LibraryFileChange.Deletion(path: Path) =>
+      if (files.isDefinedAt(path)) {
+        if (files(path).isDirectory) { // check in our map if it was a directory
           // Stop watching it
-          foldersKillSwitches.get(file.path).foreach(_.shutdown())
-          foldersKillSwitches -= file.path
+          foldersKillSwitches.get(path).foreach(_.shutdown())
+          foldersKillSwitches -= path
           // Delete children
-          val children = files.values.filter(_.path.startsWith(file.path)).map(_.path)
+          val children = files.values.filter(_.path.startsWith(path)).map(_.path)
           files --= children
-          logger.info(s"Folder and ${children.toSeq.length} children deleted: ${file.path}")
+          logger.info(s"Folder and ${children.toSeq.length} children deleted: $path")
         } else {
-          logger.info(s"File deleted: ${file.path}")
+          logger.info(s"File deleted: $path")
         }
-        files -= file.path
+        files -= path
       }
 
-    case (file: LibraryFile, DirectoryChange.Modification) => files += (file.path -> file)
+    case LibraryFileChange.Modification(file: LibraryFile) => files += (file.path -> file)
 
     case WatchComplete(folder) => logger.info(s"Stopped watching: $folder")
 

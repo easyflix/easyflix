@@ -53,8 +53,8 @@ object Library extends JsonSupport {
 
   trait Watchable { self: Library =>
     val pollInterval: FiniteDuration
-    def watch()(implicit app: Application): Source[(LibraryFile, DirectoryChange), NotUsed] = watch(path)
-    def watch(path: Path)(implicit app: Application): Source[(LibraryFile, DirectoryChange), NotUsed]
+    def watch()(implicit app: Application): Source[LibraryFileChange, NotUsed] = watch(path)
+    def watch(path: Path)(implicit app: Application): Source[LibraryFileChange, NotUsed]
   }
 
   case class Local(
@@ -76,14 +76,15 @@ object Library extends JsonSupport {
       }).collect{ case option if option.isDefined => option.get }
     }
 
-    override def watch(path: Path)(implicit app: Application): Source[(LibraryFile, DirectoryChange), NotUsed] = {
+    override def watch(path: Path)(implicit app: Application): Source[LibraryFileChange, NotUsed] = {
       if (path.isAbsolute & path != this.path)
         throw new IllegalArgumentException("Path must be the library path or a sub-folder relative path")
-      // TODO collect only if video or directory
-      DirectoryChangesSource(resolvePath(path), pollInterval, maxBufferSize = 1000).map {
-        case (p, directoryChange) =>
+      DirectoryChangesSource(resolvePath(path), pollInterval, maxBufferSize = 1000).collect {
+        case (p, DirectoryChange.Creation) if p.toFile.isDirectory || app.contentTypeResolver(p.getFileName.toString).mediaType.isVideo =>
           val file = p.toFile
-          (LibraryFile(file.getName, relativizePath(p), file.isDirectory, file.length(), file.lastModified(), name), directoryChange)
+          LibraryFileChange.Creation(LibraryFile(file.getName, relativizePath(p), file.isDirectory, file.length(), file.lastModified(), name))
+        case (p, DirectoryChange.Deletion) if p.toFile.isDirectory || app.contentTypeResolver(p.getFileName.toString).mediaType.isVideo =>
+          LibraryFileChange.Deletion(p)
       }
     }
 
