@@ -7,7 +7,7 @@ import {State, getAllMovies, getMovieById} from '@app/reducers';
 import {Actions} from '@ngrx/effects';
 import {ServiceHelper} from './service-helper';
 import {HttpSocketClientService} from './http-socket-client.service';
-import {AddMovies, LoadMovies, MoviesActionTypes, UpdateMovies} from '@app/actions/movies.actions';
+import {AddMovies, DeleteMovies, LoadMovies, MoviesActionTypes, UpdateMovies} from '@app/actions/movies.actions';
 import {bufferTime, filter, map, tap} from 'rxjs/operators';
 import {MovieDetails} from '@app/models/movie';
 
@@ -36,6 +36,14 @@ export class MoviesService extends ServiceHelper {
       filter(updates => updates.length > 0),
       // tap(movies => console.log(movies)),
       tap((updates: MovieDetails[]) => this.store.dispatch(new UpdateMovies(updates)))
+    ).subscribe();
+
+    this.socketClient.getSocket().pipe(
+      filter(message => message.method === 'MovieDeleted'),
+      map(message => message.entity),
+      bufferTime(100, null, 15),
+      filter(ids => ids.length > 0),
+      tap((ids: number[]) => this.store.dispatch(new DeleteMovies(ids)))
     ).subscribe();
   }
 

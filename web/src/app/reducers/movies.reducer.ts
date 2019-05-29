@@ -45,6 +45,10 @@ export function reducer(
       );
     }
 
+    case MoviesActionTypes.DeleteMovies: {
+      return adapter.removeMany(action.payload, state);
+    }
+
     default: return state;
   }
 }

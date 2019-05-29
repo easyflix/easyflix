@@ -7,7 +7,7 @@ import {State, getAllShows, getShowById} from '@app/reducers';
 import {Actions} from '@ngrx/effects';
 import {ServiceHelper} from './service-helper';
 import {HttpSocketClientService} from './http-socket-client.service';
-import {AddShows, LoadShows, ShowsActionTypes, UpdateShows} from '@app/actions/shows.actions';
+import {AddShows, DeleteShows, LoadShows, ShowsActionTypes, UpdateShows} from '@app/actions/shows.actions';
 import {bufferTime, filter, map, tap} from 'rxjs/operators';
 import {ShowDetails} from '@app/models/show';
 
@@ -37,6 +37,16 @@ export class ShowsService extends ServiceHelper {
       // tap(movies => console.log(movies)),
       tap((updates: ShowDetails[]) => this.store.dispatch(new UpdateShows(updates)))
     ).subscribe();
+
+    this.socketClient.getSocket().pipe(
+      filter(message => message.method === 'ShowDeleted'),
+      map(message => message.entity),
+      bufferTime(100, null, 15),
+      filter(ids => ids.length > 0),
+      // tap(movies => console.log(movies)),
+      tap((ids: number[]) => this.store.dispatch(new DeleteShows(ids)))
+    ).subscribe();
+
   }
 
   getAll(): Observable<Show[]> {

@@ -45,6 +45,10 @@ export function reducer(
       );
     }
 
+    case ShowsActionTypes.DeleteShows: {
+      return adapter.removeMany(action.payload, state);
+    }
+
     default: return state;
   }
 }
