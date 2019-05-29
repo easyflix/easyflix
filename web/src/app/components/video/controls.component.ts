@@ -42,13 +42,24 @@ import {FocusTrap, FocusTrapFactory} from '@angular/cdk/a11y';
         <span class="right">{{ duration | sgTime }}</span>
       </div>
       <div class="controls">
-        <div>
-          <button mat-icon-button>
-            <mat-icon class="material-icons-outlined">volume_up</mat-icon>
-          </button>
+        <div class="left-controls">
           <button mat-icon-button>
             <mat-icon class="material-icons-outlined">speaker_notes</mat-icon>
           </button>
+          <button mat-icon-button class="volume-button"
+                  (click)="setMuted.emit(!muted)"
+                  (focus)="hideVolume = false"
+                  (blur)="hideVolume = true">
+            <mat-icon class="material-icons-outlined">{{ muted ? 'volume_off' : 'volume_up' }}</mat-icon>
+          </button>
+          <mat-slider class="volume-slider"
+                      color="primary"
+                      [value]="volume"
+                      [step]="0.01" min="0" max="1"
+                      [class.hidden]="hideVolume"
+                      [disabled]="muted"
+                      (change)="setVolume.emit($event.value)">
+          </mat-slider>
         </div>
         <div class="mid-controls">
           <button mat-icon-button class="md-36" (click)="seekBackward.emit()">
@@ -64,7 +75,7 @@ import {FocusTrap, FocusTrapFactory} from '@angular/cdk/a11y';
             <mat-icon class="material-icons-outlined">forward_30</mat-icon>
           </button>
         </div>
-        <div>
+        <div class="right-controls">
           <button mat-icon-button (click)="toggleFullscreen()">
             <mat-icon class="material-icons-outlined">{{ isFullScreen() ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
           </button>
@@ -154,12 +165,33 @@ import {FocusTrap, FocusTrapFactory} from '@angular/cdk/a11y';
       justify-content: center;
       align-items: center;
     }
+    .left-controls, .right-controls {
+      display: flex;
+      align-items: center;
+      min-width: 225px;
+    }
+    .right-controls {
+      justify-content: flex-end;
+    }
+    .volume-slider {
+      transition: opacity ease 150ms;
+    }
+    .volume-slider.hidden {
+      opacity: 0;
+    }
+    .volume-slider:hover,
+    .volume-slider.cdk-focused.hidden,
+    .volume-button:hover + .volume-slider {
+      opacity: 1;
+    }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ControlsComponent implements OnInit, OnDestroy, OnChanges {
 
   HIDE_DELAY = 3000;
+
+  hideVolume = true;
 
   @HostBinding('class.hidden') hidden = false;
 
@@ -171,6 +203,8 @@ export class ControlsComponent implements OnInit, OnDestroy, OnChanges {
   @Input() loading: boolean;
   @Input() currentTime: number;
   @Input() duration: number;
+  @Input() volume: number;
+  @Input() muted: boolean;
 
   @Output() openSidenav: EventEmitter<void> = new EventEmitter();
   @Output() pause: EventEmitter<void> = new EventEmitter();
@@ -179,8 +213,10 @@ export class ControlsComponent implements OnInit, OnDestroy, OnChanges {
   @Output() seekBackward: EventEmitter<void> = new EventEmitter();
   @Output() closeVideo: EventEmitter<void> = new EventEmitter();
   @Output() seekTo: EventEmitter<number> = new EventEmitter();
+  @Output() setVolume: EventEmitter<number> = new EventEmitter();
+  @Output() setMuted: EventEmitter<boolean> = new EventEmitter();
 
-  private mouseSubscription: Subscription;
+  private hideSubscription: Subscription;
   private focusTrap: FocusTrap;
   private previousFocusedElement: HTMLElement;
 
@@ -192,11 +228,11 @@ export class ControlsComponent implements OnInit, OnDestroy, OnChanges {
     // Show controls and pointer
     this.hidden = false;
     // Schedule hiding controls and pointer in HIDE_DELAY ms unless loading
-    if (this.mouseSubscription) {
-      this.mouseSubscription.unsubscribe();
+    if (this.hideSubscription) {
+      this.hideSubscription.unsubscribe();
     }
     const notifier = this.loading ? this.loading$.pipe(filter(l => !l)) : scheduled([true], asapScheduler);
-    this.mouseSubscription = timer(this.HIDE_DELAY, this.HIDE_DELAY).pipe(
+    this.hideSubscription = timer(this.HIDE_DELAY, this.HIDE_DELAY).pipe(
       skipUntil(notifier),
       tap(() => this.hidden = true),
       tap(() => this.cdr.markForCheck()),
@@ -233,8 +269,8 @@ export class ControlsComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnDestroy(): void {
-    if (this.mouseSubscription) {
-      this.mouseSubscription.unsubscribe();
+    if (this.hideSubscription) {
+      this.hideSubscription.unsubscribe();
     }
     if (this.previousFocusedElement) {
       this.previousFocusedElement.focus();

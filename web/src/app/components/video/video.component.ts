@@ -15,6 +15,7 @@ import {LibraryFile} from '@app/models';
            [src]="source"
            [volume]="volume$ | async"
            [currentTime]="currentTime"
+           [muted]="muted$ | async"
            (play)="onPlay()"
            (playing)="onPlaying()"
            (pause)="onPause()"
@@ -31,12 +32,16 @@ import {LibraryFile} from '@app/models';
       [currentTime]="currentTime$ | async"
       [duration]="duration$ | async"
       [loading]="loading$ | async"
+      [volume]="volume$ | async"
+      [muted]="muted$ | async"
       (seekTo)="seekTo($event)"
       (openSidenav)="openSidenav()"
       (resume)="play()"
       (pause)="pause()"
       (seekForward)="seekForward()"
       (seekBackward)="seekBackward()"
+      (setVolume)="setVolume($event)"
+      (setMuted)="setMuted($event)"
       (closeVideo)="closeVideo()">
     </app-controls>
   `,
@@ -75,6 +80,7 @@ export class VideoComponent implements OnInit, OnDestroy {
 
   src$: Observable<string>;
   volume$: Observable<number>;
+  muted$: Observable<boolean>;
   currentTime = 0;
 
   playing$: Observable<boolean>;
@@ -97,6 +103,7 @@ export class VideoComponent implements OnInit, OnDestroy {
       tap(() => this.video.setLoading(true))
     );
     this.volume$ = this.video.getVolume();
+    this.muted$ = this.video.getMuted();
 
     this.playing$ = this.video.getPlaying();
     this.currentTime$ = this.video.getCurrentTime();
@@ -179,6 +186,14 @@ export class VideoComponent implements OnInit, OnDestroy {
     this.currentTime$.pipe(take(1)).subscribe(
       currentTime => this.seekTo(Math.max(currentTime - 10, 0))
     );
+  }
+
+  setVolume(volume: number) {
+    this.video.setVolume(volume);
+  }
+
+  setMuted(muted: boolean) {
+    this.video.setMuted(muted);
   }
 
   onPlay() {
