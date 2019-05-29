@@ -154,7 +154,7 @@
       background-color: mat-color($background, background);
     }
     .play:focus {
-      background-color: mat-color($accent);
+      // background-color: mat-color($accent);
     }
     .loading {
       color: mat-color($foreground, disabled-text);
