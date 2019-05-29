@@ -8,7 +8,7 @@ import akka.stream.scaladsl.{Keep, Sink}
 import akka.stream.{KillSwitches, SharedKillSwitch, UniqueKillSwitch}
 import net.creasource.Application
 import net.creasource.exceptions.NotFoundException
-import net.creasource.webflix.events.{FileAdded, LibraryUpdate}
+import net.creasource.webflix.events.{FileAdded, FileDeleted, LibraryUpdate}
 import net.creasource.webflix.{Library, LibraryFile, LibraryFileChange}
 
 import scala.concurrent.duration._
@@ -67,6 +67,7 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
 
     case LibraryFileChange.Creation(file: LibraryFile) =>
       logger.info(s"File created: ${file.path}")
+      app.bus.publish(FileAdded(file))
       files += (file.path -> file)
       if (file.isDirectory) {
         // Watch it
@@ -102,6 +103,7 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
         } else {
           logger.info(s"File deleted: $path")
         }
+        app.bus.publish(FileDeleted(path))
         files -= path
       }
 

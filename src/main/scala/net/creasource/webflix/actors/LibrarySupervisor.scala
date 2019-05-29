@@ -11,6 +11,7 @@ import me.nimavat.shortid.ShortId
 import net.creasource.Application
 import net.creasource.exceptions.{NotFoundException, ValidationException}
 import net.creasource.json.JsonSupport
+import net.creasource.webflix.events.{LibraryCreated, LibraryDeleted}
 import net.creasource.webflix.{Library, LibraryFile}
 
 import scala.concurrent.Future
@@ -86,12 +87,20 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
 
       val validateAndCreate = for {
         library <- library.validate()
-        _ <- if (libraries.keys.exists(_ == library.name)) Failure(ValidationException("name", "alreadyExists")) else Success(())
+        _ <-
+          if (libraries.keys.exists(_ == library.name))
+            Failure(ValidationException("name", "alreadyExists"))
+          else
+            Success(())
         actorName = libraries.size + "-" + library.name.replaceAll("""[^0-9a-zA-Z-_.*$+:@&=,!~';]""", "")
-        _ <- Try(context.actorOf(LibraryActor.props(library), actorName)) map { actorRef =>
-          libraries += (library.name -> (actorRef -> library))
-          context.watch(actorRef)
-        } recover { case e => throw ValidationException("other", "failure", Some(e.getMessage)) }
+        _ <-
+          Try(context.actorOf(LibraryActor.props(library), actorName)) map { actorRef =>
+            libraries += (library.name -> (actorRef -> library))
+            context.watch(actorRef)
+            app.bus.publish(LibraryCreated(library))
+          } recover { case e =>
+            throw ValidationException("other", "failure", Some(e.getMessage))
+          }
       } yield library
 
       validateAndCreate match {
@@ -104,9 +113,11 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
         .get(name)
         .foreach { case (actorRef, library) =>
           context.stop(actorRef)
+          app.bus.publish(LibraryDeleted(name))
           libraries -= name
           paths --= paths.keys.filter(_.startsWith(library.name))
         }
+      app.bus.publish(LibraryDeleted(name))
       sender() ! Done
 
     case GetFileById(id) =>
