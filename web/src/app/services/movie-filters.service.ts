@@ -1,12 +1,12 @@
 import {Injectable} from '@angular/core';
 import {combineLatest, Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {map, switchMap} from 'rxjs/operators';
 import {Store} from '@ngrx/store';
 import {
   getMovieGenresFilter,
   getMovieLanguagesFilter,
   getMovieRatingFilter,
-  getMovieSearchFilter,
+  getMovieSearchFilter, getMovieSortStrategy,
   getMovieTagsFilter,
   getMovieYearsFilter,
   State
@@ -16,11 +16,11 @@ import {
   SetMovieGenres,
   SetMovieLanguages,
   SetMovieRating,
-  SetMovieSearch,
+  SetMovieSearch, SetMovieSort,
   SetMovieTags,
-  SetMovieYears
+  SetMovieYears, MovieSortStrategy
 } from '@app/actions/movie-filters.actions';
-import {Movie} from '@app/models';
+import {LibraryFile, Movie} from '@app/models';
 
 @Injectable()
 export class MovieFiltersService {
@@ -84,6 +84,10 @@ export class MovieFiltersService {
     this.store.dispatch(new SetMovieGenres(values));
   }
 
+  setSort(strategy: MovieSortStrategy): void {
+    this.store.dispatch(new SetMovieSort(strategy));
+  }
+
   getSearch(): Observable<string> {
     return this.store.select(getMovieSearchFilter);
   }
@@ -108,6 +112,10 @@ export class MovieFiltersService {
     return this.store.select(getMovieGenresFilter);
   }
 
+  getSortStrategy(): Observable<MovieSortStrategy> {
+    return this.store.select(getMovieSortStrategy);
+  }
+
   getFilters(): Observable<MovieFilters> {
     return combineLatest([
       this.getSearch(),
@@ -128,7 +136,10 @@ export class MovieFiltersService {
     );
   }
 
-  filterMovies(movies: Movie[]): Observable<Movie[]> {
+  filterAndSort(movies: Movie[]): Observable<Movie[]> {
+    function getLastModified(files: LibraryFile[]): number {
+      return [...files].sort((a, b) => b.lastModified - a.lastModified)[0].lastModified;
+    }
     return this.getFilters().pipe(
       map(filters => movies.filter(movie =>
         MovieFiltersService.isWithinSearch(movie, filters) &&
@@ -137,6 +148,17 @@ export class MovieFiltersService {
         MovieFiltersService.isWithinLanguages(movie, filters) &&
         MovieFiltersService.isWithinYears(movie, filters) &&
         MovieFiltersService.isWithinGenres(movie, filters)
+      )),
+      switchMap(movs => this.getSortStrategy().pipe(
+        map(strategy => {
+          if (strategy === 'alphabetical') {
+            return movs;
+          } else if (strategy === 'release') {
+            return [...movs].sort((a, b) => b.release_date.localeCompare(a.release_date));
+          } else if (strategy === 'addition') {
+            return [...movs].sort((a, b) => getLastModified(b.files) - getLastModified(a.files));
+          }
+        })
       ))
     );
   }

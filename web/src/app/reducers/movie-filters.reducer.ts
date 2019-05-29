@@ -1,4 +1,4 @@
-import {MovieFiltersActionsUnion, MovieFiltersActionTypes} from '@app/actions/movie-filters.actions';
+import {MovieFiltersActionsUnion, MovieFiltersActionTypes, MovieSortStrategy} from '@app/actions/movie-filters.actions';
 
 /**
  * State
@@ -10,6 +10,7 @@ export interface State {
   languages: string[];
   tags: string[];
   genres: string[];
+  sort: MovieSortStrategy;
 }
 
 const initialState: State = {
@@ -19,6 +20,7 @@ const initialState: State = {
   languages: [],
   tags: [],
   genres: [],
+  sort: 'alphabetical'
 };
 
 /**
@@ -66,6 +68,12 @@ export function reducer(
         genres: action.payload
       };
 
+    case MovieFiltersActionTypes.SetSort:
+      return {
+        ...state,
+        sort: action.payload
+      };
+
     case MovieFiltersActionTypes.ClearFilters:
       return {
         ...initialState
@@ -85,3 +93,4 @@ export const getYears = (state: State) => state.years;
 export const getLanguages = (state: State) => state.languages;
 export const getTags = (state: State) => state.tags;
 export const getGenres = (state: State) => state.genres;
+export const getSort = (state: State) => state.sort;

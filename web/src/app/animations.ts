@@ -44,7 +44,7 @@ const hideElements =
 
 const fadeInOut = [
   superimpose,
-  // hideElements,
+  hideElements,
   query(':leave', animateChild()),
   group([
     fadeIn[0],

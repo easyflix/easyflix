@@ -1,9 +1,11 @@
 import {
   ChangeDetectionStrategy,
-  Component, Directive,
+  Component,
+  Directive,
   ElementRef,
   HostListener,
-  OnInit, QueryList,
+  OnInit,
+  QueryList,
   ViewChild,
   ViewChildren
 } from '@angular/core';
@@ -21,6 +23,7 @@ import {MovieFiltersComponent} from '@app/components/dialogs/movie-filters.compo
 import {MatDialog} from '@angular/material';
 import {FileSelectionComponent} from '@app/components/dialogs/file-selection.component';
 import {animate, style, transition, trigger} from '@angular/animations';
+import {MovieSortStrategy} from '@app/actions/movie-filters.actions';
 
 @Directive({ selector: '[appItem]' })
 export class ItemDirective {
@@ -30,24 +33,41 @@ export class ItemDirective {
 @Component({
   selector: 'app-movies',
   template: `
-    <button mat-icon-button class="filters" (click)="showFiltersDialog()" *ngIf="!(hasAppliedFilters$ | async)">
-      <mat-icon>filter_list</mat-icon>
-    </button>
-    <button mat-mini-fab color="accent" class="filters" (click)="showFiltersDialog()" *ngIf="hasAppliedFilters$ | async">
-      <mat-icon>filter_list</mat-icon>
-    </button>
+    <div class="controls animation-hidden">
+      <mat-form-field class="sort" appearance="standard">
+        <mat-select placeholder="Sort" (selectionChange)="setSort($event.value)" [value]="sortStrategy$ | async">
+          <mat-option value="alphabetical">
+            Alphabetical
+          </mat-option>
+          <mat-option value="release">
+            Latest Release
+          </mat-option>
+          <mat-option value="addition">
+            Latest Addition
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button mat-icon-button class="filters" (click)="showFiltersDialog()" *ngIf="!(hasAppliedFilters$ | async)">
+        <mat-icon>filter_list</mat-icon>
+      </button>
+      <button mat-mini-fab color="accent" class="filters" (click)="showFiltersDialog()" *ngIf="hasAppliedFilters$ | async">
+        <mat-icon>filter_list</mat-icon>
+      </button>
+    </div>
     <section class="items" #items>
-      <div class="item" appItem
-           @gridAnimation
-           *ngFor="let movie of movies$ | async; trackBy: trackByFunc" tabindex="0"
-           (click)="openMovie(movie)"
-           (keydown.enter)="openMovie(movie)"
-           (keydown.space)="openMovie(movie)">
-        <div class="poster" [style]="getStyle(movie) | async"></div>
-        <button class="play" mat-mini-fab color="primary" (click)="$event.stopPropagation(); play(movie);" tabindex="-1">
-          <mat-icon>play_arrow</mat-icon>
-        </button>
-      </div>
+      <ng-container *ngIf="movies$ | async as movies">
+        <div class="item" appItem
+             @gridAnimation
+             *ngFor="let movie of movies; trackBy: trackByFunc" tabindex="0"
+             (click)="openMovie(movie, movies)"
+             (keydown.enter)="openMovie(movie, movies)"
+             (keydown.space)="openMovie(movie, movies)">
+          <div class="poster" [style]="getStyle(movie) | async"></div>
+          <button class="play" mat-mini-fab color="primary" (click)="$event.stopPropagation(); play(movie);" tabindex="-1">
+            <mat-icon>play_arrow</mat-icon>
+          </button>
+        </div>
+      </ng-container>
     </section>
   `,
   styles: [`
@@ -57,11 +77,17 @@ export class ItemDirective {
       flex-direction: column;
       overflow: hidden;
     }
-    .filters {
-      position: fixed;
-      top: 10px;
+    .controls {
+      position: absolute;
+      top: -12px;
       right: 10px;
       z-index: 11;
+      display: flex;
+      align-items: center;
+    }
+    .controls mat-form-field {
+      height: 85px;
+      margin-right: 1rem;
     }
     .items {
       display: flex;
@@ -123,6 +149,7 @@ export class MoviesComponent implements OnInit {
 
   movies$: Observable<Movie[]>;
   hasAppliedFilters$: Observable<boolean>;
+  sortStrategy$: Observable<MovieSortStrategy>;
 
   @ViewChild('items', { static: true })
   itemsContainer: ElementRef;
@@ -145,9 +172,10 @@ export class MoviesComponent implements OnInit {
 
   ngOnInit() {
     this.movies$ = this.movies.getAll().pipe(
-      switchMap(movies => this.filters.filterMovies(movies))
+      switchMap(movies => this.filters.filterAndSort(movies)),
     );
     this.hasAppliedFilters$ = this.filters.hasAppliedFilters();
+    this.sortStrategy$ = this.filters.getSortStrategy();
   }
 
   getStyle(movie: Movie): Observable<SafeStyle> {
@@ -189,11 +217,16 @@ export class MoviesComponent implements OnInit {
     );
   }
 
-  openMovie(movie: Movie): void {
+  openMovie(movie: Movie, movies: Movie[]): void {
+    const ids = movies.map(i => i.id).join(',');
     this.router.navigate(
       ['/', { outlets: { details: ['movie', movie.id] } }],
-      { queryParamsHandling: 'preserve' }
+      { queryParamsHandling: 'preserve', state: { ids } }
     );
+  }
+
+  setSort(strategy: MovieSortStrategy): void {
+    this.filters.setSort(strategy);
   }
 
   @HostListener('keydown.f')

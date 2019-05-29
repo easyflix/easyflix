@@ -32,6 +32,7 @@ import {MovieFilters, MovieFiltersService} from '@app/services/movie-filters.ser
 import {ActivatedRoute, Router} from '@angular/router';
 import {ShowFilters, ShowFiltersService} from '@app/services/show-filters.service';
 import {CoreService} from '@app/services/core.service';
+import {MovieSortStrategy} from '@app/actions/movie-filters.actions';
 
 @Injectable()
 export class AppEffects {
@@ -172,7 +173,7 @@ export class AppEffects {
     );
 
   /**
-   * Movie filters
+   * Movie filters and sort strategy
    */
   @Effect({ dispatch: false })
   moviesFilters2Url$: Observable<MovieFilters> =
@@ -194,16 +195,29 @@ export class AppEffects {
       )
   );
   @Effect({ dispatch: false })
+  moviesSort2Url$: Observable<MovieSortStrategy> =
+    this.movieFilters.getSortStrategy().pipe(
+      skip(1),
+      tap(strategy => this.router.navigate(
+        [],
+        {
+          queryParams: { movie_sort: strategy !== 'alphabetical' ? strategy : undefined },
+          queryParamsHandling: 'merge'
+        }
+      ))
+    );
+  @Effect({ dispatch: false })
   moviesUrl2Filters$ =
     this.route.queryParamMap.pipe(
       skip(1),
-      map(params => {
+      tap(params => {
         const search = params.get('movie_search');
         const rating = params.get('movie_rating');
         const years = params.get('movie_years');
         const languages = params.get('movie_languages');
         const tags = params.get('movie_tags');
         const genres = params.get('movie_genres');
+        const sort = params.get('movie_sort');
         if (search !== null) {
           this.movieFilters.setSearch(search);
         }
@@ -221,6 +235,9 @@ export class AppEffects {
         }
         if (genres !== null) {
           this.movieFilters.setGenres(genres.split(','));
+        }
+        if (sort !== null) {
+          this.movieFilters.setSort(sort as MovieSortStrategy);
         }
       })
     );

@@ -1,5 +1,7 @@
 import {Action} from '@ngrx/store';
 
+export type MovieSortStrategy = 'alphabetical' | 'release' | 'addition';
+
 export enum MovieFiltersActionTypes {
   SetSearch = 'filters/movies/search',
   SetRating = 'filters/movies/rating',
@@ -7,6 +9,7 @@ export enum MovieFiltersActionTypes {
   SetLanguages = 'filters/movies/languages',
   SetTags = 'filters/movies/tags',
   SetGenres = 'filters/movies/genres',
+  SetSort = 'filters/movies/sort',
   ClearFilters = 'filters/movies/clear',
 }
 
@@ -40,6 +43,11 @@ export class SetMovieGenres implements Action {
   constructor(public payload: string[]) {}
 }
 
+export class SetMovieSort implements Action {
+  readonly type = MovieFiltersActionTypes.SetSort;
+  constructor(public payload: MovieSortStrategy) {}
+}
+
 export class ClearMovieFilters implements Action {
   readonly type = MovieFiltersActionTypes.ClearFilters;
 }
@@ -51,4 +59,5 @@ export type MovieFiltersActionsUnion =
   SetMovieLanguages |
   SetMovieTags |
   SetMovieGenres |
+  SetMovieSort |
   ClearMovieFilters;

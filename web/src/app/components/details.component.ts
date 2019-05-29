@@ -121,7 +121,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
     // NextId and PreviousId observables
     const movies$ = this.movies.getAll().pipe(
       filter(movies => movies.length > 0),
-      switchMap(movies => this.movieFilters.filterMovies(movies))
+      switchMap(movies => this.movieFilters.filterAndSort(movies))
     );
     const shows$ = this.shows.getAll().pipe(
       filter(shows => shows.length > 0),
