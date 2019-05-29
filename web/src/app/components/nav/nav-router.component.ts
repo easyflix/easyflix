@@ -34,7 +34,7 @@ const isRightAnimation = (from, to) => {
 })
 export class NavRouterComponent implements OnInit {
 
-  @ViewChild(RouterOutlet) navOutlet: RouterOutlet;
+  @ViewChild(RouterOutlet, { static: true }) navOutlet: RouterOutlet;
 
   @HostBinding('@navAnimations') animationState: string;
 

@@ -66,7 +66,7 @@ export class TabsComponent implements AfterContentInit, OnDestroy {
   @ContentChildren(forwardRef(() => MatTabLink), { descendants: true })
   tabLinks: QueryList<MatTabLink>;
 
-  @ViewChild('container')
+  @ViewChild('container', { static: true })
   container: ElementRef;
 
   private tabNavEl: HTMLElement;
