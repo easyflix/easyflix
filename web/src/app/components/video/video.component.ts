@@ -5,6 +5,8 @@ import {filter, map, take, tap, throttleTime} from 'rxjs/operators';
 import {CoreService} from '@app/services/core.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {LibraryFile} from '@app/models';
+import {MatDialog} from '@angular/material';
+import {ErrorDialogComponent} from '@app/components/dialogs/error-dialog.component';
 
 @Component({
   selector: 'app-video',
@@ -94,7 +96,8 @@ export class VideoComponent implements OnInit, OnDestroy {
     private core: CoreService,
     private video: VideoService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private dialog: MatDialog
   ) { }
 
   ngOnInit() {
@@ -243,7 +246,12 @@ export class VideoComponent implements OnInit, OnDestroy {
     // https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code
     console.error('VideoError', event.target.error);
     this.video.setLoading(false);
-    // TODO show dialog
+    this.dialog.open(ErrorDialogComponent, {
+      data: {
+        title: 'Playback failed',
+        message: 'This format might not be supported by your current browser.<br/> Please try using another browser or report this error.'
+      }
+    });
   }
 
   closeVideo() {

@@ -33,6 +33,7 @@ import {MovieFiltersComponent} from './dialogs/movie-filters.component';
 import {ShowFiltersComponent} from './dialogs/show-filters.component';
 import {FileSelectionComponent} from './dialogs/file-selection.component';
 import {NavRouterComponent} from './nav/nav-router.component';
+import {ErrorDialogComponent} from "@app/components/dialogs/error-dialog.component";
 
 const COMPONENTS = [
   FileListComponent,
@@ -68,7 +69,8 @@ const COMPONENTS = [
   ShowFiltersComponent,
   FileSelectionComponent,
   ItemDirective,
-  NavRouterComponent
+  NavRouterComponent,
+  ErrorDialogComponent
 ];
 
 @NgModule({
@@ -82,7 +84,8 @@ const COMPONENTS = [
     ConfirmDialogComponent,
     MovieFiltersComponent,
     ShowFiltersComponent,
-    FileSelectionComponent
+    FileSelectionComponent,
+    ErrorDialogComponent
   ]
 })
 export class ComponentsModule {}
