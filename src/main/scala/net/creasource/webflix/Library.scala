@@ -84,7 +84,7 @@ object Library extends JsonSupport {
           val file = p.toFile
           LibraryFileChange.Creation(LibraryFile(file.getName, relativizePath(p), file.isDirectory, file.length(), file.lastModified(), name))
         case (p, DirectoryChange.Deletion) if p.toFile.isDirectory || app.contentTypeResolver(p.getFileName.toString).mediaType.isVideo =>
-          LibraryFileChange.Deletion(p)
+          LibraryFileChange.Deletion(relativizePath(p))
       }
     }
 
