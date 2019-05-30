@@ -18,8 +18,7 @@ import {filter, map, switchMap, take} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
 import {VideoService} from '@app/services/video.service';
 import {MovieFiltersService} from '@app/services/movie-filters.service';
-import {Router} from '@angular/router';
-import {MovieFiltersComponent} from '@app/components/dialogs/movie-filters.component';
+import {ActivatedRoute, Router} from '@angular/router';
 import {MatDialog} from '@angular/material';
 import {FileSelectionComponent} from '@app/components/dialogs/file-selection.component';
 import {animate, style, transition, trigger} from '@angular/animations';
@@ -34,41 +33,54 @@ export class ItemDirective {
   selector: 'app-movies',
   template: `
     <div class="controls animation-hidden">
-      <mat-form-field class="sort" appearance="standard">
-        <mat-select placeholder="Sort" (selectionChange)="setSort($event.value)" [value]="sortStrategy$ | async">
-          <mat-option value="alphabetical">
-            Alphabetical
-          </mat-option>
-          <mat-option value="release">
-            Latest Release
-          </mat-option>
-          <mat-option value="addition">
-            Latest Addition
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-      <button mat-icon-button class="filters" (click)="showFiltersDialog()" *ngIf="!(hasAppliedFilters$ | async)">
+      <button mat-icon-button class="filters" (click)="toggleFilters()" *ngIf="!(hasAppliedFilters$ | async)">
         <mat-icon>filter_list</mat-icon>
       </button>
-      <button mat-mini-fab color="accent" class="filters" (click)="showFiltersDialog()" *ngIf="hasAppliedFilters$ | async">
+      <button mat-mini-fab color="accent" class="filters" (click)="toggleFilters()" *ngIf="hasAppliedFilters$ | async">
         <mat-icon>filter_list</mat-icon>
       </button>
     </div>
-    <section class="items" #items>
-      <ng-container *ngIf="movies$ | async as movies">
-        <div class="item" appItem
-             @gridAnimation
-             *ngFor="let movie of movies; trackBy: trackByFunc" tabindex="0"
-             (click)="openMovie(movie, movies)"
-             (keydown.enter)="openMovie(movie, movies)"
-             (keydown.space)="openMovie(movie, movies)">
-          <div class="poster" [style]="getStyle(movie) | async"></div>
-          <button class="play" mat-mini-fab color="primary" (click)="$event.stopPropagation(); play(movie);" tabindex="-1">
-            <mat-icon>play_arrow</mat-icon>
-          </button>
+    <mat-sidenav-container class="sidenav-container">
+      <mat-sidenav position="end" [opened]="showFilters$ | async" mode="side">
+        <div class="sidenav-content">
+          <h2>Sort and filter</h2>
+          <mat-form-field class="sort" appearance="standard">
+            <mat-label>Sort</mat-label>
+            <mat-select placeholder="Sort" (selectionChange)="setSort($event.value)" [value]="sortStrategy$ | async">
+              <mat-option value="alphabetical">
+                Alphabetical
+              </mat-option>
+              <mat-option value="release">
+                Latest Release
+              </mat-option>
+              <mat-option value="addition">
+                Latest Addition
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <app-movies-filters></app-movies-filters>
         </div>
-      </ng-container>
-    </section>
+      </mat-sidenav>
+      <mat-sidenav-content>
+        <section class="items" #items>
+          <ng-container *ngIf="movies$ | async as movies">
+            <div class="item" appItem
+                 @gridAnimation
+                 *ngFor="let movie of movies; trackBy: trackByFunc" tabindex="0"
+                 (click)="openMovie(movie, movies)"
+                 (keydown.enter)="openMovie(movie, movies)"
+                 (keydown.space)="openMovie(movie, movies)">
+              <div class="poster" [style]="getStyle(movie) | async"></div>
+              <button class="play" mat-mini-fab color="primary" (click)="$event.stopPropagation(); play(movie);"
+                      tabindex="-1">
+                <mat-icon>play_arrow</mat-icon>
+              </button>
+            </div>
+          </ng-container>
+        </section>
+      </mat-sidenav-content>
+    </mat-sidenav-container>
+
   `,
   styles: [`
     :host {
@@ -79,7 +91,7 @@ export class ItemDirective {
     }
     .controls {
       position: absolute;
-      top: -12px;
+      top: 10px;
       right: 10px;
       z-index: 11;
       display: flex;
@@ -88,6 +100,20 @@ export class ItemDirective {
     .controls mat-form-field {
       height: 85px;
       margin-right: 1rem;
+    }
+    .sidenav-container {
+      flex-grow: 1;
+    }
+    .sidenav-content {
+      width: 220px;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+    h2 {
+      font-weight: 500;
+    }
+    mat-form-field {
+      width: 100%;
     }
     .items {
       display: flex;
@@ -150,6 +176,7 @@ export class MoviesComponent implements OnInit {
   movies$: Observable<Movie[]>;
   hasAppliedFilters$: Observable<boolean>;
   sortStrategy$: Observable<MovieSortStrategy>;
+  showFilters$: Observable<boolean>;
 
   @ViewChild('items', { static: true })
   itemsContainer: ElementRef;
@@ -158,7 +185,6 @@ export class MoviesComponent implements OnInit {
   items: QueryList<ItemDirective>;
 
   constructor(
-    private element: ElementRef,
     private core: CoreService,
     private files: FilesService,
     private video: VideoService,
@@ -176,6 +202,7 @@ export class MoviesComponent implements OnInit {
     );
     this.hasAppliedFilters$ = this.filters.hasAppliedFilters();
     this.sortStrategy$ = this.filters.getSortStrategy();
+    this.showFilters$ = this.filters.getShow();
   }
 
   getStyle(movie: Movie): Observable<SafeStyle> {
@@ -229,18 +256,15 @@ export class MoviesComponent implements OnInit {
     this.filters.setSort(strategy);
   }
 
-  @HostListener('keydown.f')
-  showFiltersDialog() {
-    this.dialog.open(MovieFiltersComponent, {
-      maxWidth: '750px',
-      minWidth: '500px'
-    });
+  // @HostListener('keydown.f')
+  toggleFilters() {
+    this.filters.toggleFilters();
   }
 
-  @HostListener('keydown.space', ['$event'])
+  /*@HostListener('keydown.space', ['$event'])
   noScroll(event: KeyboardEvent) {
     event.preventDefault();
-  }
+  }*/
 
   @HostListener('keydown.arrowRight')
   right() {

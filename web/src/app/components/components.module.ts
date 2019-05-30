@@ -33,7 +33,8 @@ import {MovieFiltersComponent} from './dialogs/movie-filters.component';
 import {ShowFiltersComponent} from './dialogs/show-filters.component';
 import {FileSelectionComponent} from './dialogs/file-selection.component';
 import {NavRouterComponent} from './nav/nav-router.component';
-import {ErrorDialogComponent} from "@app/components/dialogs/error-dialog.component";
+import {ErrorDialogComponent} from '@app/components/dialogs/error-dialog.component';
+import {MoviesFiltersComponent} from '@app/components/movies/movies-filters.component';
 
 const COMPONENTS = [
   FileListComponent,
@@ -70,7 +71,8 @@ const COMPONENTS = [
   FileSelectionComponent,
   ItemDirective,
   NavRouterComponent,
-  ErrorDialogComponent
+  ErrorDialogComponent,
+  MoviesFiltersComponent
 ];
 
 @NgModule({

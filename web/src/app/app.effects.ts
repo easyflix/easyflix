@@ -173,6 +173,31 @@ export class AppEffects {
     );
 
   /**
+   * Movie filters sidenav
+   */
+  @Effect({ dispatch: false })
+  moviesFiltersShow2Url$ =
+    this.movieFilters.getShow().pipe(
+      skip(1),
+      tap(show => this.router.navigate(
+        [],
+        { queryParams: { movie_filters: show ? '1' : undefined }, queryParamsHandling: 'merge' })
+      )
+    );
+  @Effect({ dispatch: false })
+  url2moviesFiltersShow$ =
+    this.route.queryParamMap.pipe(
+      skip(1),
+      take(1),
+      tap(params => {
+        const showFilters = params.get('movie_filters');
+        if (showFilters === '1') {
+          this.movieFilters.toggleFilters();
+        }
+      })
+    );
+
+  /**
    * Movie filters and sort strategy
    */
   @Effect({ dispatch: false })

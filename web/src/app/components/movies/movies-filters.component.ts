@@ -1,6 +1,4 @@
-import {ChangeDetectionStrategy, Component, Inject, OnDestroy, OnInit} from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material';
-import {ConfirmData} from '@app/components/dialogs/confirm-dialog.component';
+import {ChangeDetectionStrategy, Component, OnDestroy, OnInit} from '@angular/core';
 import {FormControl} from '@angular/forms';
 import {Observable, Subscription} from 'rxjs';
 import {filter, map, switchMap, take} from 'rxjs/operators';
@@ -9,73 +7,65 @@ import {MoviesService} from '@app/services/movies.service';
 import {MovieFiltersService} from '@app/services/movie-filters.service';
 
 @Component({
-  selector: 'app-filters-movies',
+  selector: 'app-movies-filters',
   template: `
-    <h3 mat-dialog-title>Movie filters</h3>
-    <div mat-dialog-content class="container">
-      <mat-form-field appearance="standard">
-        <input [formControl]="search" matInput name="movie-search" placeholder="Search" spellcheck="false" />
-      </mat-form-field>
-      <mat-form-field appearance="standard">
-        <mat-select multiple [formControl]="genres" placeholder="Genres">
-          <mat-option *ngFor="let genre of genres$ | async" [value]="genre">
-            {{ genre }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="standard">
-        <mat-select multiple [formControl]="years" placeholder="Year">
-          <mat-option *ngFor="let year of years$ | async" [value]="year">
-            {{ year }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="standard">
-        <mat-select multiple [formControl]="languages" placeholder="Language">
-          <mat-option *ngFor="let language of languages$ | async" [value]="language.code">
-            {{ language.name }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="standard">
-        <mat-select multiple [formControl]="tags" placeholder="Tags">
-          <mat-option *ngFor="let tag of tags$ | async" [value]="tag">
-            {{ tag }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field appearance="standard">
-        <mat-select [formControl]="rating" placeholder="Rating">
-          <mat-option>All</mat-option>
-          <mat-option *ngFor="let rating of ratings$ | async" [value]="rating">
-            Above {{rating}}%
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
-    <div mat-dialog-actions>
-      <button mat-raised-button [mat-dialog-close]="true">Close</button>
-      <button mat-raised-button *ngIf="showClear$ | async"
-              color="warn"
-              (click)="clearFilters()"
-              [mat-dialog-close]="false">Clear</button>
-    </div>
+    <mat-form-field appearance="standard">
+      <mat-label>Search</mat-label>
+      <input [formControl]="search" matInput name="movie-search" placeholder="Search in movies" spellcheck="false" />
+    </mat-form-field>
+    <mat-form-field appearance="standard">
+      <mat-label>Genres</mat-label>
+      <mat-select multiple [formControl]="genres">
+        <mat-option *ngFor="let genre of genres$ | async" [value]="genre">
+          {{ genre }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="standard">
+      <mat-label>Years</mat-label>
+      <mat-select multiple [formControl]="years" placeholder="Year">
+        <mat-option *ngFor="let year of years$ | async" [value]="year">
+          {{ year }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="standard">
+      <mat-label>Languages</mat-label>
+      <mat-select multiple [formControl]="languages">
+        <mat-option *ngFor="let language of languages$ | async" [value]="language.code">
+          {{ language.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="standard">
+      <mat-label>Tags</mat-label>
+      <mat-select multiple [formControl]="tags">
+        <mat-option *ngFor="let tag of tags$ | async" [value]="tag">
+          {{ tag }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="standard">
+      <mat-label>User Score</mat-label>
+      <mat-select [formControl]="rating">
+        <mat-option>All</mat-option>
+        <mat-option *ngFor="let rating of ratings$ | async" [value]="rating">
+          Above {{rating}}%
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <button mat-raised-button *ngIf="showClear$ | async"
+            color="warn"
+            (click)="clearFilters()">Clear</button>
   `,
   styles: [`
-    .container {
-      display: flex;
-      flex-wrap: wrap;
-    }
-    mat-form-field {
-      flex-basis: calc(50% - .5rem);
-    }
-    mat-form-field:nth-child(2n + 1) {
-      margin-right: 1rem;
-    }
+     mat-form-field {
+       width: 100%;
+     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MovieFiltersComponent implements OnInit, OnDestroy {
+export class MoviesFiltersComponent implements OnInit, OnDestroy {
 
   search = new FormControl();
   rating = new FormControl();
@@ -95,11 +85,9 @@ export class MovieFiltersComponent implements OnInit, OnDestroy {
   subscriptions: Subscription[] = [];
 
   constructor(
-    private dialogRef: MatDialogRef<MovieFiltersComponent>,
     private core: CoreService,
     private movies: MoviesService,
     private filters: MovieFiltersService,
-    @Inject(MAT_DIALOG_DATA) public data: ConfirmData
   ) {}
 
   ngOnInit(): void {

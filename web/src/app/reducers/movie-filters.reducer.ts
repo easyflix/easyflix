@@ -4,6 +4,7 @@ import {MovieFiltersActionsUnion, MovieFiltersActionTypes, MovieSortStrategy} fr
  * State
  */
 export interface State {
+  show: boolean;
   search: string;
   rating: number;
   years: string[];
@@ -14,6 +15,7 @@ export interface State {
 }
 
 const initialState: State = {
+  show: false,
   search: '',
   rating: 0,
   years: [],
@@ -31,6 +33,12 @@ export function reducer(
   action: MovieFiltersActionsUnion
 ): State {
   switch (action.type) {
+
+    case MovieFiltersActionTypes.ToggleFilters:
+      return {
+        ...state,
+        show: !state.show
+      };
 
     case MovieFiltersActionTypes.SetSearch:
       return {
@@ -76,7 +84,8 @@ export function reducer(
 
     case MovieFiltersActionTypes.ClearFilters:
       return {
-        ...initialState
+        ...initialState,
+        show: state.show
       };
 
     default:
@@ -87,6 +96,7 @@ export function reducer(
 /**
  * Selectors
  */
+export const getShow = (state: State) => state.show;
 export const getSearch = (state: State) => state.search;
 export const getRating = (state: State) => state.rating;
 export const getYears = (state: State) => state.years;

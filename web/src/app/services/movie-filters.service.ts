@@ -3,22 +3,27 @@ import {combineLatest, Observable} from 'rxjs';
 import {map, switchMap} from 'rxjs/operators';
 import {Store} from '@ngrx/store';
 import {
+  getMovieFiltersShow,
   getMovieGenresFilter,
   getMovieLanguagesFilter,
   getMovieRatingFilter,
-  getMovieSearchFilter, getMovieSortStrategy,
+  getMovieSearchFilter,
+  getMovieSortStrategy,
   getMovieTagsFilter,
   getMovieYearsFilter,
   State
 } from '@app/reducers';
 import {
   ClearMovieFilters,
+  MovieSortStrategy,
   SetMovieGenres,
   SetMovieLanguages,
   SetMovieRating,
-  SetMovieSearch, SetMovieSort,
+  SetMovieSearch,
+  SetMovieSort,
   SetMovieTags,
-  SetMovieYears, MovieSortStrategy
+  SetMovieYears,
+  ToggleFilters
 } from '@app/actions/movie-filters.actions';
 import {LibraryFile, Movie} from '@app/models';
 
@@ -60,6 +65,10 @@ export class MovieFiltersService {
 
   }
 
+  toggleFilters(): void {
+    this.store.dispatch(new ToggleFilters());
+  }
+
   setSearch(value: string): void {
     this.store.dispatch(new SetMovieSearch(value));
   }
@@ -86,6 +95,10 @@ export class MovieFiltersService {
 
   setSort(strategy: MovieSortStrategy): void {
     this.store.dispatch(new SetMovieSort(strategy));
+  }
+
+  getShow(): Observable<boolean> {
+    return this.store.select(getMovieFiltersShow);
   }
 
   getSearch(): Observable<string> {

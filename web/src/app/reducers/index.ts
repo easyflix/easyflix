@@ -176,6 +176,11 @@ export const getShowById = createSelector(
 
 // Movie filters
 
+export const getMovieFiltersShow = createSelector(
+  getMovieFiltersState,
+  fromMovieFilters.getShow
+);
+
 export const getMovieSearchFilter = createSelector(
   getMovieFiltersState,
   fromMovieFilters.getSearch

@@ -3,6 +3,7 @@ import {Action} from '@ngrx/store';
 export type MovieSortStrategy = 'alphabetical' | 'release' | 'addition';
 
 export enum MovieFiltersActionTypes {
+  ToggleFilters = 'filters/movies/toggle',
   SetSearch = 'filters/movies/search',
   SetRating = 'filters/movies/rating',
   SetYears = 'filters/movies/years',
@@ -11,6 +12,10 @@ export enum MovieFiltersActionTypes {
   SetGenres = 'filters/movies/genres',
   SetSort = 'filters/movies/sort',
   ClearFilters = 'filters/movies/clear',
+}
+
+export class ToggleFilters implements Action {
+  readonly type = MovieFiltersActionTypes.ToggleFilters;
 }
 
 export class SetMovieSearch implements Action {
@@ -53,6 +58,7 @@ export class ClearMovieFilters implements Action {
 }
 
 export type MovieFiltersActionsUnion =
+  ToggleFilters |
   SetMovieSearch |
   SetMovieRating |
   SetMovieYears |

@@ -18,7 +18,7 @@ export interface State {
 
 const initialState: State = {
   showSidenav: false,
-  sidenavMode: 'side',
+  sidenavMode: 'over',
   sidenavWidth: 'normal',
   theme: ThemesUtils.allThemes[0],
   config: undefined,
