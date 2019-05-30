@@ -3,7 +3,7 @@ import {HttpErrorResponse} from '@angular/common/http';
 import {Action} from '@ngrx/store';
 import {Actions, Effect, ofType} from '@ngrx/effects';
 import {asapScheduler, Observable, of, scheduled} from 'rxjs';
-import {catchError, filter, map, skip, switchMap, tap} from 'rxjs/operators';
+import {catchError, filter, map, skip, switchMap, take, tap} from 'rxjs/operators';
 
 import {FilesActionTypes, LoadFiles, LoadFilesError, LoadFilesSuccess} from '@app/actions/files.actions';
 import {Library, LibraryFile, Movie} from '@app/models';
@@ -210,6 +210,7 @@ export class AppEffects {
   moviesUrl2Filters$ =
     this.route.queryParamMap.pipe(
       skip(1),
+      take(1),
       tap(params => {
         const search = params.get('movie_search');
         const rating = params.get('movie_rating');
@@ -268,6 +269,7 @@ export class AppEffects {
   showsUrl2Filters$ =
     this.route.queryParamMap.pipe(
       skip(1),
+      take(1),
       map(params => {
         const search = params.get('show_search');
         const rating = params.get('show_rating');
