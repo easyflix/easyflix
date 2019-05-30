@@ -4,6 +4,7 @@ import {ShowFiltersActionsUnion, ShowFiltersActionTypes} from '@app/actions/show
  * State
  */
 export interface State {
+  show: boolean;
   search: string;
   rating: number;
   years: string[];
@@ -13,6 +14,7 @@ export interface State {
 }
 
 const initialState: State = {
+  show: false,
   search: '',
   rating: 0,
   years: [],
@@ -29,6 +31,12 @@ export function reducer(
   action: ShowFiltersActionsUnion
 ): State {
   switch (action.type) {
+
+    case ShowFiltersActionTypes.ToggleFilters:
+      return {
+        ...state,
+        show: !state.show
+      };
 
     case ShowFiltersActionTypes.SetSearch:
       return {
@@ -79,6 +87,7 @@ export function reducer(
 /**
  * Selectors
  */
+export const getShow = (state: State) => state.show;
 export const getSearch = (state: State) => state.search;
 export const getRating = (state: State) => state.rating;
 export const getYears = (state: State) => state.years;

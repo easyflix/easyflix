@@ -218,6 +218,11 @@ export const getMovieSortStrategy = createSelector(
 
 // Show filters
 
+export const getShowFiltersShow = createSelector(
+  getShowFiltersState,
+  fromShowFilters.getShow
+);
+
 export const getShowSearchFilter = createSelector(
   getShowFiltersState,
   fromShowFilters.getSearch

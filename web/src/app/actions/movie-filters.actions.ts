@@ -14,7 +14,7 @@ export enum MovieFiltersActionTypes {
   ClearFilters = 'filters/movies/clear',
 }
 
-export class ToggleFilters implements Action {
+export class ToggleMovieFilters implements Action {
   readonly type = MovieFiltersActionTypes.ToggleFilters;
 }
 
@@ -58,7 +58,7 @@ export class ClearMovieFilters implements Action {
 }
 
 export type MovieFiltersActionsUnion =
-  ToggleFilters |
+  ToggleMovieFilters |
   SetMovieSearch |
   SetMovieRating |
   SetMovieYears |

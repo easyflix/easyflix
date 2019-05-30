@@ -80,7 +80,6 @@ export class ItemDirective {
         </section>
       </mat-sidenav-content>
     </mat-sidenav-container>
-
   `,
   styles: [`
     :host {
@@ -94,12 +93,6 @@ export class ItemDirective {
       top: 10px;
       right: 10px;
       z-index: 11;
-      display: flex;
-      align-items: center;
-    }
-    .controls mat-form-field {
-      height: 85px;
-      margin-right: 1rem;
     }
     .sidenav-container {
       flex-grow: 1;

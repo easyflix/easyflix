@@ -17,7 +17,6 @@ import {Router} from '@angular/router';
 import {ShowsService} from '@app/services/shows.service';
 import {Show} from '@app/models/show';
 import {ShowFiltersService} from '@app/services/show-filters.service';
-import {ShowFiltersComponent} from '@app/components/dialogs/show-filters.component';
 import {MatDialog} from '@angular/material';
 import {animate, style, transition, trigger} from '@angular/animations';
 import {ItemDirective} from '@app/components/movies/movies.component';
@@ -25,25 +24,51 @@ import {ItemDirective} from '@app/components/movies/movies.component';
 @Component({
   selector: 'app-shows',
   template: `
-    <button mat-icon-button class="filters" (click)="showFiltersDialog()" *ngIf="!(hasAppliedFilters$ | async)">
-      <mat-icon>filter_list</mat-icon>
-    </button>
-    <button mat-mini-fab color="accent" class="filters" (click)="showFiltersDialog()" *ngIf="hasAppliedFilters$ | async">
-      <mat-icon>filter_list</mat-icon>
-    </button>
-    <section class="items" #items>
-      <div class="item" appItem
-           @gridAnimation
-           *ngFor="let show of shows$ | async; trackBy: trackByFunc" tabindex="0"
-           (click)="openShow(show)"
-           (keydown.enter)="openShow(show)"
-           (keydown.space)="openShow(show)">
-        <div class="poster" [style]="getStyle(show) | async"></div>
-        <!--<button class="play" mat-mini-fab color="primary" (click)="$event.stopPropagation(); play(movie);" tabindex="-1">
-          <mat-icon>play_arrow</mat-icon>
-        </button>-->
-      </div>
-    </section>
+    <div class="controls animation-hidden">
+      <button mat-icon-button class="filters" (click)="toggleFilters()" *ngIf="!(hasAppliedFilters$ | async)">
+        <mat-icon>filter_list</mat-icon>
+      </button>
+      <button mat-mini-fab color="accent" class="filters" (click)="toggleFilters()" *ngIf="hasAppliedFilters$ | async">
+        <mat-icon>filter_list</mat-icon>
+      </button>
+    </div>
+    <mat-sidenav-container class="sidenav-container">
+      <mat-sidenav position="end" [opened]="showFilters$ | async" mode="side">
+        <div class="sidenav-content">
+          <h2>Sort and filter</h2>
+<!--          <mat-form-field class="sort" appearance="standard">
+            <mat-label>Sort</mat-label>
+            <mat-select placeholder="Sort" (selectionChange)="setSort($event.value)" [value]="sortStrategy$ | async">
+              <mat-option value="alphabetical">
+                Alphabetical
+              </mat-option>
+              <mat-option value="release">
+                Latest Release
+              </mat-option>
+              <mat-option value="addition">
+                Latest Addition
+              </mat-option>
+            </mat-select>
+          </mat-form-field>-->
+          <app-shows-filters></app-shows-filters>
+        </div>
+      </mat-sidenav>
+      <mat-sidenav-content>
+        <section class="items" #items>
+          <div class="item" appItem
+               @gridAnimation
+               *ngFor="let show of shows$ | async; trackBy: trackByFunc" tabindex="0"
+               (click)="openShow(show)"
+               (keydown.enter)="openShow(show)"
+               (keydown.space)="openShow(show)">
+            <div class="poster" [style]="getStyle(show) | async"></div>
+            <!--<button class="play" mat-mini-fab color="primary" (click)="$event.stopPropagation(); play(movie);" tabindex="-1">
+              <mat-icon>play_arrow</mat-icon>
+            </button>-->
+          </div>
+        </section>
+      </mat-sidenav-content>
+    </mat-sidenav-container>
   `,
   styles: [`
     :host {
@@ -52,11 +77,25 @@ import {ItemDirective} from '@app/components/movies/movies.component';
       flex-direction: column;
       overflow: hidden;
     }
-    .filters {
-      position: fixed;
+    .controls {
+      position: absolute;
       top: 10px;
       right: 10px;
       z-index: 11;
+    }
+    .sidenav-container {
+      flex-grow: 1;
+    }
+    .sidenav-content {
+      width: 220px;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+    h2 {
+      font-weight: 500;
+    }
+    mat-form-field {
+      width: 100%;
     }
     .items {
       display: flex;
@@ -118,6 +157,7 @@ export class ShowsComponent implements OnInit {
 
   shows$: Observable<Show[]>;
   hasAppliedFilters$: Observable<boolean>;
+  showFilters$: Observable<boolean>;
 
   @ViewChild('items', { static: true })
   itemsContainer: ElementRef;
@@ -143,6 +183,7 @@ export class ShowsComponent implements OnInit {
       switchMap(shows => this.filters.filterShows(shows))
     );
     this.hasAppliedFilters$ = this.filters.hasAppliedFilters();
+    this.showFilters$ = this.filters.getShow();
   }
 
   getStyle(show: Show): Observable<SafeStyle> {
@@ -176,18 +217,15 @@ export class ShowsComponent implements OnInit {
     );
   }
 
-  @HostListener('keydown.f')
-  showFiltersDialog() {
-    this.dialog.open(ShowFiltersComponent, {
-      maxWidth: '750px',
-      minWidth: '500px'
-    });
+  // @HostListener('keydown.f')
+  toggleFilters() {
+    this.filters.toggleFilters();
   }
 
-  @HostListener('keydown.space', ['$event'])
+  /*@HostListener('keydown.space', ['$event'])
   noScroll(event: KeyboardEvent) {
     event.preventDefault();
-  }
+  }*/
 
   @HostListener('keydown.arrowRight')
   right() {

@@ -23,7 +23,7 @@ import {
   SetMovieSort,
   SetMovieTags,
   SetMovieYears,
-  ToggleFilters
+  ToggleMovieFilters
 } from '@app/actions/movie-filters.actions';
 import {LibraryFile, Movie} from '@app/models';
 
@@ -66,7 +66,7 @@ export class MovieFiltersService {
   }
 
   toggleFilters(): void {
-    this.store.dispatch(new ToggleFilters());
+    this.store.dispatch(new ToggleMovieFilters());
   }
 
   setSearch(value: string): void {

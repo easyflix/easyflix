@@ -3,11 +3,12 @@ import {combineLatest, Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {Store} from '@ngrx/store';
 import {
+  getShowFiltersShow,
   getShowGenresFilter,
   getShowLanguagesFilter,
+  getShowNetworksFilter,
   getShowRatingFilter,
   getShowSearchFilter,
-  getShowNetworksFilter,
   getShowYearsFilter,
   State
 } from '@app/reducers';
@@ -15,10 +16,11 @@ import {
   ClearShowFilters,
   SetShowGenres,
   SetShowLanguages,
+  SetShowNetworks,
   SetShowRating,
   SetShowSearch,
-  SetShowNetworks,
-  SetShowYears
+  SetShowYears,
+  ToggleShowFilters
 } from '@app/actions/show-filters.actions';
 import {Show} from '@app/models/show';
 
@@ -63,6 +65,10 @@ export class ShowFiltersService {
 
   }
 
+  toggleFilters(): void {
+    this.store.dispatch(new ToggleShowFilters());
+  }
+
   setSearch(value: string): void {
     this.store.dispatch(new SetShowSearch(value));
   }
@@ -85,6 +91,10 @@ export class ShowFiltersService {
 
   setGenres(values: string[]): void {
     this.store.dispatch(new SetShowGenres(values));
+  }
+
+  getShow(): Observable<boolean> {
+    return this.store.select(getShowFiltersShow);
   }
 
   getSearch(): Observable<string> {

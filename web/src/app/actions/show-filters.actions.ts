@@ -1,6 +1,7 @@
 import {Action} from '@ngrx/store';
 
 export enum ShowFiltersActionTypes {
+  ToggleFilters = 'filters/shows/toggle',
   SetSearch = 'filters/shows/search',
   SetRating = 'filters/shows/rating',
   SetYears = 'filters/shows/years',
@@ -8,6 +9,10 @@ export enum ShowFiltersActionTypes {
   SetNetworks = 'filters/shows/networks',
   SetGenres = 'filters/shows/genres',
   ClearFilters = 'filters/shows/clear',
+}
+
+export class ToggleShowFilters implements Action {
+  readonly type = ShowFiltersActionTypes.ToggleFilters;
 }
 
 export class SetShowSearch implements Action {
@@ -45,6 +50,7 @@ export class ClearShowFilters implements Action {
 }
 
 export type ShowFiltersActionsUnion =
+  ToggleShowFilters |
   SetShowSearch |
   SetShowRating |
   SetShowYears |

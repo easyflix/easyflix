@@ -190,9 +190,34 @@ export class AppEffects {
       skip(1),
       take(1),
       tap(params => {
-        const showFilters = params.get('movie_filters');
-        if (showFilters === '1') {
+        const movieFilters = params.get('movie_filters');
+        if (movieFilters === '1') {
           this.movieFilters.toggleFilters();
+        }
+      })
+    );
+
+  /**
+   * Show filters sidenav
+   */
+  @Effect({ dispatch: false })
+  showsFiltersShow2Url$ =
+    this.showFilters.getShow().pipe(
+      skip(1),
+      tap(show => this.router.navigate(
+        [],
+        { queryParams: { show_filters: show ? '1' : undefined }, queryParamsHandling: 'merge' })
+      )
+    );
+  @Effect({ dispatch: false })
+  url2showsFiltersShow$ =
+    this.route.queryParamMap.pipe(
+      skip(1),
+      take(1),
+      tap(params => {
+        const showFilters = params.get('show_filters');
+        if (showFilters === '1') {
+          this.showFilters.toggleFilters();
         }
       })
     );
