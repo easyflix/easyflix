@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {combineLatest, Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {map, switchMap} from 'rxjs/operators';
 import {Store} from '@ngrx/store';
 import {
   getShowFiltersShow,
@@ -9,6 +9,7 @@ import {
   getShowNetworksFilter,
   getShowRatingFilter,
   getShowSearchFilter,
+  getShowSortStrategy,
   getShowYearsFilter,
   State
 } from '@app/reducers';
@@ -19,10 +20,13 @@ import {
   SetShowNetworks,
   SetShowRating,
   SetShowSearch,
+  SetShowSort,
   SetShowYears,
+  ShowSortStrategy,
   ToggleShowFilters
 } from '@app/actions/show-filters.actions';
-import {Show} from '@app/models/show';
+import {Episode, Show} from '@app/models/show';
+import {LibraryFile} from '@app/models';
 
 @Injectable()
 export class ShowFiltersService {
@@ -93,6 +97,10 @@ export class ShowFiltersService {
     this.store.dispatch(new SetShowGenres(values));
   }
 
+  setSort(strategy: ShowSortStrategy): void {
+    this.store.dispatch(new SetShowSort(strategy));
+  }
+
   getShow(): Observable<boolean> {
     return this.store.select(getShowFiltersShow);
   }
@@ -121,6 +129,10 @@ export class ShowFiltersService {
     return this.store.select(getShowGenresFilter);
   }
 
+  getSortStrategy(): Observable<ShowSortStrategy> {
+    return this.store.select(getShowSortStrategy);
+  }
+
   getFilters(): Observable<ShowFilters> {
     return combineLatest([
       this.getSearch(),
@@ -142,6 +154,12 @@ export class ShowFiltersService {
   }
 
   filterShows(shows: Show[]): Observable<Show[]> {
+    function getLastModified(files: LibraryFile[]): number {
+      return [...files].sort((a, b) => b.lastModified - a.lastModified)[0].lastModified;
+    }
+    function getLastAirDate(episodes: Episode[]): string {
+      return [...episodes].sort((a, b) => b.air_date.localeCompare(a.air_date))[0].air_date;
+    }
     return this.getFilters().pipe(
       map(filters => shows.filter(show =>
         ShowFiltersService.isWithinSearch(show, filters) &&
@@ -150,6 +168,17 @@ export class ShowFiltersService {
         ShowFiltersService.isWithinLanguages(show, filters) &&
         ShowFiltersService.isWithinYears(show, filters) &&
         ShowFiltersService.isWithinGenres(show, filters)
+      )),
+      switchMap(filtered => this.getSortStrategy().pipe(
+        map(strategy => {
+          if (strategy === 'alphabetical') {
+            return filtered;
+          } else if (strategy === 'air_date') {
+            return [...filtered].sort((a, b) => getLastAirDate(b.episodes).localeCompare(getLastAirDate(a.episodes)));
+          } else if (strategy === 'addition') {
+            return [...filtered].sort((a, b) => getLastModified(b.files) - getLastModified(a.files));
+          }
+        })
       ))
     );
   }

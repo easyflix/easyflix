@@ -1,4 +1,4 @@
-import {ShowFiltersActionsUnion, ShowFiltersActionTypes} from '@app/actions/show-filters.actions';
+import {ShowFiltersActionsUnion, ShowFiltersActionTypes, ShowSortStrategy} from '@app/actions/show-filters.actions';
 
 /**
  * State
@@ -11,6 +11,7 @@ export interface State {
   languages: string[];
   networks: string[];
   genres: string[];
+  sort: ShowSortStrategy;
 }
 
 const initialState: State = {
@@ -21,6 +22,7 @@ const initialState: State = {
   languages: [],
   networks: [],
   genres: [],
+  sort: 'alphabetical',
 };
 
 /**
@@ -74,9 +76,16 @@ export function reducer(
         genres: action.payload
       };
 
+    case ShowFiltersActionTypes.SetSort:
+      return {
+        ...state,
+        sort: action.payload
+      };
+
     case ShowFiltersActionTypes.ClearFilters:
       return {
-        ...initialState
+        ...initialState,
+        show: state.show
       };
 
     default:
@@ -94,3 +103,4 @@ export const getYears = (state: State) => state.years;
 export const getLanguages = (state: State) => state.languages;
 export const getNetworks = (state: State) => state.networks;
 export const getGenres = (state: State) => state.genres;
+export const getSort = (state: State) => state.sort;

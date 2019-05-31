@@ -252,3 +252,8 @@ export const getShowGenresFilter = createSelector(
   getShowFiltersState,
   fromShowFilters.getGenres
 );
+
+export const getShowSortStrategy = createSelector(
+  getShowFiltersState,
+  fromShowFilters.getSort
+);

@@ -33,6 +33,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {ShowFilters, ShowFiltersService} from '@app/services/show-filters.service';
 import {CoreService} from '@app/services/core.service';
 import {MovieSortStrategy} from '@app/actions/movie-filters.actions';
+import {ShowSortStrategy} from '@app/actions/show-filters.actions';
 
 @Injectable()
 export class AppEffects {
@@ -316,6 +317,18 @@ export class AppEffects {
       )
     );
   @Effect({ dispatch: false })
+  showsSort2Url$: Observable<ShowSortStrategy> =
+    this.showFilters.getSortStrategy().pipe(
+      skip(1),
+      tap(strategy => this.router.navigate(
+        [],
+        {
+          queryParams: { show_sort: strategy !== 'alphabetical' ? strategy : undefined },
+          queryParamsHandling: 'merge'
+        }
+      ))
+    );
+  @Effect({ dispatch: false })
   showsUrl2Filters$ =
     this.route.queryParamMap.pipe(
       skip(1),
@@ -327,6 +340,7 @@ export class AppEffects {
         const languages = params.get('show_languages');
         const networks = params.get('show_networks');
         const genres = params.get('show_genres');
+        const sort = params.get('show_sort');
         if (search !== null) {
           this.showFilters.setSearch(search);
         }
@@ -344,6 +358,9 @@ export class AppEffects {
         }
         if (genres !== null) {
           this.showFilters.setGenres(genres.split(','));
+        }
+        if (sort !== null) {
+          this.showFilters.setSort(sort as ShowSortStrategy);
         }
       })
     );

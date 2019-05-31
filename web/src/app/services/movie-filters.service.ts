@@ -162,14 +162,14 @@ export class MovieFiltersService {
         MovieFiltersService.isWithinYears(movie, filters) &&
         MovieFiltersService.isWithinGenres(movie, filters)
       )),
-      switchMap(movs => this.getSortStrategy().pipe(
+      switchMap(filtered => this.getSortStrategy().pipe(
         map(strategy => {
           if (strategy === 'alphabetical') {
-            return movs;
+            return filtered;
           } else if (strategy === 'release') {
-            return [...movs].sort((a, b) => b.release_date.localeCompare(a.release_date));
+            return [...filtered].sort((a, b) => b.release_date.localeCompare(a.release_date));
           } else if (strategy === 'addition') {
-            return [...movs].sort((a, b) => getLastModified(b.files) - getLastModified(a.files));
+            return [...filtered].sort((a, b) => getLastModified(b.files) - getLastModified(a.files));
           }
         })
       ))

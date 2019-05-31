@@ -1,5 +1,7 @@
 import {Action} from '@ngrx/store';
 
+export type ShowSortStrategy = 'alphabetical' | 'air_date' | 'addition';
+
 export enum ShowFiltersActionTypes {
   ToggleFilters = 'filters/shows/toggle',
   SetSearch = 'filters/shows/search',
@@ -8,6 +10,7 @@ export enum ShowFiltersActionTypes {
   SetLanguages = 'filters/shows/languages',
   SetNetworks = 'filters/shows/networks',
   SetGenres = 'filters/shows/genres',
+  SetSort = 'filters/shows/sort',
   ClearFilters = 'filters/shows/clear',
 }
 
@@ -45,6 +48,11 @@ export class SetShowGenres implements Action {
   constructor(public payload: string[]) {}
 }
 
+export class SetShowSort implements Action {
+  readonly type = ShowFiltersActionTypes.SetSort;
+  constructor(public payload: ShowSortStrategy) {}
+}
+
 export class ClearShowFilters implements Action {
   readonly type = ShowFiltersActionTypes.ClearFilters;
 }
@@ -57,4 +65,5 @@ export type ShowFiltersActionsUnion =
   SetShowLanguages |
   SetShowNetworks |
   SetShowGenres |
+  SetShowSort |
   ClearShowFilters;

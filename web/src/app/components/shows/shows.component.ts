@@ -3,12 +3,13 @@ import {
   Component,
   ElementRef,
   HostListener,
-  OnInit, QueryList,
+  OnInit,
+  QueryList,
   ViewChild,
   ViewChildren
 } from '@angular/core';
 import {CoreService} from '@app/services/core.service';
-import {EMPTY, Observable} from 'rxjs';
+import {EMPTY, Observable, Subscription} from 'rxjs';
 import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
 import {filter, map, switchMap, take} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
@@ -20,6 +21,7 @@ import {ShowFiltersService} from '@app/services/show-filters.service';
 import {MatDialog} from '@angular/material';
 import {animate, style, transition, trigger} from '@angular/animations';
 import {ItemDirective} from '@app/components/movies/movies.component';
+import {ShowSortStrategy} from '@app/actions/show-filters.actions';
 
 @Component({
   selector: 'app-shows',
@@ -36,20 +38,20 @@ import {ItemDirective} from '@app/components/movies/movies.component';
       <mat-sidenav position="end" [opened]="showFilters$ | async" mode="side">
         <div class="sidenav-content">
           <h2>Sort and filter</h2>
-<!--          <mat-form-field class="sort" appearance="standard">
+          <mat-form-field class="sort" appearance="standard">
             <mat-label>Sort</mat-label>
             <mat-select placeholder="Sort" (selectionChange)="setSort($event.value)" [value]="sortStrategy$ | async">
               <mat-option value="alphabetical">
                 Alphabetical
               </mat-option>
-              <mat-option value="release">
-                Latest Release
+              <mat-option value="air_date">
+                Latest Air Date
               </mat-option>
               <mat-option value="addition">
                 Latest Addition
               </mat-option>
             </mat-select>
-          </mat-form-field>-->
+          </mat-form-field>
           <app-shows-filters></app-shows-filters>
         </div>
       </mat-sidenav>
@@ -154,6 +156,7 @@ export class ShowsComponent implements OnInit {
 
   shows$: Observable<Show[]>;
   hasAppliedFilters$: Observable<boolean>;
+  sortStrategy$: Observable<ShowSortStrategy>;
   showFilters$: Observable<boolean>;
 
   @ViewChild('items', { static: true })
@@ -161,6 +164,9 @@ export class ShowsComponent implements OnInit {
 
   @ViewChildren(ItemDirective)
   items: QueryList<ItemDirective>;
+
+  private strategy: ShowSortStrategy;
+  private subscription: Subscription = new Subscription();
 
   constructor(
     private core: CoreService,
@@ -172,7 +178,6 @@ export class ShowsComponent implements OnInit {
     private dialog: MatDialog,
     private sanitizer: DomSanitizer,
   ) {
-
   }
 
   ngOnInit() {
@@ -180,7 +185,12 @@ export class ShowsComponent implements OnInit {
       switchMap(shows => this.filters.filterShows(shows))
     );
     this.hasAppliedFilters$ = this.filters.hasAppliedFilters();
+    this.sortStrategy$ = this.filters.getSortStrategy();
     this.showFilters$ = this.filters.getShow();
+
+    this.subscription.add(this.sortStrategy$.subscribe(
+      strategy => this.strategy = strategy
+    ));
   }
 
   getStyle(show: Show): Observable<SafeStyle> {
@@ -197,9 +207,8 @@ export class ShowsComponent implements OnInit {
     }
   }
 
-  // TODO check movies trackByFunc
-  trackByFunc(index: number, show: Show) {
-    return show.id;
+  trackByFunc = (index: number, show: Show) => {
+    return this.strategy + '-' + show.id;
   }
 
 /*  play(movie: Movie) {
@@ -213,6 +222,10 @@ export class ShowsComponent implements OnInit {
       ['/', { outlets: { details: ['show', show.id] } }],
       { queryParamsHandling: 'preserve' }
     );
+  }
+
+  setSort(strategy: ShowSortStrategy): void {
+    this.filters.setSort(strategy);
   }
 
   // @HostListener('keydown.f')
