@@ -1,9 +1,11 @@
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   Directive,
   ElementRef,
   HostListener,
+  OnDestroy,
   OnInit,
   QueryList,
   ViewChild,
@@ -11,14 +13,14 @@ import {
 } from '@angular/core';
 import {CoreService} from '@app/services/core.service';
 import {MoviesService} from '@app/services/movies.service';
-import {EMPTY, Observable} from 'rxjs';
+import {EMPTY, Observable, Subscription} from 'rxjs';
 import {LibraryFile, Movie} from '@app/models';
 import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
 import {filter, map, switchMap, take} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
 import {VideoService} from '@app/services/video.service';
 import {MovieFiltersService} from '@app/services/movie-filters.service';
-import {ActivatedRoute, Router} from '@angular/router';
+import {Router} from '@angular/router';
 import {MatDialog} from '@angular/material';
 import {FileSelectionComponent} from '@app/components/dialogs/file-selection.component';
 import {animate, style, transition, trigger} from '@angular/animations';
@@ -161,7 +163,7 @@ export class ItemDirective {
   ])],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MoviesComponent implements OnInit {
+export class MoviesComponent implements OnInit, OnDestroy {
 
   movies$: Observable<Movie[]>;
   hasAppliedFilters$: Observable<boolean>;
@@ -173,6 +175,9 @@ export class MoviesComponent implements OnInit {
 
   @ViewChildren(ItemDirective)
   items: QueryList<ItemDirective>;
+
+  private strategy: MovieSortStrategy;
+  private subscription: Subscription = new Subscription();
 
   constructor(
     private core: CoreService,
@@ -193,6 +198,14 @@ export class MoviesComponent implements OnInit {
     this.hasAppliedFilters$ = this.filters.hasAppliedFilters();
     this.sortStrategy$ = this.filters.getSortStrategy();
     this.showFilters$ = this.filters.getShow();
+
+    this.subscription.add(this.sortStrategy$.subscribe(
+      strategy => this.strategy = strategy
+    ));
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 
   getStyle(movie: Movie): Observable<SafeStyle> {
@@ -209,8 +222,8 @@ export class MoviesComponent implements OnInit {
     }
   }
 
-  trackByFunc(index: number, movie: Movie) {
-    return movie.id;
+  trackByFunc = (index: number, movie: Movie) => {
+    return this.strategy + '-' + movie.id;
   }
 
   play(movie: Movie) {

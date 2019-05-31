@@ -197,6 +197,7 @@ export class ShowsComponent implements OnInit {
     }
   }
 
+  // TODO check movies trackByFunc
   trackByFunc(index: number, show: Show) {
     return show.id;
   }
