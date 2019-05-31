@@ -12,6 +12,11 @@
     outline-color: mat-color($primary) !important;
   }
 
+  // Logo
+  svg g {
+    fill: mat-color($foreground, text) !important;
+  }
+
   mat-sidenav {
     @include mat-elevation(4);
   }
