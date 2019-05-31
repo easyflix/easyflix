@@ -170,8 +170,8 @@ import {MatDialog} from '@angular/material';
   styles: [`
     .tagline {
       margin: 0 0 15px 0;
-      font-weight: 300;
-      font-size: 21px;
+      font-weight: 400;
+      font-size: 20px;
     }
     .info {
       display: flex;

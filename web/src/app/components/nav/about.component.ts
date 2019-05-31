@@ -59,7 +59,6 @@ import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
     }
     h2 {
       margin: 0;
-      font-weight: 500;
       font-size: 18px;
     }
     h3 {
@@ -82,7 +81,7 @@ import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
       padding-right: 1rem;
       box-sizing: border-box;
       text-align: right;
-      font-weight: 500;
+      font-weight: 700;
     }
     dd {
       margin: 0 0 1rem 0;

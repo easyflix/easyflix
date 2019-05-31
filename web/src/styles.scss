@@ -1,6 +1,6 @@
 @import '~@angular/material/_theming.scss';
 
-$typo: mat-typography-config($font-family: 'Roboto, sans-serif');
+$typo: mat-typography-config($font-family: "'Source Sans Pro', sans-serif");
 
 @include mat-core($typo);
 
@@ -120,12 +120,12 @@ $pink-theme:  (
 }
 
 body {
-  font-family: Roboto, sans-serif;
+  font-family: 'Source Sans Pro', sans-serif;
   margin: 0;
 }
 
 h2, h3, h4 {
-  font-weight: 500;
+  font-weight: 700;
 }
 
 button.md-36 {

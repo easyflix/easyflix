@@ -56,7 +56,6 @@ import {FilesUtils} from '@app/utils/files.utils';
     h2 {
       margin: 0 1.25rem 0 0;
       font-size: 18px;
-      font-weight: 500;
     }
     .search-container {
       height: 59px;

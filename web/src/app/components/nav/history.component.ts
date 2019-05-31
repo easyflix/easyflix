@@ -17,7 +17,6 @@ import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
     }
     h2 {
       margin: 0;
-      font-weight: 500;
       font-size: 18px;
     }
   `],

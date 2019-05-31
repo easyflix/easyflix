@@ -102,9 +102,6 @@ export class ItemDirective {
       padding: 1rem;
       box-sizing: border-box;
     }
-    h2 {
-      font-weight: 500;
-    }
     mat-form-field {
       width: 100%;
     }

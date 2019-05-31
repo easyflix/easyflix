@@ -53,7 +53,6 @@ export interface AnimatableComponent {
     h2 {
       margin: 0;
       font-size: 18px;
-      font-weight: 500;
       white-space: nowrap;
     }
     h3 {
