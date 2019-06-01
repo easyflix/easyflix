@@ -423,7 +423,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
     case LanguagesContext =>
       tmdb.Configuration.Language.get(api_key)
     case MovieSearchContext(name, year) =>
-      tmdb.SearchMovies.get(api_key, name, year = Some(year))
+      tmdb.SearchMovies.get(api_key, name, year = Some(year), primary_release_year = Some(year))
     case MovieDetailsContext(id) =>
       tmdb.MovieDetails.get(api_key, id, append_to_response = Some("credits"))
     case TVSearchContext(query) =>
