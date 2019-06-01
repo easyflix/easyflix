@@ -10,7 +10,6 @@ import net.creasource.json.JsonSupport
 import net.creasource.util.{WithFTPServer, WithLibrary}
 import net.creasource.webflix.Library.{FTP, Local}
 import net.creasource.webflix.LibraryFile
-import net.creasource.webflix.LibraryFile.Id
 import net.creasource.webflix.actors.LibrarySupervisor.{AddLibrary, ScanLibrary}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
@@ -26,9 +25,9 @@ class VideosRoutesTest
     with ScalaFutures {
 
   val application = Application()
-  var testFile: LibraryFile with Id = _
-  var testFolder: LibraryFile with Id = _
-  var ftpFile: LibraryFile with Id = _
+  var testFile: LibraryFile = _
+  var testFolder: LibraryFile = _
+  var ftpFile: LibraryFile = _
 
   override def afterAll(): Unit = {
     application.shutdown()
@@ -44,8 +43,8 @@ class VideosRoutesTest
     val (testFile, testFolder, ftpFile) = (for {
       _ <- application.libraries ? AddLibrary(Local("local", libraryPath))
       _ <- application.libraries ? AddLibrary(FTP("ftp", Paths.get(""), "localhost", ftpPort, userName, userPass, passive = false, FTP.Types.FTPS))
-      files <- (application.libraries ? ScanLibrary("local")).mapTo[Seq[LibraryFile with Id]]
-      files2 <- (application.libraries ? ScanLibrary("ftp")).mapTo[Seq[LibraryFile with Id]]
+      files <- (application.libraries ? ScanLibrary("local")).mapTo[Seq[LibraryFile]]
+      files2 <- (application.libraries ? ScanLibrary("ftp")).mapTo[Seq[LibraryFile]]
     } yield {
       (
         files.find(file => !file.isDirectory).get,
@@ -64,7 +63,7 @@ class VideosRoutesTest
 
     "return a OK status for GETs on /{id}" in {
 
-      Get(s"/videos/${testFile.id}") ~> route ~> check {
+      Get(s"/videos/local/${testFile.id}") ~> route ~> check {
         status shouldEqual StatusCodes.OK
         // TODO Test with a real file
         /*responseEntity should matchPattern {
@@ -72,7 +71,7 @@ class VideosRoutesTest
         }*/
       }
 
-      Get(s"/videos/${ftpFile.id}") ~> route ~> check {
+      Get(s"/videos/ftp/${ftpFile.id}") ~> route ~> check {
         status shouldEqual StatusCodes.OK
         // TODO Test with a real file
         responseEntity should be (HttpEntity.empty(ContentType(MediaTypes.`video/x-msvideo`)))
@@ -82,7 +81,7 @@ class VideosRoutesTest
 
     "return a BadRequest for GETs on /{id} if id is a folder" in {
 
-      Get(s"/videos/${testFolder.id}") ~> route ~> check {
+      Get(s"/videos/local/${testFolder.id}") ~> route ~> check {
         status shouldEqual StatusCodes.BadRequest
         entityAs[String] shouldEqual "Requested id does not match any video file"
       }
@@ -91,7 +90,7 @@ class VideosRoutesTest
 
     "return a NotFound status for GETs on /unknown" in {
 
-      Get(s"/videos/unknown") ~> route ~> check {
+      Get(s"/videos/local/unknown") ~> route ~> check {
         status shouldEqual StatusCodes.NotFound
       }
 

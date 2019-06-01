@@ -7,14 +7,12 @@ import akka.actor.SupervisorStrategy.{Restart, Stop}
 import akka.actor._
 import akka.event.Logging
 import akka.pattern.ask
-import me.nimavat.shortid.ShortId
 import net.creasource.Application
 import net.creasource.exceptions.{NotFoundException, ValidationException}
 import net.creasource.json.JsonSupport
-import net.creasource.webflix.events.{FileDeleted, LibraryCreated, LibraryDeleted}
+import net.creasource.webflix.events.{LibraryCreated, LibraryDeleted}
 import net.creasource.webflix.{Library, LibraryFile}
 
-import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
@@ -29,7 +27,7 @@ object LibrarySupervisor extends JsonSupport {
   case class GetLibraryFiles(name: String)
   case class ScanLibrary(name: String)
   case class RemoveLibrary(name: String)
-  case class GetFileById(id: String)
+  case class GetFileById(libraryName: String, id: String)
 
   def props()(implicit app: Application): Props = Props(new LibrarySupervisor())
 
@@ -43,11 +41,6 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
   val logger = Logging(context.system, this)
 
   var libraries: Map[String, (ActorRef, Library)] = Map.empty
-
-  // Map of file path to file id
-  var paths: Map[Path, String] = Map.empty
-
-  case class ProcessFiles(files: Seq[LibraryFile], requester: ActorRef)
 
   override def receive: Receive = {
 
@@ -65,7 +58,7 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
         case Some((actorRef, _)) =>
           val filesFuture = (actorRef ? LibraryActor.GetFiles)(1.minute).mapTo[Seq[LibraryFile]]
           filesFuture.onComplete {
-            case Success(files) => self ! ProcessFiles(files, client)
+            case Success(files) => client ! files
             case Failure(exception) => client ! Status.Failure(exception)
           }
         case None => client ! Status.Failure(NotFoundException("No library with that name"))
@@ -75,16 +68,16 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
       val client = sender()
       libraries.get(name).map(_._1) match {
         case Some(actorRef) =>
+          // TODO forward ?
           val filesFuture = (actorRef ? LibraryActor.Scan)(10.minute).mapTo[Seq[LibraryFile]]
           filesFuture.onComplete {
-            case Success(files) => self ! ProcessFiles(files, client)
+            case Success(files) => client ! files
             case Failure(exception) => client ! Status.Failure(exception)
           }
         case None => sender() ! Status.Failure(NotFoundException("No library with that name"))
       }
 
     case AddLibrary(library) =>
-
       val validateAndCreate = for {
         library <- library.validate()
         _ <-
@@ -102,7 +95,6 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
             throw ValidationException("other", "failure", Some(e.getMessage))
           }
       } yield library
-
       validateAndCreate match {
         case Success(lib) => sender() ! lib
         case Failure(e) => sender() ! Status.Failure(e)
@@ -115,55 +107,19 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
           context.stop(actorRef)
           app.bus.publish(LibraryDeleted(name))
           libraries -= name
-          val pathsToDelete = paths.keys.filter(_.startsWith(library.name))
-          pathsToDelete.foreach(path => app.bus.publish(FileDeleted(path)))
-          paths --= pathsToDelete
         }
       sender() ! Done
 
-    case GetFileById(id) =>
+    case GetFileById(libraryName, id) =>
       val client = sender()
-      paths.find { case (_, identifier) => identifier == id }.map(_._1) match {
-        case Some(path) =>
-          libraries.get(path.subpath(0, 1).toString).map(_._1) match {
-            case Some(actorRef) => actorRef forward LibraryActor.GetFile(path)
-            case None =>
-              logger.warning(s"Couldn't find the corresponding library if id ($id). Path is: $path")
-              client ! Status.Failure(NotFoundException("No file with that id"))
-              self ! Purge(Seq(path))
-          }
-        case _ => client ! Status.Failure(NotFoundException("No file with that id"))
+      libraries.get(libraryName).map(_._1) match {
+        case Some(actorRef) => actorRef forward LibraryActor.GetFileById(id)
+        case None =>
+          logger.warning(s"Couldn't find the corresponding library with name ($libraryName). Id is: $id")
+          client ! Status.Failure(NotFoundException("No file with that id"))
       }
 
-    case ProcessFiles(files, requester) =>
-      val withIds = files.map { file =>
-        if (paths.isDefinedAt(file.path)) {
-          file.withId(paths(file.path))
-        } else {
-          file.withId(ShortId.generate())
-        }
-      }
-      requester ! withIds
-      withIds.foreach(file => paths += (file.path -> file.id))
-
-    case Terminated(_) => // libraries -= actorRef
-
-    case Purge =>
-      // First delete ids for paths that don't belong to any library
-      val pathsToDelete = paths.collect{ case (path, _) if libraries.get(path.subpath(0, 1).toString).isEmpty => path }
-      paths --= pathsToDelete
-      // Then request each file to its corresponding library
-      val f1: Iterable[Future[(Path, Try[LibraryFile])]] = paths.map{ case (path, _) =>
-        (libraries(path.subpath(0, 1).toString)._1 ? LibraryActor.GetFile(path))(2.seconds)
-          .mapTo[LibraryFile]
-          .map[(Path, Try[LibraryFile])](f => (path, Success(f)))
-          .recover{ case x => (path, Failure(x)) }
-      }
-      // Collect the failed future and get the corresponding id
-      val f2: Future[Iterable[Path]] = Future.sequence(f1).map(_.collect{ case (path, Failure(NotFoundException(_))) => path })
-      f2.map(r => Purge(r.toSeq)).foreach(self ! _)
-
-    case Purge(pathsToPurge) => paths --= pathsToPurge
+    case Terminated(_) => // libraries -= actorRef // TODO memory leak
 
   }
 

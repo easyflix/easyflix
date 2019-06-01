@@ -16,6 +16,7 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import com.amazonaws.auth.{AWSStaticCredentialsProvider, BasicAWSCredentials}
 import com.amazonaws.regions.{AwsRegionProvider, Regions}
+import me.nimavat.shortid.ShortId
 import net.creasource.Application
 import net.creasource.exceptions.ValidationException
 import net.creasource.json.JsonSupport
@@ -71,7 +72,15 @@ object Library extends JsonSupport {
       Directory.walk(resolvePath(path)).map(p => {
         val file = p.toFile
         Option(file.isDirectory || app.contentTypeResolver(file.getName).mediaType.isVideo).collect{
-          case true => LibraryFile(file.getName, relativizePath(p), file.isDirectory, file.length(), file.lastModified(), name)
+          case true => LibraryFile(
+            ShortId.generate(),
+            file.getName,
+            relativizePath(p),
+            file.isDirectory,
+            file.length(),
+            file.lastModified(),
+            name
+          )
         }
       }).collect{ case option if option.isDefined => option.get }
     }
@@ -82,7 +91,15 @@ object Library extends JsonSupport {
       DirectoryChangesSource(resolvePath(path), pollInterval, maxBufferSize = 1000).collect {
         case (p, DirectoryChange.Creation) if p.toFile.isDirectory || app.contentTypeResolver(p.getFileName.toString).mediaType.isVideo =>
           val file = p.toFile
-          LibraryFileChange.Creation(LibraryFile(file.getName, relativizePath(p), file.isDirectory, file.length(), file.lastModified(), name))
+          LibraryFileChange.Creation(LibraryFile(
+            ShortId.generate(),
+            file.getName,
+            relativizePath(p),
+            file.isDirectory,
+            file.length(),
+            file.lastModified(),
+            name
+          ))
         case (p, DirectoryChange.Deletion) if p.toFile.isDirectory || app.contentTypeResolver(p.getFileName.toString).mediaType.isVideo =>
           LibraryFileChange.Deletion(relativizePath(p))
       }
@@ -127,7 +144,15 @@ object Library extends JsonSupport {
       .withPassiveMode(passive)
 
     override def scan()(implicit app: Application): Source[LibraryFile, NotUsed] =
-      Source.single(LibraryFile(name, relativizePath(path), isDirectory = true, 0L, 0L, name)).concat(scan(path))
+      Source.single(LibraryFile(
+        ShortId.generate(),
+        name,
+        relativizePath(path),
+        isDirectory = true,
+        0L,
+        0L,
+        name
+      )).concat(scan(path))
 
     override def scan(path: Path)(implicit app: Application): Source[LibraryFile, NotUsed] = {
       val source = conType match {
@@ -137,7 +162,15 @@ object Library extends JsonSupport {
       source.map(file => {
         val filePath = Paths.get(file.path.replaceFirst("^/", ""))
         Option(file.isDirectory || app.contentTypeResolver(file.name).mediaType.isVideo).collect{
-          case true => LibraryFile(file.name, relativizePath(filePath), file.isDirectory, file.size, file.lastModified, name)
+          case true => LibraryFile(
+            ShortId.generate(),
+            file.name,
+            relativizePath(filePath),
+            file.isDirectory,
+            file.size,
+            file.lastModified,
+            name
+          )
         }
       }).collect{ case option if option.isDefined => option.get }
     }
@@ -185,7 +218,15 @@ object Library extends JsonSupport {
     }
 
     override def scan()(implicit app: Application): Source[LibraryFile, NotUsed] =
-      Source.single(LibraryFile(name, relativizePath(path), isDirectory = true, 0L, 0L, name)).concat(scan(path))
+      Source.single(LibraryFile(
+        ShortId.generate(),
+        name,
+        relativizePath(path),
+        isDirectory = true,
+        0L,
+        0L,
+        name
+      )).concat(scan(path))
 
     override def scan(path: Path)(implicit app: Application): Source[LibraryFile, NotUsed] = {
       AS3.listBucket(bucket, Some(path.toString)).withAttributes(S3Attributes.settings(settings)).map { content =>
@@ -194,6 +235,7 @@ object Library extends JsonSupport {
         val path = Paths.get(content.key)
         Option(isDirectory || app.contentTypeResolver(fileName).mediaType.isVideo).collect{
           case true => LibraryFile(
+            ShortId.generate(),
             fileName,
             relativizePath(path),
             isDirectory,

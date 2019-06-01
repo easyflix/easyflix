@@ -113,8 +113,8 @@ export class VideoComponent implements OnInit, OnDestroy {
     this.duration$ = this.video.getDuration();
     this.loading$ = this.video.getLoading();
 
-    this.route.data.subscribe(
-      (data: { video: LibraryFile }) => this.video.setSource(`http://localhost:8081/videos/${data.video.id}`) // TODO
+    this.route.data.subscribe((data: { video: LibraryFile }) =>
+      this.video.setSource(`http://localhost:8081/videos/${data.video.libraryName}/${data.video.id}`) // TODO hardcoded url
     );
 
     this.route.queryParamMap.pipe(

@@ -17,7 +17,9 @@ import scala.util.{Failure, Success}
 object LibraryActor {
 
   case object GetFiles
+  // TODO is that still necessary ?
   case class GetFile(path: Path)
+  case class GetFileById(id: String)
 
   case object Scan
 
@@ -59,6 +61,12 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
       files.get(path) match {
         case Some(file) => sender() ! file
         case _ => sender() ! Status.Failure(NotFoundException("No file with that path"))
+      }
+
+    case GetFileById(id) =>
+      files.values.find(_.id == id) match {
+        case Some(file) => sender() ! file
+        case _ => sender() ! Status.Failure(NotFoundException("No file with that id"))
       }
 
     case file: LibraryFile =>

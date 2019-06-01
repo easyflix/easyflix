@@ -1,6 +1,6 @@
 
 export interface LibraryFile {
-  id?: string;
+  id: string;
   name: string;
   path: string;
   isDirectory: boolean;

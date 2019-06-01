@@ -189,9 +189,7 @@ export class ShowComponent implements OnInit {
 
   play(show: Show) {
     // TODO present a dialog to select file to play
-    this.files.getByPath(show.files[0].path).subscribe(
-      file => this.video.playVideo(file)
-    );
+    this.video.playVideo(show.files[0]);
   }
 
   searchYear(year: string) {

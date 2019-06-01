@@ -3,9 +3,9 @@ package net.creasource.webflix
 import java.nio.file.Paths
 
 import akka.stream.KillSwitches
-import akka.stream.alpakka.file.DirectoryChange
 import akka.stream.scaladsl.{Keep, Sink}
 import net.creasource.util.{SimpleTest, WithFTPServer, WithLibrary}
+import net.creasource.webflix.LibraryFileChange.{Creation, Deletion}
 import org.scalatest.time.{Seconds, Span}
 
 import scala.concurrent.duration._
@@ -63,7 +63,7 @@ class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer  {
       val files = future.futureValue
 
       files.length should be (1)
-      files.head should matchPattern { case (LibraryFile(`fileName`, _, false, _, _, "name", _, _, _), DirectoryChange.Creation) => }
+      files.head should matchPattern { case Creation(LibraryFile(_, `fileName`, _, false, _, _, "name", _, _, _)) => }
     }
 
     "watch root directory for file deletion" in {
@@ -77,7 +77,7 @@ class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer  {
         .run()
 
       uncreatedFiles.head.toFile.delete()
-      val fileName = uncreatedFiles.head.getFileName.toString
+      val filePath = lib.relativizePath(uncreatedFiles.head)
 
       Thread.sleep(pollInterval.toMillis * 2)
 
@@ -85,8 +85,8 @@ class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer  {
 
       val files = future.futureValue
 
-      files.length should be (2) // Modification and Deletion
-      files.last should matchPattern { case (LibraryFile(`fileName`, _, false, _, _, "name", _, _, _), DirectoryChange.Deletion) => }
+      files.length should be (1)
+      files.last should matchPattern { case Deletion(`filePath`) => }
     }
 
     "watch a sub directory" in {
@@ -108,7 +108,7 @@ class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer  {
       val files = future.futureValue
 
       files.length should be (1)
-      files.head should matchPattern { case (LibraryFile(`fileName`, _, false, _, _, "name", _, _, _), DirectoryChange.Creation) => }
+      files.head should matchPattern { case Creation(LibraryFile(_, `fileName`, _, false, _, _, "name", _, _, _)) => }
     }
 
 /*    "fail to create with an invalid name" in {

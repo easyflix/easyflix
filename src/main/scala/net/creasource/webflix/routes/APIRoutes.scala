@@ -8,7 +8,6 @@ import akka.pattern.ask
 import net.creasource.Application
 import net.creasource.exceptions.{NotFoundException, ValidationException}
 import net.creasource.json.JsonSupport
-import net.creasource.webflix.LibraryFile.Id
 import net.creasource.webflix.actors.LibrarySupervisor._
 import net.creasource.webflix.actors.TMDBActor
 import net.creasource.webflix.{Configuration, Library, LibraryFile, Movie, Show}
@@ -38,9 +37,11 @@ object APIRoutes extends Directives with JsonSupport {
     respondWithHeaders(RawHeader("Access-Control-Allow-Origin", "*")) {
       concat(
         pathPrefix("videos") {
-          path(Segment) { id =>
-            completeOrRecoverWith((app.libraries ? GetFileById(id)).mapTo[LibraryFile]) {
-              case NotFoundException(_) => complete(StatusCodes.NotFound)
+          pathPrefix(Segment) { libraryName =>
+            path(Segment) { id =>
+              completeOrRecoverWith((app.libraries ? GetFileById(libraryName, id)).mapTo[LibraryFile]) {
+                case NotFoundException(_) => complete(StatusCodes.NotFound)
+              }
             }
           }
         },
@@ -72,7 +73,7 @@ object APIRoutes extends Directives with JsonSupport {
                   completeOrRecoverWith {
                     for {
                       library <- (app.libraries ? GetLibrary(name)).mapTo[Library]
-                      files <- (app.libraries ? GetLibraryFiles(library.name)).mapTo[Seq[LibraryFile with Id]]
+                      files <- (app.libraries ? GetLibraryFiles(library.name)).mapTo[Seq[LibraryFile]]
                     } yield {
                       StatusCodes.OK -> JsObject(
                         "library" -> library.toJson,
@@ -96,7 +97,7 @@ object APIRoutes extends Directives with JsonSupport {
                     completeOrRecoverWith {
                       for {
                         library <- (app.libraries ? GetLibrary(name)).mapTo[Library]
-                        files <- (app.libraries ? ScanLibrary(library.name)) (10.minutes).mapTo[Seq[LibraryFile with Id]]
+                        files <- (app.libraries ? ScanLibrary(library.name)) (10.minutes).mapTo[Seq[LibraryFile]]
                       } yield {
                         StatusCodes.OK -> files
                       }

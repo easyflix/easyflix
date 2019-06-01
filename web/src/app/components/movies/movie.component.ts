@@ -280,24 +280,18 @@ export class MovieComponent implements OnInit {
 
   // TODO check the file parameter to select a file
   play(movie: Movie) {
-    let file$;
     if (movie.files.length > 1) {
       const fileRef = this.dialog.open(FileSelectionComponent, {
         minWidth: '650px',
         maxWidth: '85%',
         data: {files: movie.files}
       });
-      file$ = fileRef.afterClosed().pipe(
-        switchMap((file: LibraryFile) =>
-          file ? this.files.getByPath(file.path) : EMPTY
-        )
+      fileRef.afterClosed().subscribe(
+        file => file ? this.video.playVideo(file) : {}
       );
     } else {
-      file$ = this.files.getByPath(movie.files[0].path);
+      this.video.playVideo(movie.files[0]);
     }
-    file$.subscribe(
-      file => this.video.playVideo(file)
-    );
   }
 
   searchYear(year: string) {

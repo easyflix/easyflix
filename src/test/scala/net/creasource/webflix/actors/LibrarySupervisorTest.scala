@@ -92,20 +92,20 @@ class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
       import scala.concurrent.duration._
 
       val files = (supervisor ? LibrarySupervisor.GetLibraryFiles("name"))(2.seconds)
-        .mapTo[Seq[LibraryFile with LibraryFile.Id]]
+        .mapTo[Seq[LibraryFile]]
         .futureValue
 
       files.length should be (libraryFiles.length + 1)
 
-      supervisor ! LibrarySupervisor.GetFileById(files.head.id)
+      supervisor ! LibrarySupervisor.GetFileById("name", files.head.id)
 
       expectMsg(files.head)
 
-      supervisor ! LibrarySupervisor.GetFileById(files.last.id)
+      supervisor ! LibrarySupervisor.GetFileById("name", files.last.id)
 
       expectMsg(files.last)
 
-      supervisor ! LibrarySupervisor.GetFileById("unknown")
+      supervisor ! LibrarySupervisor.GetFileById("name", "unknown")
 
       expectMsg(Status.Failure(NotFoundException("No file with that id")))
 

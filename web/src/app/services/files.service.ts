@@ -44,6 +44,7 @@ export class FilesService extends ServiceHelper {
     return this.store.select(getFilesOfFolder, folder);
   }
 
+  // TODO figure out if by id or by path is better
   getById(id: string): Observable<LibraryFile> {
     return this.store.select(getFileById, id);
   }
