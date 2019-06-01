@@ -25,4 +25,5 @@ object Dependencies {
   lazy val alpakkaS3 = "com.lightbend.akka" %% "akka-stream-alpakka-s3" % alpakkaVersion
 
   lazy val shortId = "me.nimavat" % "shortid" % "1.0.1.RC1"
+  lazy val JwtSprayJson = "com.pauldijou" %% "jwt-spray-json" % "2.1.0"
 }

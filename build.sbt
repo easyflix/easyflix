@@ -10,7 +10,6 @@ lazy val root = (project in file("."))
   .settings(
     name := "webflix",
     resolvers += Resolver.bintrayRepo("snimavat", "maven"),
-    resolvers += Resolver.bintrayRepo("akka", "snapshots"),
 
     libraryDependencies += akkaHttp,
     libraryDependencies += akkaHttpSprayJson,
@@ -22,6 +21,7 @@ lazy val root = (project in file("."))
     libraryDependencies += alpakkaFile,
     libraryDependencies += alpakkaFtp,
     libraryDependencies += alpakkaS3,
+    libraryDependencies += JwtSprayJson,
 
     libraryDependencies += scalaTest % Test,
     libraryDependencies += akkaTestkit % Test,

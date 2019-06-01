@@ -5,7 +5,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import net.creasource.http.{SPAWebServer, SocketWebServer}
 import net.creasource.webflix.actors.SocketActor
-import net.creasource.webflix.routes.{APIRoutes, VideosRoutes}
+import net.creasource.webflix.routes.{APIRoutes, AuthRoutes, VideosRoutes}
 
 import scala.io.StdIn
 
@@ -26,7 +26,7 @@ object Main extends App with SPAWebServer with SocketWebServer {
   private val videosRoutes = VideosRoutes.routes(app)
 
   override val socketActorProps: Props = SocketActor.props(apiRoutes)
-  override val routes: Route = apiRoutes ~ videosRoutes ~ super.routes
+  override val routes: Route = AuthRoutes.routes ~ apiRoutes ~ videosRoutes ~ super.routes
 
   val startFuture = start(host, port)
 
