@@ -27,12 +27,12 @@ class AuthRoutesTest
   "Auth routes" should {
 
     def securedContent = get {
-      AuthRoutes.authenticated { username =>
+      AuthRoutes.authenticated(application) { username =>
         complete(s"User $username accessed secured content!")
       }
     }
 
-    val route = AuthRoutes.routes ~ securedContent
+    val route = AuthRoutes.routes(application) ~ securedContent
 
     "login admin user" in {
       Post("/auth/login", LoginRequest("admin", "admin")) ~> route ~> check {
