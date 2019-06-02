@@ -21,10 +21,10 @@ object AuthRoutes extends Directives with JsonSupport {
 
   private val algo = JwtAlgorithm.HS256
 
-  def routes(app: Application): Route = pathPrefix("auth")(Route.seal(
-    path("login")(login(app)) ~
+  def routes(app: Application): Route = pathPrefix("auth")(Route.seal(concat(
+    path("login")(login(app)),
     path("logout")(logout)
-  ))
+  )))
 
   private def login(app: Application) = {
     val key = app.config.getString("auth.key")

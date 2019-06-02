@@ -92,6 +92,15 @@ class AuthRoutesTest
       }
     }
 
+    "logout a user" in {
+      Post("/auth/logout") ~> route ~> check {
+        status shouldEqual StatusCodes.OK
+        header("Set-Cookie") should matchPattern {
+          case Some(HttpHeader("set-cookie", token)) if token.startsWith("token=deleted;") =>
+        }
+      }
+    }
+
   }
 
 }
