@@ -1,7 +1,7 @@
 package net.creasource.webflix.routes
 
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.model.headers.RawHeader
+import akka.http.scaladsl.model.headers.{HttpCookie, RawHeader}
+import akka.http.scaladsl.model.{DateTime, StatusCodes}
 import akka.http.scaladsl.server.{Directive1, Directives, Route}
 import net.creasource.Application
 import net.creasource.json.JsonSupport
@@ -22,25 +22,45 @@ object AuthRoutes extends Directives with JsonSupport {
   private val algo = JwtAlgorithm.HS256
 
   def routes(app: Application): Route = pathPrefix("auth")(Route.seal(
-    path("login")(login(app))
+    path("login")(login(app)) ~
+    path("logout")(logout)
   ))
 
   private def login(app: Application) = {
     val key = app.config.getString("auth.key")
     val tokenExpiration = app.config.getInt("auth.tokenExpirationInDays")
+    val adminUsername = app.config.getString("auth.adminUsername")
+    val adminPassword = app.config.getString("auth.adminPassword")
     post {
       entity(as[LoginRequest]) {
-        case LoginRequest("admin", "admin") =>
+        case LoginRequest(`adminUsername`, `adminPassword`) =>
           val claim = JwtClaim(
             content = Claim("admin").toJson.compactPrint
           ).expiresIn(tokenExpiration.days.toSeconds)
-          respondWithHeader(RawHeader("Access-Token", JwtSprayJson.encode(claim, key, algo))) {
-            complete(StatusCodes.OK)
+          val token = JwtSprayJson.encode(claim, key, algo)
+          val cookie = HttpCookie(
+            name = "token",
+            value = token,
+            httpOnly = true,
+            path = Some("/videos"),
+            expires = Some(DateTime.now + tokenExpiration.days.toMillis)
+          )
+          respondWithHeaders(RawHeader("Access-Token", token)) {
+            setCookie(cookie) {
+              complete(StatusCodes.OK)
+            }
           }
         case LoginRequest(_, _) => complete(StatusCodes.Unauthorized)
       }
     }
   }
+
+  private def logout =
+    post {
+      deleteCookie("token", path = "/videos") {
+        complete(StatusCodes.OK)
+      }
+    }
 
   def authenticated(app: Application): Directive1[String] = {
     val key = app.config.getString("auth.key")
@@ -55,4 +75,20 @@ object AuthRoutes extends Directives with JsonSupport {
       case _ => complete(StatusCodes.Unauthorized)
     }
   }
+
+  def cookieAuthenticated(app: Application): Directive1[String] = {
+    val key = app.config.getString("auth.key")
+    optionalCookie("token").flatMap {
+      case Some(cookie) =>
+        val authorization = cookie.value
+        JwtSprayJson.decodeJson(authorization, key, Seq(algo)).flatMap(obj => Try(obj.convertTo[Claim])) match {
+          case Success(Claim(username)) =>
+            provide(username)
+          case Failure(exception) =>
+            complete(StatusCodes.Unauthorized -> exception.getMessage)
+        }
+      case None => complete(StatusCodes.Unauthorized)
+    }
+  }
+
 }
