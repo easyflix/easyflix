@@ -3,10 +3,10 @@ import {RouterOutlet} from '@angular/router';
 import {transition, trigger} from '@angular/animations';
 import {slideLeft, slideRight} from '@app/animations';
 
-const isRightAnimation = (from, to) => {
+export function isRightAnimation(from, to) {
   const links = ['library', 'search', 'history', 'settings', 'about'];
   return links.indexOf(from) < links.indexOf(to);
-};
+}
 
 @Component({
   selector: 'app-nav-router',

@@ -6,13 +6,13 @@ import {DEFAULT_TIMING} from '@app/animations';
 import {KeyboardService} from '@app/services/keyboard.service';
 import {Subscription} from 'rxjs';
 
-const isNext = (from, to) => {
+export function isNext(from, to) {
   return to.startsWith('next');
-};
+}
 
-const isPrev = (from, to) => {
+export function isPrev(from, to) {
   return to.startsWith('prev');
-};
+}
 
 const slideUp = [
   query(':enter, :leave', [

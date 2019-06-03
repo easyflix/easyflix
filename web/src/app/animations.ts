@@ -153,13 +153,13 @@ export const mainAnimations = trigger('mainAnimation', [
   transition('list => grid', slideRight),
 ]);*/
 
-const isRight = (from, to) => {
+export function isRight(from, to) {
   return to.startsWith('right');
-};
+}
 
-const isLeft = (from, to) => {
+export function isLeft(from, to) {
   return to.startsWith('left');
-};
+}
 
 export const detailsAnimations = trigger('detailsAnimation', [
   // transition(debug('details'), []),
