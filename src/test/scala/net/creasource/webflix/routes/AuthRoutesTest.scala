@@ -47,7 +47,7 @@ class AuthRoutesTest
         header("Set-Cookie") should matchPattern {
           case Some(HttpHeader("set-cookie", token)) if token.startsWith("token=") =>
         }
-        responseAs[String] shouldEqual "OK"
+        responseAs[String] shouldEqual """{"username":"admin"}"""
       }
     }
 

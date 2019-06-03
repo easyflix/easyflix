@@ -3,8 +3,10 @@ package net.creasource.webflix.routes
 import akka.http.scaladsl.model.headers.{HttpCookie, RawHeader}
 import akka.http.scaladsl.model.{DateTime, StatusCodes}
 import akka.http.scaladsl.server.{Directive1, Directives, Route}
+import ch.megard.akka.http.cors.scaladsl.CorsDirectives.{cors, corsRejectionHandler}
 import net.creasource.Application
 import net.creasource.json.JsonSupport
+import net.creasource.webflix.User
 import pdi.jwt.{JwtAlgorithm, JwtClaim, JwtSprayJson}
 import spray.json._
 
@@ -21,10 +23,13 @@ object AuthRoutes extends Directives with JsonSupport {
 
   private val algo = JwtAlgorithm.HS256
 
-  def routes(app: Application): Route = pathPrefix("auth")(Route.seal(concat(
-    path("login")(login(app)),
-    path("logout")(logout)
-  )))
+  def routes(app: Application): Route = pathPrefix("auth")(Route.seal(
+    handleRejections(corsRejectionHandler) {
+      cors() {
+        path("login")(login(app)) ~ path("logout")(logout)
+      }
+    }
+  ))
 
   private def login(app: Application) = {
     val key = app.config.getString("auth.key")
@@ -41,16 +46,15 @@ object AuthRoutes extends Directives with JsonSupport {
           val cookie = HttpCookie(
             name = "token",
             value = token,
-            httpOnly = true,
             path = Some("/videos"),
             expires = Some(DateTime.now + tokenExpiration.days.toMillis)
           )
-          respondWithHeaders(RawHeader("Access-Token", token)) {
-            setCookie(cookie) {
-              complete(StatusCodes.OK)
+          setCookie(cookie) {
+            respondWithHeaders(RawHeader("Access-Token", token)) {
+              complete(StatusCodes.OK, User(adminUsername, adminPassword).toJson)
             }
           }
-        case LoginRequest(_, _) => complete(StatusCodes.Unauthorized)
+        case LoginRequest(_, _) => complete(StatusCodes.Unauthorized -> "Username or password is incorrect")
       }
     }
   }
