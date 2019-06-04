@@ -6,7 +6,6 @@ import akka.http.scaladsl.server.{Directive1, Directives, Route}
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.{cors, corsRejectionHandler}
 import net.creasource.Application
 import net.creasource.json.JsonSupport
-import net.creasource.webflix.User
 import pdi.jwt.{JwtAlgorithm, JwtClaim, JwtSprayJson}
 import spray.json._
 
@@ -15,8 +14,8 @@ import scala.util.{Failure, Success, Try}
 
 object AuthRoutes extends Directives with JsonSupport {
 
-  final case class LoginRequest(username: String, password: String)
-  implicit val loginRequestFormat: RootJsonFormat[LoginRequest] = jsonFormat2(LoginRequest.apply)
+  final case class LoginRequest(password: String)
+  implicit val loginRequestFormat: RootJsonFormat[LoginRequest] = jsonFormat1(LoginRequest.apply)
 
   final case class Claim(username: String)
   implicit val claimFormat: RootJsonFormat[Claim] = jsonFormat1(Claim.apply)
@@ -34,11 +33,10 @@ object AuthRoutes extends Directives with JsonSupport {
   private def login(app: Application) = {
     val key = app.config.getString("auth.key")
     val tokenExpiration = app.config.getInt("auth.tokenExpirationInDays")
-    val adminUsername = app.config.getString("auth.adminUsername")
-    val adminPassword = app.config.getString("auth.adminPassword")
+    val password = app.config.getString("auth.password")
     post {
       entity(as[LoginRequest]) {
-        case LoginRequest(`adminUsername`, `adminPassword`) =>
+        case LoginRequest(`password`) =>
           val claim = JwtClaim(
             content = Claim("admin").toJson.compactPrint
           ).expiresIn(tokenExpiration.days.toSeconds)
@@ -51,10 +49,10 @@ object AuthRoutes extends Directives with JsonSupport {
           )
           setCookie(cookie) {
             respondWithHeaders(RawHeader("Access-Token", token)) {
-              complete(StatusCodes.OK, User(adminUsername, adminPassword).toJson)
+              complete(StatusCodes.OK, "")
             }
           }
-        case LoginRequest(_, _) => complete(StatusCodes.Unauthorized -> "Username or password is incorrect")
+        case LoginRequest(_) => complete(StatusCodes.Unauthorized -> "Password is incorrect")
       }
     }
   }
@@ -62,7 +60,7 @@ object AuthRoutes extends Directives with JsonSupport {
   private def logout =
     post {
       deleteCookie("token", path = "/videos") {
-        complete(StatusCodes.OK)
+        complete(StatusCodes.OK, "")
       }
     }
 

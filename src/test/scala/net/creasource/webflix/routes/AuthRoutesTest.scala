@@ -41,25 +41,25 @@ class AuthRoutesTest
     val route = AuthRoutes.routes(application) ~ securedContent ~ cookieSecuredContent
 
     "login admin user" in {
-      Post("/auth/login", LoginRequest("admin", "admin")) ~> route ~> check {
+      Post("/auth/login", LoginRequest("password")) ~> route ~> check {
         status shouldEqual StatusCodes.OK
         header("Access-Token") should matchPattern { case Some(_) => }
         header("Set-Cookie") should matchPattern {
           case Some(HttpHeader("set-cookie", token)) if token.startsWith("token=") =>
         }
-        responseAs[String] shouldEqual """{"username":"admin"}"""
+        responseAs[String] shouldEqual "OK"
       }
     }
 
     "answer Unauthorized for bad credentials" in {
-      Post("/auth/login", LoginRequest("admin", "pass")) ~> route ~> check {
+      Post("/auth/login", LoginRequest("wrong_password")) ~> route ~> check {
         status shouldEqual StatusCodes.Unauthorized
         header("Access-Token") should matchPattern{ case None => }
       }
     }
 
     "allow access to secured content when a valid token is provided" in {
-      val token = Post("/auth/login", LoginRequest("admin", "admin")) ~> route ~> check {
+      val token = Post("/auth/login", LoginRequest("password")) ~> route ~> check {
         header("Access-Token").get.value
       }
 
@@ -76,7 +76,7 @@ class AuthRoutesTest
     }
 
     "allow access to secured content when a valid cookie is provided" in {
-      val cookie = Post("/auth/login", LoginRequest("admin", "admin")) ~> route ~> check {
+      val cookie = Post("/auth/login", LoginRequest("password")) ~> route ~> check {
         header("Set-Cookie").get.value()
       }
 
