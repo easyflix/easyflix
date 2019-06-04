@@ -7,6 +7,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {LibraryFile} from '@app/models';
 import {MatDialog} from '@angular/material';
 import {ErrorDialogComponent} from '@app/components/dialogs/error-dialog.component';
+import {environment} from '@env/environment';
 
 @Component({
   selector: 'app-video',
@@ -114,7 +115,7 @@ export class VideoComponent implements OnInit, OnDestroy {
     this.loading$ = this.video.getLoading();
 
     this.route.data.subscribe((data: { video: LibraryFile }) =>
-      this.video.setSource(`http://localhost:8081/videos/${data.video.libraryName}/${data.video.id}`) // TODO hardcoded url
+      this.video.setSource(`${environment.apiEndpoint}/videos/${data.video.libraryName}/${data.video.id}`) // TODO hardcoded url
     );
 
     this.route.queryParamMap.pipe(
