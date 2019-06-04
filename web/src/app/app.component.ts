@@ -13,7 +13,7 @@ import {MoviesService} from '@app/services/movies.service';
 import {ShowsService} from '@app/services/shows.service';
 
 @Component({
-  selector: 'app-root',
+  selector: 'app-app',
   template: `
     <div class="container" [ngClass]="themeCssClass$ | async">
       <mat-sidenav-container>
@@ -63,6 +63,8 @@ import {ShowsService} from '@app/services/shows.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent implements OnInit {
+
+  // TODO remove theme css class
 
   themeCssClass$: Observable<string>;
   showSidenav$: Observable<boolean>;

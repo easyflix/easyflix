@@ -15,7 +15,7 @@ export class HttpSocketClientService implements OnDestroy {
 
   private socketOpened = false;
 
-  private preferHttpOverSocket = false;
+  private preferHttpOverSocket = true;
 
   private socket: Subject<object> = webSocket({
     url: HttpSocketClientService.getSocketUrl(),
@@ -167,7 +167,7 @@ export class HttpSocketClientService implements OnDestroy {
           }),
           take(1)
         );
-    const sendRequest = Observable.create(observer => {
+    const sendRequest = new Observable(observer => {
       this.send(request);
       observer.complete();
       return () => {};

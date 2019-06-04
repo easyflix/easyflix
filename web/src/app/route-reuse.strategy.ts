@@ -13,6 +13,7 @@ export class DefaultRouteReuseStrategy implements RouteReuseStrategy {
   }
 }
 
+// TODO check if this is still needed, review
 @Injectable()
 export class CustomRouteReuseStrategy extends DefaultRouteReuseStrategy {
   shouldReuseRoute(future: ActivatedRouteSnapshot, curr: ActivatedRouteSnapshot): boolean {

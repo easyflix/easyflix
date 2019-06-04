@@ -11,7 +11,7 @@ import {EffectsModule} from '@ngrx/effects';
 import {AppEffects} from './app.effects';
 import {VideoService} from './services/video.service';
 import {RouteReuseStrategy, RouterModule} from '@angular/router';
-import {HttpClientModule} from '@angular/common/http';
+import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
 import {FormsModule} from '@angular/forms';
 import {SharedModule} from './shared/shared.module';
 import {ComponentsModule} from './components/components.module';
@@ -28,10 +28,16 @@ import {ShowsService} from '@app/services/shows.service';
 import {CustomRouteReuseStrategy} from '@app/route-reuse.strategy';
 import {KeyboardService} from '@app/services/keyboard.service';
 import {ShowFiltersService} from '@app/services/show-filters.service';
+import {JwtInterceptor} from '@app/utils/jwt.interceptor';
+import {ErrorInterceptor} from '@app/utils/error.interceptor';
+import {RootComponent} from '@app/root.component';
+import {LoginComponent} from '@app/login.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    RootComponent,
+    AppComponent,
+    LoginComponent
   ],
   imports: [
     // Angular
@@ -39,7 +45,7 @@ import {ShowFiltersService} from '@app/services/show-filters.service';
     BrowserAnimationsModule,
     FormsModule,
     HttpClientModule,
-    RouterModule.forRoot(routes),
+    RouterModule.forRoot(routes/*, { enableTracing: true }*/),
 
     // Ngrx
     StoreModule.forRoot(reducers, { metaReducers }),
@@ -64,8 +70,10 @@ import {ShowFiltersService} from '@app/services/show-filters.service';
     HttpSocketClientService,
     MovieFiltersService,
     ShowFiltersService,
-    KeyboardService
+    KeyboardService,
+    { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [RootComponent]
 })
 export class AppModule { }

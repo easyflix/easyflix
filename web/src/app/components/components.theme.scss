@@ -21,6 +21,15 @@
     @include mat-elevation(4);
   }
 
+  app-login {
+    background-color: mat-color($background, background);
+    color: mat-color($foreground, text);
+    background-image:
+      radial-gradient(mat-color($background, status-bar, 0.7), mat-color($background, status-bar, 0.8)),
+      url('assets/theater_1920.jpg');
+    background-size: 100% 100%, cover;
+  }
+
   app-sidenav {
     > nav {
       background-color: mat-color($background, app-bar);

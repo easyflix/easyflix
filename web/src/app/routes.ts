@@ -8,7 +8,6 @@ import {AboutComponent} from './components/nav/about.component';
 import {VideoComponent} from './components/video/video.component';
 import {MoviesComponent} from './components/movies/movies.component';
 import {VideoResolverService} from '@app/guards/video-resolver.service';
-import {LibrariesLoadedGuard} from '@app/guards/libraries-loaded.guard';
 import {MovieResolverService} from '@app/guards/movie-resolver.service';
 import {ShowsComponent} from '@app/components/shows/shows.component';
 import {ShowResolverService} from '@app/guards/show-resolver.service';
@@ -16,6 +15,9 @@ import {DetailsComponent} from '@app/components/details.component';
 import {ShowComponent} from '@app/components/shows/show.component';
 import {MovieComponent} from '@app/components/movies/movie.component';
 import {NavRouterComponent} from '@app/components/nav/nav-router.component';
+import {AuthGuard} from '@app/guards/auth.guard';
+import {AppComponent} from '@app/app.component';
+import {LoginComponent} from '@app/login.component';
 
 export const detailsRoutes = [
   {
@@ -54,7 +56,7 @@ export const navRoutes = [
   {
     path: 'library',
     component: LibraryComponent,
-    canActivate: [LibrariesLoadedGuard],
+    // canActivate: [LibrariesLoadedGuard],
     data: { animation: 'library' }
   },
   {
@@ -80,38 +82,34 @@ export const navRoutes = [
 ];
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/home(nav:library)', pathMatch: 'full' },
-  { path: 'home', component: HomeComponent, data: { animation: 'home' } },
+  { path: '', redirectTo: '/app/(home//nav:library)', pathMatch: 'full' },
+  { path: 'login', component: LoginComponent },
   {
-    path: 'movies', // TODO no need for children
+    path: 'app', // Cannot be empty due to named outlets! https://github.com/angular/angular/issues/10726
+    component: AppComponent,
+    canActivate: [AuthGuard],
     children: [
-      { path: '', component: MoviesComponent, data: { animation: 'movies' } },
-    ],
-  },
-  {
-    path: 'shows', // TODO no need for children
-    children: [
-      { path: '', component: ShowsComponent, data: { animation: 'shows' } },
-    ],
-  },
-  {
-    path: '',
-    outlet: 'nav',
-    component: NavRouterComponent,
-    children: navRoutes
-  },
-  {
-    path: '',
-    outlet: 'details', // TODO router component
-    children: detailsRoutes
-  },
-  {
-    path: ':id',
-    outlet: 'player',
-    component: VideoComponent,
-    resolve: { video: VideoResolverService },
-    data: { animation: 'player' }
-  },
+      { path: 'home', component: HomeComponent, data: { animation: 'home' } },
+      { path: 'movies', component: MoviesComponent, data: { animation: 'movies' } },
+      { path: 'shows', component: ShowsComponent, data: { animation: 'shows' } },
+      {
+        path: '',
+        outlet: 'nav',
+        component: NavRouterComponent,
+        children: navRoutes
+      },
+      {
+        path: '',
+        outlet: 'details', // TODO router component
+        children: detailsRoutes
+      },
+      {
+        path: ':id',
+        outlet: 'player',
+        component: VideoComponent,
+        resolve: { video: VideoResolverService },
+        data: { animation: 'player' }
+      }
+    ]
+  }
 ];
-
-
