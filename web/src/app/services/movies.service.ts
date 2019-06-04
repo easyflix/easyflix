@@ -20,7 +20,7 @@ export class MoviesService extends ServiceHelper {
   ) {
     super(store, actions$);
 
-    this.socketClient.getSocket().pipe(
+    this.socketClient.socket.pipe(
       filter(message => message.method === 'MovieAdded'),
       map(message => message.entity),
       bufferTime(100, null, 15),
@@ -29,7 +29,7 @@ export class MoviesService extends ServiceHelper {
       tap((movies: Movie[]) => this.store.dispatch(new AddMovies(movies)))
     ).subscribe();
 
-    this.socketClient.getSocket().pipe(
+    this.socketClient.socket.pipe(
       filter(message => message.method === 'MovieUpdate'),
       map(message => message.entity),
       bufferTime(100, null, 15),
@@ -38,7 +38,7 @@ export class MoviesService extends ServiceHelper {
       tap((updates: MovieDetails[]) => this.store.dispatch(new UpdateMovies(updates)))
     ).subscribe();
 
-    this.socketClient.getSocket().pipe(
+    this.socketClient.socket.pipe(
       filter(message => message.method === 'MovieDeleted'),
       map(message => message.entity),
       bufferTime(100, null, 15),

@@ -178,7 +178,7 @@ export class LibraryCreationDialogComponent implements OnInit {
         this.currentLibrary = lib;
         this.scanning = true;
         this.callNext();
-        this.incomingFiles$ = this.socketClient.getSocket().pipe(
+        this.incomingFiles$ = this.socketClient.socket.pipe(
           filter(message => message.method === 'FileAdded'),
           filter(message => message.entity.libraryName === lib.name),
           map(message => message.entity.path)

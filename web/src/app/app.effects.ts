@@ -166,7 +166,7 @@ export class AppEffects {
     this.actions$.pipe(
       ofType(CoreActionTypes.LoadConfig),
       switchMap(() =>
-        this.socketClient.get('/api/config/').pipe(
+        this.socketClient.get('/api/config').pipe(
           map((config: Configuration) => new LoadConfigSuccess(config)),
           catchError((error: HttpErrorResponse) => scheduled([new LoadConfigError(error.error)], asapScheduler))
         )

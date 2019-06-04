@@ -4,12 +4,13 @@ import {webSocket} from 'rxjs/webSocket';
 import {concat, Observable, Subject} from 'rxjs';
 import {filter, map, share, take} from 'rxjs/operators';
 
+import {AuthenticationService} from '@app/services/authentication.service';
 import {environment} from '@env/environment';
 
 @Injectable()
 export class HttpSocketClientService implements OnDestroy {
 
-  constructor(private httpClient: HttpClient) { }
+  constructor(private httpClient: HttpClient, private authentication: AuthenticationService) { }
 
   public id = 1;
 
@@ -17,32 +18,19 @@ export class HttpSocketClientService implements OnDestroy {
 
   private preferHttpOverSocket = true;
 
-  private socket: Subject<object> = webSocket({
-    url: HttpSocketClientService.getSocketUrl(),
-    openObserver: {
-      next: () => this.socketOpened = true
-    },
-    closeObserver: {
-      next: () => this.socketOpened = false
-    }
-  });
-
-  private socketObs: Observable<SocketMessage> = this.socket.asObservable().pipe(share()) as Observable<SocketMessage>;
-
-  private static getSocketUrl() {
-    let socketUrl = '';
-    socketUrl += window.location.protocol === 'http:' ? 'ws://' : 'wss://';
-    socketUrl += window.location.hostname;
-    if (environment.production) {
-      if (window.location.port) {
-        socketUrl += ':' + window.location.port;
+  private get socketSubject(): Subject<object> {
+    return webSocket({
+      url: this.getSocketUrl(),
+      openObserver: {
+        next: () => this.socketOpened = true
+      },
+      closeObserver: {
+        next: () => this.socketOpened = false
       }
-    } else {
-      socketUrl += ':' + environment.httpPort;
-    }
-    socketUrl += '/socket';
-    return socketUrl;
+    });
   }
+
+  private socketObs: Observable<SocketMessage>;
 
   private static getAPIUrl(path: string) {
     let url = '';
@@ -58,16 +46,41 @@ export class HttpSocketClientService implements OnDestroy {
     return url;
   }
 
-  getSocket(): Observable<SocketMessage> {
-    return this.socketObs;
+  public get socket(): Observable<SocketMessage> {
+    if (this.socketObs) {
+      return this.socketObs;
+    } else {
+      return this.socketObs = this.socketSubject.asObservable().pipe(share()) as Observable<SocketMessage>;
+    }
   }
 
+  private getSocketUrl() {
+    let socketUrl = '';
+    socketUrl += window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+    socketUrl += window.location.hostname;
+    if (environment.production) {
+      if (window.location.port) {
+        socketUrl += ':' + window.location.port;
+      }
+    } else {
+      socketUrl += ':' + environment.httpPort;
+    }
+    socketUrl += '/socket' + `?access_token=${this.authentication.token}`;
+    return socketUrl;
+  }
+
+
+
+/*  getSocket(): Observable<SocketMessage> {
+    return this.socketObs;
+  }*/
+
   send(message: any): void {
-    this.socket.next(message);
+    this.socketSubject.next(message);
   }
 
   ngOnDestroy(): void {
-    this.socket.unsubscribe();
+    this.socketSubject.unsubscribe();
   }
 
   get(path: string): Observable<object> {
@@ -153,7 +166,7 @@ export class HttpSocketClientService implements OnDestroy {
 
   private sendRequest(request: HttpRequest): Observable<object> {
     const expectResponse =
-      this.getSocket()
+      this.socket
         .pipe(
           filter((r: HttpResponse) => r.method === 'HttpResponse' && r.id === request.id),
           map((r: HttpResponse) => {

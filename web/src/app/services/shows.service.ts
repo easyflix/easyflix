@@ -20,7 +20,7 @@ export class ShowsService extends ServiceHelper {
   ) {
     super(store, actions$);
 
-    this.socketClient.getSocket().pipe(
+    this.socketClient.socket.pipe(
       filter(message => message.method === 'ShowAdded'),
       map(message => message.entity),
       bufferTime(100, null, 15),
@@ -29,7 +29,7 @@ export class ShowsService extends ServiceHelper {
       tap((shows: Show[]) => this.store.dispatch(new AddShows(shows)))
     ).subscribe();
 
-    this.socketClient.getSocket().pipe(
+    this.socketClient.socket.pipe(
       filter(message => message.method === 'ShowUpdate'),
       map(message => message.entity),
       bufferTime(100, null, 15),
@@ -38,7 +38,7 @@ export class ShowsService extends ServiceHelper {
       tap((updates: ShowDetails[]) => this.store.dispatch(new UpdateShows(updates)))
     ).subscribe();
 
-    this.socketClient.getSocket().pipe(
+    this.socketClient.socket.pipe(
       filter(message => message.method === 'ShowDeleted'),
       map(message => message.entity),
       bufferTime(100, null, 15),

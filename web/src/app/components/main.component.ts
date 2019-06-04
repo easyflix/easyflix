@@ -1,10 +1,11 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {DEFAULT_TIMING, mainAnimations} from '../animations';
-import {RouterOutlet} from '@angular/router';
+import {Router, RouterOutlet} from '@angular/router';
 import {Observable} from 'rxjs';
 import {CoreService} from '@app/services/core.service';
 import {map} from 'rxjs/operators';
 import {animate, query, style, transition, trigger} from '@angular/animations';
+import {AuthenticationService} from '@app/services/authentication.service';
 
 const detailsTransitions = [
   // transition(debugAnimation('details'), []),
@@ -54,6 +55,12 @@ const detailsTransitions = [
         </a>
         <!--<a routerLink="/others" routerLinkActive="active" queryParamsHandling="preserve">Others</a>-->
       </nav>
+      <button mat-icon-button class="user" [matMenuTriggerFor]="userMenu">
+        <mat-icon>person</mat-icon>
+      </button>
+      <mat-menu #userMenu="matMenu" yPosition="below">
+        <button mat-menu-item (click)="logout()">Logout</button>
+      </mat-menu>
     </header>
     <main [@mainAnimation]="getAnimationData(main)">
       <router-outlet #main="outlet"></router-outlet>
@@ -112,6 +119,9 @@ const detailsTransitions = [
     a:not(:first-child) {
       border-left: 1px solid;
     }
+    .user {
+      margin-left: auto;
+    }
     main {
       flex-grow: 1;
       overflow: hidden;
@@ -135,7 +145,9 @@ export class MainComponent implements OnInit {
   showMenuButton$: Observable<boolean>;
 
   constructor(
-    private core: CoreService
+    private core: CoreService,
+    private authentication: AuthenticationService,
+    private router: Router
   ) {
     this.showMenuButton$ = core.getShowSidenav().pipe(map(b => !b));
   }
@@ -152,6 +164,12 @@ export class MainComponent implements OnInit {
 
   getDetailsAnimation(outlet: RouterOutlet) {
     return outlet && outlet.isActivated && outlet.activatedRoute && outlet.activatedRoute.firstChild && 'detailsOn' || 'detailsOff';
+  }
+
+  logout(): void {
+    this.authentication.logout().subscribe(
+      () => this.router.navigate(['/login'])
+    );
   }
 
 /*  getDetailsAnimationData(outlet: RouterOutlet) {

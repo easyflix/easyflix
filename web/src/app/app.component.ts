@@ -97,7 +97,7 @@ export class AppComponent implements OnInit {
     /**
      * Socket
      */
-    this.socketClient.getSocket().subscribe();
+    this.socketClient.socket.subscribe();
 
     this.movies.load().subscribe();
 

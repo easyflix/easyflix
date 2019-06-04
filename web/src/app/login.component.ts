@@ -83,9 +83,7 @@ export class LoginComponent implements OnInit {
     this.loading = true;
     this.authenticationService.login(this.f.password.value)
       .subscribe(
-        () => {
-          this.router.navigateByUrl(this.returnUrl, { replaceUrl: true });
-        },
+        () => this.router.navigateByUrl(this.returnUrl, { replaceUrl: true }),
         error => {
           this.loginForm.controls.password.setErrors({invalid: error.error});
           this.loading = false;

@@ -26,7 +26,7 @@ export class LibrariesService extends ServiceHelper {
   ) {
     super(store, actions$);
 
-    this.socketClient.getSocket().pipe(
+    this.socketClient.socket.pipe(
       filter(message => message.method === 'LibraryUpdate'),
       tap(message => this.updateLibrary(message.entity))
     ).subscribe();
