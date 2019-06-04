@@ -29,7 +29,7 @@ export class VideoService {
   }
 
   playVideo(video: LibraryFile) { // TODO
-    this.router.navigate([{ outlets: { player: video.id } }], { queryParamsHandling: 'preserve' });
+    this.router.navigate(['app', { outlets: { player: video.id } }], { queryParamsHandling: 'preserve' });
   }
 
   setSource(videoUrl: string) {
