@@ -43,7 +43,6 @@ class AuthRoutes(val app: Application) extends Directives with JsonSupport {
             value = token,
             path = Some("/videos"),
             expires = Some(DateTime.now + tokenExpiration.getSeconds.seconds.toMillis),
-            secure = true,
             httpOnly = true
           )
           setCookie(cookie) {
