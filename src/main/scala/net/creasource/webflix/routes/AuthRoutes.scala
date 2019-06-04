@@ -2,44 +2,41 @@ package net.creasource.webflix.routes
 
 import akka.http.scaladsl.model.headers.{HttpCookie, RawHeader}
 import akka.http.scaladsl.model.{DateTime, StatusCodes}
-import akka.http.scaladsl.server.{Directive1, Directives, Route}
-import ch.megard.akka.http.cors.scaladsl.CorsDirectives.{cors, corsRejectionHandler}
+import akka.http.scaladsl.server.{Directive0, Directives, Route}
 import net.creasource.Application
 import net.creasource.json.JsonSupport
+import net.creasource.webflix.routes.AuthRoutes.LoginRequest
 import pdi.jwt.{JwtAlgorithm, JwtClaim, JwtSprayJson}
 import spray.json._
 
 import scala.concurrent.duration._
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
-object AuthRoutes extends Directives with JsonSupport {
-
-  final case class LoginRequest(password: String)
+object AuthRoutes extends JsonSupport {
+  case class LoginRequest(password: String)
   implicit val loginRequestFormat: RootJsonFormat[LoginRequest] = jsonFormat1(LoginRequest.apply)
+  /*final case class Claim(username: String)
+  implicit val claimFormat: RootJsonFormat[Claim] = jsonFormat1(Claim.apply)*/
+}
 
-  final case class Claim(username: String)
-  implicit val claimFormat: RootJsonFormat[Claim] = jsonFormat1(Claim.apply)
+class AuthRoutes(val app: Application) extends Directives with JsonSupport {
+
+  private val key = app.config.getString("auth.key")
+  private val tokenExpiration = app.config.getInt("auth.tokenExpirationInDays")
+  private val password = app.config.getString("auth.password")
 
   private val algo = JwtAlgorithm.HS256
 
-  def routes(app: Application): Route = pathPrefix("auth")(Route.seal(
-    handleRejections(corsRejectionHandler) {
-      cors() {
-        path("login")(login(app)) ~ path("logout")(logout)
-      }
-    }
-  ))
+  def routes: Route = concat(
+    path("login")(login),
+    path("logout")(logout)
+  )
 
-  private def login(app: Application) = {
-    val key = app.config.getString("auth.key")
-    val tokenExpiration = app.config.getInt("auth.tokenExpirationInDays")
-    val password = app.config.getString("auth.password")
+  def login: Route =
     post {
       entity(as[LoginRequest]) {
         case LoginRequest(`password`) =>
-          val claim = JwtClaim(
-            content = Claim("admin").toJson.compactPrint
-          ).expiresIn(tokenExpiration.days.toSeconds)
+          val claim = JwtClaim().expiresIn(tokenExpiration.days.toSeconds)
           val token = JwtSprayJson.encode(claim, key, algo)
           val cookie = HttpCookie(
             name = "token",
@@ -55,22 +52,21 @@ object AuthRoutes extends Directives with JsonSupport {
         case LoginRequest(_) => complete(StatusCodes.Unauthorized -> "Password is incorrect")
       }
     }
-  }
 
-  private def logout =
+  def logout: Route =
     post {
       deleteCookie("token", path = "/videos") {
         complete(StatusCodes.OK, "")
       }
     }
 
-  def authenticated(app: Application): Directive1[String] = {
+  def authenticated: Directive0 = {
     val key = app.config.getString("auth.key")
     optionalHeaderValueByName("Authorization").flatMap {
       case Some(authorization) =>
-        JwtSprayJson.decodeJson(authorization, key, Seq(algo)).flatMap(obj => Try(obj.convertTo[Claim])) match {
-          case Success(Claim(username)) =>
-            provide(username)
+        JwtSprayJson.decodeJson(authorization, key, Seq(algo))/*.flatMap(obj => Try(obj.convertTo[Claim]))*/ match {
+          case Success(_) =>
+            pass
           case Failure(exception) =>
             complete(StatusCodes.Unauthorized -> exception.getMessage)
         }
@@ -78,14 +74,14 @@ object AuthRoutes extends Directives with JsonSupport {
     }
   }
 
-  def cookieAuthenticated(app: Application): Directive1[String] = {
+  def cookieAuthenticated: Directive0 = {
     val key = app.config.getString("auth.key")
     optionalCookie("token").flatMap {
       case Some(cookie) =>
         val authorization = cookie.value
-        JwtSprayJson.decodeJson(authorization, key, Seq(algo)).flatMap(obj => Try(obj.convertTo[Claim])) match {
-          case Success(Claim(username)) =>
-            provide(username)
+        JwtSprayJson.decodeJson(authorization, key, Seq(algo))/*.flatMap(obj => Try(obj.convertTo[Claim]))*/ match {
+          case Success(_) =>
+            pass
           case Failure(exception) =>
             complete(StatusCodes.Unauthorized -> exception.getMessage)
         }

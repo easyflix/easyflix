@@ -17,13 +17,11 @@ import scala.collection.immutable.Seq
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-object VideosRoutes extends FileAndResourceDirectives {
+class VideosRoutes(val app: Application) extends FileAndResourceDirectives {
 
   implicit val askTimeout: akka.util.Timeout = 2.seconds
 
-  def routes(app: Application): Route = pathPrefix("videos") { Route.seal(subs(app)) }
-
-  private def subs(app: Application): Route =
+  def routes: Route =
     pathPrefix(Segment) { libraryName =>
       path(Segment) { id =>
         extractExecutionContext { implicit executor =>

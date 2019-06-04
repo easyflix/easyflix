@@ -3,6 +3,7 @@ package net.creasource
 import akka.actor.{ActorSystem, Props}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
+import ch.megard.akka.http.cors.scaladsl.CorsDirectives.{cors, corsRejectionHandler}
 import net.creasource.http.{SPAWebServer, SocketWebServer}
 import net.creasource.webflix.actors.SocketActor
 import net.creasource.webflix.routes.{APIRoutes, AuthRoutes, VideosRoutes}
@@ -22,12 +23,24 @@ object Main extends App with SPAWebServer with SocketWebServer {
 
   override implicit val system: ActorSystem = app.system
 
-  private val authRoutes = AuthRoutes.routes(app)
-  private val apiRoutes = APIRoutes.routes(app)
-  private val videosRoutes = VideosRoutes.routes(app)
+  private val authRoutes = new AuthRoutes(app)
+  private val apiRoutes = new APIRoutes(app)
+  private val videosRoutes = new VideosRoutes(app)
 
-  override val socketActorProps: Props = SocketActor.props(apiRoutes)
-  override val routes: Route = authRoutes ~ apiRoutes ~ videosRoutes ~ super.routes
+  override val socketActorProps: Props = SocketActor.props(pathPrefix("api")(Route.seal(apiRoutes.routes)))
+
+  override val routes: Route = concat(
+    handleRejections(corsRejectionHandler) {
+      cors() {
+        concat(
+          pathPrefix("auth")(Route.seal(authRoutes.routes)),
+          pathPrefix("api")(Route.seal(authRoutes.authenticated(apiRoutes.routes))),
+          pathPrefix("videos")(Route.seal(authRoutes.cookieAuthenticated(videosRoutes.routes)))
+        )
+      }
+    },
+    super.routes
+  )
 
   val startFuture = start(host, port)
 

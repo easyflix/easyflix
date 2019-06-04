@@ -59,11 +59,11 @@ class VideosRoutesTest
 
   "Videos routes" should {
 
-    val route = VideosRoutes.routes(application)
+    val route = new VideosRoutes(application).routes
 
     "return a OK status for GETs on /{id}" in {
 
-      Get(s"/videos/local/${testFile.id}") ~> route ~> check {
+      Get(s"/local/${testFile.id}") ~> route ~> check {
         status shouldEqual StatusCodes.OK
         // TODO Test with a real file
         /*responseEntity should matchPattern {
@@ -71,7 +71,7 @@ class VideosRoutesTest
         }*/
       }
 
-      Get(s"/videos/ftp/${ftpFile.id}") ~> route ~> check {
+      Get(s"/ftp/${ftpFile.id}") ~> route ~> check {
         status shouldEqual StatusCodes.OK
         // TODO Test with a real file
         responseEntity should be (HttpEntity.empty(ContentType(MediaTypes.`video/x-msvideo`)))
@@ -81,7 +81,7 @@ class VideosRoutesTest
 
     "return a BadRequest for GETs on /{id} if id is a folder" in {
 
-      Get(s"/videos/local/${testFolder.id}") ~> route ~> check {
+      Get(s"/local/${testFolder.id}") ~> route ~> check {
         status shouldEqual StatusCodes.BadRequest
         entityAs[String] shouldEqual "Requested id does not match any video file"
       }
@@ -90,7 +90,7 @@ class VideosRoutesTest
 
     "return a NotFound status for GETs on /unknown" in {
 
-      Get(s"/videos/local/unknown") ~> route ~> check {
+      Get(s"/local/unknown") ~> route ~> check {
         status shouldEqual StatusCodes.NotFound
       }
 
