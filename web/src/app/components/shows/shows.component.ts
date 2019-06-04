@@ -219,7 +219,7 @@ export class ShowsComponent implements OnInit {
 
   openShow(show: Show): void {
     this.router.navigate(
-      ['/', { outlets: { details: ['show', show.id] } }],
+      ['app', { outlets: { details: ['show', show.id] } }],
       { queryParamsHandling: 'preserve' }
     );
   }

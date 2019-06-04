@@ -1,6 +1,5 @@
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   Directive,
   ElementRef,
@@ -14,7 +13,7 @@ import {
 import {CoreService} from '@app/services/core.service';
 import {MoviesService} from '@app/services/movies.service';
 import {EMPTY, Observable, Subscription} from 'rxjs';
-import {LibraryFile, Movie} from '@app/models';
+import {Movie} from '@app/models';
 import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
 import {filter, map, switchMap, take} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
@@ -244,7 +243,7 @@ export class MoviesComponent implements OnInit, OnDestroy {
   openMovie(movie: Movie, movies: Movie[]): void {
     const ids = movies.map(i => i.id).join(',');
     this.router.navigate(
-      ['/', { outlets: { details: ['movie', movie.id] } }],
+      ['app', { outlets: { details: ['movie', movie.id] } }],
       { queryParamsHandling: 'preserve', state: { ids } }
     );
   }

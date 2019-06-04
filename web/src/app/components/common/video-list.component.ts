@@ -159,7 +159,7 @@ export class VideoListComponent implements OnInit, OnDestroy {
   open(item: Item): void {
     const ids = this.items.map(i => i.id).join(',');
     this.router.navigate(
-      ['/', { outlets: { details: [item.type, item.id] } }],
+      ['app', { outlets: { details: [item.type, item.id] } }],
       { queryParamsHandling: 'preserve', state: { ids } }
     );
   }

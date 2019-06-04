@@ -181,8 +181,8 @@ export class DetailsComponent implements OnInit, OnDestroy {
     this.nextId.pipe(
       take(1),
       tap(id => id !== undefined && this.router.navigate(
-        ['/', { outlets: { details: [this.type, id.toString()] } }],
-        { relativeTo: this.route, state: { transition: 'right', id }, queryParamsHandling: 'preserve' }
+        ['app', { outlets: { details: [this.type, id.toString()] } }],
+        { state: { transition: 'right', id }, queryParamsHandling: 'preserve' }
       )),
       tap(() => setTimeout(() => this.focusTrap.focusFirstTabbableElementWhenReady(), 400))
     ).subscribe();
@@ -193,8 +193,8 @@ export class DetailsComponent implements OnInit, OnDestroy {
     this.prevId.pipe(
       take(1),
       tap(id => id !== undefined && this.router.navigate(
-        ['/', { outlets: { details: [this.type, id.toString()] } }],
-        { relativeTo: this.route, state: { transition: 'left', id }, queryParamsHandling: 'preserve' }
+        ['app', { outlets: { details: [this.type, id.toString()] } }],
+        { state: { transition: 'left', id }, queryParamsHandling: 'preserve' }
       )),
       tap(() => setTimeout(() => this.focusTrap.focusFirstTabbableElementWhenReady(), 400))
     ).subscribe();
@@ -203,8 +203,8 @@ export class DetailsComponent implements OnInit, OnDestroy {
   @HostListener('keydown.esc')
   close() {
     this.router.navigate(
-      ['/', { outlets: { details: null } }],
-      { relativeTo: this.route, queryParamsHandling: 'preserve' }
+      ['app', { outlets: { details: null } }],
+      { queryParamsHandling: 'preserve' }
     );
   }
 
