@@ -38,13 +38,21 @@ trait SocketWebServer extends WebServer { self: WebServer =>
     super.stop()
   }
 
-  override def routes: Route =
+  def socketRoute: Route =
+    extractUpgradeToWebSocket { _ =>
+      onSuccess((supervisor ? sinkActorProps)(1.second).mapTo[ActorRef]) { sinkActor: ActorRef =>
+        handleWebSocketMessages(socketFlow(sinkActor).via(socketsKillSwitch.flow))
+      }
+    }
+
+
+  /*override def routes: Route =
     path("socket") {
       extractUpgradeToWebSocket { _ =>
         onSuccess((supervisor ? sinkActorProps)(1.second).mapTo[ActorRef]) { sinkActor: ActorRef =>
           handleWebSocketMessages(socketFlow(sinkActor).via(socketsKillSwitch.flow))
         }
       }
-    } ~ super.routes
+    } ~ super.routes*/
 
 }

@@ -1,6 +1,6 @@
 package net.creasource.webflix.routes
 
-import akka.http.scaladsl.model.headers.{HttpCookie, RawHeader}
+import akka.http.scaladsl.model.headers.{CacheDirectives, HttpCookie, RawHeader, `Cache-Control`}
 import akka.http.scaladsl.model.{DateTime, StatusCodes}
 import akka.http.scaladsl.server.{Directive0, Directives, Route}
 import net.creasource.Application
@@ -22,7 +22,7 @@ object AuthRoutes extends JsonSupport {
 class AuthRoutes(val app: Application) extends Directives with JsonSupport {
 
   private val key = app.config.getString("auth.key")
-  private val tokenExpiration = app.config.getInt("auth.tokenExpirationInDays")
+  private val tokenExpiration = app.config.getDuration("auth.tokenExpiration")
   private val password = app.config.getString("auth.password")
 
   private val algo = JwtAlgorithm.HS256
@@ -36,13 +36,15 @@ class AuthRoutes(val app: Application) extends Directives with JsonSupport {
     post {
       entity(as[LoginRequest]) {
         case LoginRequest(`password`) =>
-          val claim = JwtClaim().expiresIn(tokenExpiration.days.toSeconds)
+          val claim = JwtClaim().expiresIn(tokenExpiration.getSeconds)
           val token = JwtSprayJson.encode(claim, key, algo)
           val cookie = HttpCookie(
             name = "token",
             value = token,
             path = Some("/videos"),
-            expires = Some(DateTime.now + tokenExpiration.days.toMillis)
+            expires = Some(DateTime.now + tokenExpiration.getSeconds.seconds.toMillis),
+            secure = true,
+            httpOnly = true
           )
           setCookie(cookie) {
             respondWithHeaders(RawHeader("Access-Token", token)) {
@@ -61,10 +63,9 @@ class AuthRoutes(val app: Application) extends Directives with JsonSupport {
     }
 
   def authenticated: Directive0 = {
-    val key = app.config.getString("auth.key")
     optionalHeaderValueByName("Authorization").flatMap {
-      case Some(authorization) =>
-        JwtSprayJson.decodeJson(authorization, key, Seq(algo))/*.flatMap(obj => Try(obj.convertTo[Claim]))*/ match {
+      case Some(token) =>
+        JwtSprayJson.decodeJson(token, key, Seq(algo))/*.flatMap(obj => Try(obj.convertTo[Claim]))*/ match {
           case Success(_) =>
             pass
           case Failure(exception) =>
@@ -75,11 +76,10 @@ class AuthRoutes(val app: Application) extends Directives with JsonSupport {
   }
 
   def cookieAuthenticated: Directive0 = {
-    val key = app.config.getString("auth.key")
     optionalCookie("token").flatMap {
       case Some(cookie) =>
-        val authorization = cookie.value
-        JwtSprayJson.decodeJson(authorization, key, Seq(algo))/*.flatMap(obj => Try(obj.convertTo[Claim]))*/ match {
+        val token = cookie.value
+        JwtSprayJson.decodeJson(token, key, Seq(algo))/*.flatMap(obj => Try(obj.convertTo[Claim]))*/ match {
           case Success(_) =>
             pass
           case Failure(exception) =>
@@ -87,6 +87,19 @@ class AuthRoutes(val app: Application) extends Directives with JsonSupport {
         }
       case None => complete(StatusCodes.Unauthorized)
     }
+  }
+
+  def parameterAuthenticated: Directive0 = {
+      parameter("access_token".?).flatMap {
+        case Some(token) =>
+          JwtSprayJson.decodeJson(token, key, Seq(algo)) /*.flatMap(obj => Try(obj.convertTo[Claim]))*/ match {
+            case Success(_) =>
+              respondWithHeader(`Cache-Control`(CacheDirectives.`private`())) & pass
+            case Failure(exception) =>
+              complete(StatusCodes.Unauthorized -> exception.getMessage)
+          }
+        case _ => complete(StatusCodes.Unauthorized)
+      }
   }
 
 }
