@@ -3,9 +3,10 @@ import {ActivatedRouteSnapshot, Resolve, Router, RouterStateSnapshot} from '@ang
 import {concat, EMPTY, Observable, of} from 'rxjs';
 import {Show} from '@app/models/show';
 import {FilesService} from '@app/services/files.service';
-import {catchError, filter, map, publishReplay, shareReplay, switchMap, take} from 'rxjs/operators';
-import {HttpSocketClientService} from '@app/services/http-socket-client.service';
+import {catchError, filter, map, shareReplay, switchMap, take} from 'rxjs/operators';
 import {ShowsService} from '@app/services/shows.service';
+import {HttpClient} from '@angular/common/http';
+import {getAPIUrl} from '@app/utils';
 
 @Injectable({
   providedIn: 'root',
@@ -16,7 +17,7 @@ export class ShowResolverService implements Resolve<Observable<Show>> {
     private files: FilesService,
     private shows: ShowsService,
     private router: Router,
-    private socketClient: HttpSocketClientService
+    private http: HttpClient
   ) {}
 
   resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<Observable<Show>> | Observable<never> {
@@ -24,7 +25,7 @@ export class ShowResolverService implements Resolve<Observable<Show>> {
     return this.shows.getById(+id).pipe(
       map(show => {
         if (show === undefined) {
-          return this.socketClient.get('/api/shows/' + id).pipe(
+          return this.http.get(getAPIUrl('/api/shows/' + id)).pipe(
             take(1),
             shareReplay(1),
             switchMap((mov: Show) => concat(

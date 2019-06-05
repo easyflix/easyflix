@@ -5,7 +5,7 @@ import {AbstractControl, FormBuilder, FormGroup, Validators} from '@angular/form
 import {LibrariesService} from '@app/services/libraries.service';
 import {Library} from '@app/models';
 import {ValidationError} from '@app/models/validation-error';
-import {HttpSocketClientService} from '@app/services/http-socket-client.service';
+import {SocketService} from '@app/services/socket.service';
 import {filter} from 'rxjs/internal/operators/filter';
 import {map} from 'rxjs/operators';
 import {Observable} from 'rxjs';
@@ -70,7 +70,7 @@ export class LibraryCreationDialogComponent implements OnInit {
     private fb: FormBuilder,
     private libraries: LibrariesService,
     private cdr: ChangeDetectorRef,
-    private socketClient: HttpSocketClientService
+    private socket: SocketService
   ) { }
 
   ngOnInit() {
@@ -178,7 +178,7 @@ export class LibraryCreationDialogComponent implements OnInit {
         this.currentLibrary = lib;
         this.scanning = true;
         this.callNext();
-        this.incomingFiles$ = this.socketClient.observe('FileAdded').pipe(
+        this.incomingFiles$ = this.socket.observe('FileAdded').pipe(
           filter(file => file.libraryName === lib.name),
           map(file => file.path)
         );

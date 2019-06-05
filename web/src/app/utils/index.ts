@@ -1,6 +1,7 @@
 import {environment} from '@env/environment';
 import {LibraryFile} from '@app/models';
 
+// TODO review
 export function getAPIUrl(path: string) {
   let url = '';
   url += window.location.protocol + '//' + window.location.hostname;

@@ -6,7 +6,7 @@ import {Store} from '@ngrx/store';
 import {getAllShows, getShowById, State} from '@app/reducers';
 import {Actions} from '@ngrx/effects';
 import {ServiceHelper} from './service-helper';
-import {HttpSocketClientService} from './http-socket-client.service';
+import {SocketService} from './socket.service';
 import {AddShows, DeleteShows, LoadShows, ShowsActionTypes, UpdateShows} from '@app/actions/shows.actions';
 import {bufferTime, filter, tap} from 'rxjs/operators';
 
@@ -16,7 +16,7 @@ export class ShowsService extends ServiceHelper {
   private subscriptions: Subscription[] = [];
 
   constructor(
-    private socketClient: HttpSocketClientService,
+    private socket: SocketService,
     store: Store<State>, actions$: Actions
   ) {
     super(store, actions$);
@@ -25,17 +25,17 @@ export class ShowsService extends ServiceHelper {
   init() {
     this.subscriptions.forEach(sub => sub.unsubscribe());
     this.subscriptions.push(
-      this.socketClient.observe('ShowAdded').pipe(
+      this.socket.observe('ShowAdded').pipe(
         bufferTime(100, null, 15),
         filter(shows => shows.length > 0),
         tap((shows: Show[]) => this.store.dispatch(new AddShows(shows)))
       ).subscribe(),
-      this.socketClient.observe('ShowUpdate').pipe(
+      this.socket.observe('ShowUpdate').pipe(
         bufferTime(100, null, 15),
         filter(updates => updates.length > 0),
         tap((updates: ShowDetails[]) => this.store.dispatch(new UpdateShows(updates)))
       ).subscribe(),
-      this.socketClient.observe('ShowDeleted').pipe(
+      this.socket.observe('ShowDeleted').pipe(
         bufferTime(100, null, 15),
         filter(updates => updates.length > 0),
         tap((ids: number[]) => this.store.dispatch(new DeleteShows(ids)))

@@ -21,7 +21,7 @@ import {FilesService} from './services/files.service';
 import {VideoGuard} from './guards/video.guard';
 import {LibrariesLoadedGuard} from '@app/guards/libraries-loaded.guard';
 import {LibrariesService} from '@app/services/libraries.service';
-import {HttpSocketClientService} from '@app/services/http-socket-client.service';
+import {SocketService} from '@app/services/socket.service';
 import {MoviesService} from '@app/services/movies.service';
 import {MovieFiltersService} from '@app/services/movie-filters.service';
 import {ShowsService} from '@app/services/shows.service';
@@ -33,6 +33,7 @@ import {ErrorInterceptor} from '@app/utils/error.interceptor';
 import {RootComponent} from '@app/root.component';
 import {LoginComponent} from '@app/login.component';
 import {AuthenticationService} from '@app/services/authentication.service';
+import {SocketInterceptor} from '@app/utils/socket.interceptor';
 
 @NgModule({
   declarations: [
@@ -68,13 +69,14 @@ import {AuthenticationService} from '@app/services/authentication.service';
     VideoGuard,
     // FilesLoadedGuard,
     LibrariesLoadedGuard,
-    HttpSocketClientService,
+    SocketService,
     AuthenticationService,
     MovieFiltersService,
     ShowFiltersService,
     KeyboardService,
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: SocketInterceptor, multi: true },
   ],
   bootstrap: [RootComponent]
 })

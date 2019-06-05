@@ -11,13 +11,14 @@ import {
 } from '@angular/core';
 import {PanelDirective} from '@app/shared/directives/panel.directive';
 import {FileListComponent} from './file-list.component';
-import {asapScheduler, combineLatest, EMPTY, scheduled, Subscription} from 'rxjs';
+import {combineLatest, EMPTY, of, Subscription} from 'rxjs';
 import {LibraryListComponent} from './library-list.component';
 import {LibraryFile} from '@app/models';
 import {ActivatedRoute, Router} from '@angular/router';
 import {switchMap, take, tap} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
-import {HttpSocketClientService} from '@app/services/http-socket-client.service';
+import {HttpClient} from '@angular/common/http';
+import {getAPIUrl} from '@app/utils';
 
 export interface AnimatableComponent {
   afterAnimation();
@@ -119,7 +120,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
     private router: Router,
     private activatedRoute: ActivatedRoute,
     private files: FilesService,
-    private socketClient: HttpSocketClientService
+    private http: HttpClient
   ) {
     this.folderFactory = this.componentFactoryResolver.resolveComponentFactory(FileListComponent);
     this.librariesFactory = this.componentFactoryResolver.resolveComponentFactory(LibraryListComponent);
@@ -149,9 +150,9 @@ export class LibraryComponent implements OnInit, OnDestroy {
           this.files.getById(id).pipe(
             switchMap(file => {
               if (file !== undefined) {
-                return scheduled([file], asapScheduler);
+                return of(file);
               } else {
-                return this.socketClient.get('/api/videos/' + id);
+                return this.http.get(getAPIUrl('/api/videos/' + id));
               }
             }),
             take(1)

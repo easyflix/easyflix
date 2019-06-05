@@ -6,7 +6,7 @@ import {Store} from '@ngrx/store';
 import {getAllMovies, getMovieById, State} from '@app/reducers';
 import {Actions} from '@ngrx/effects';
 import {ServiceHelper} from './service-helper';
-import {HttpSocketClientService} from './http-socket-client.service';
+import {SocketService} from './socket.service';
 import {AddMovies, DeleteMovies, LoadMovies, MoviesActionTypes, UpdateMovies} from '@app/actions/movies.actions';
 import {bufferTime, filter, tap} from 'rxjs/operators';
 import {MovieDetails} from '@app/models/movie';
@@ -17,7 +17,7 @@ export class MoviesService extends ServiceHelper {
   private subscriptions: Subscription[] = [];
 
   constructor(
-    private socketClient: HttpSocketClientService,
+    private socket: SocketService,
     store: Store<State>, actions$: Actions
   ) {
     super(store, actions$);
@@ -26,17 +26,17 @@ export class MoviesService extends ServiceHelper {
   init(): void {
     this.subscriptions.forEach(sub => sub.unsubscribe());
     this.subscriptions.push(
-      this.socketClient.observe('MovieAdded').pipe(
+      this.socket.observe('MovieAdded').pipe(
         bufferTime(100, null, 15),
         filter(messages => messages.length > 0),
         tap((movies: Movie[]) => this.store.dispatch(new AddMovies(movies)))
       ).subscribe(),
-      this.socketClient.observe('MovieUpdate').pipe(
+      this.socket.observe('MovieUpdate').pipe(
         bufferTime(100, null, 15),
         filter(messages => messages.length > 0),
         tap((updates: MovieDetails[]) => this.store.dispatch(new UpdateMovies(updates)))
       ).subscribe(),
-      this.socketClient.observe('MovieDeleted').pipe(
+      this.socket.observe('MovieDeleted').pipe(
         bufferTime(100, null, 15),
         filter(messages => messages.length > 0),
         tap((ids: number[]) => this.store.dispatch(new DeleteMovies(ids)))

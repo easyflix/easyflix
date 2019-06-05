@@ -7,7 +7,7 @@ import {FilesService} from '@app/services/files.service';
 import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
 import {first, switchMap, tap} from 'rxjs/operators';
 import {LibrariesService} from '@app/services/libraries.service';
-import {HttpSocketClientService} from '@app/services/http-socket-client.service';
+import {SocketService} from '@app/services/socket.service';
 import {MoviesService} from '@app/services/movies.service';
 import {ShowsService} from '@app/services/shows.service';
 
@@ -61,7 +61,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private libraries: LibrariesService,
     private movies: MoviesService,
     private shows: ShowsService,
-    private socketClient: HttpSocketClientService
+    private socket: SocketService
   ) { }
 
   ngOnInit() {
@@ -72,10 +72,10 @@ export class AppComponent implements OnInit, OnDestroy {
     // Prepare authorization, must happen before any subscription
     this.core.getToken().pipe(
       first(),
-      tap(token => this.socketClient.send({ method: 'Authorization', id: 0, entity: token }))
+      tap(token => this.socket.send({ method: 'Authorization', id: 0, entity: token }))
     ).subscribe();
 
-    this.socketClient.socket.subscribe(); // TODO
+    this.socket.open();
 
     // Initialize services with socket subscriptions
     this.libraries.init();
@@ -84,20 +84,21 @@ export class AppComponent implements OnInit, OnDestroy {
     this.shows.init();
 
     // Load data
+    // setTimeout(() => {
     this.libraries.load().pipe(
       switchMap(libraries => concat(...libraries.map(lib => this.files.load(lib))))
     ).subscribe(
       () => {},
       error => console.log(error),
-      () => {}
     );
     this.movies.load().subscribe();
     this.shows.load().subscribe();
     this.core.load().subscribe();
+    // }, 5000);
   }
 
   ngOnDestroy(): void {
-    this.socketClient.close();
+    this.socket.close();
   }
 
   openSidenav() {

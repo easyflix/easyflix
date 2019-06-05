@@ -4,13 +4,19 @@ import {EMPTY, Observable, of} from 'rxjs';
 import {LibraryFile} from '@app/models';
 import {FilesService} from '@app/services/files.service';
 import {catchError, map, switchMap, take} from 'rxjs/operators';
-import {HttpSocketClientService} from '@app/services/http-socket-client.service';
+import {HttpClient} from '@angular/common/http';
+import {getAPIUrl} from '@app/utils';
 
 @Injectable({
   providedIn: 'root',
 })
 export class VideoResolverService implements Resolve<LibraryFile> {
-  constructor(private files: FilesService, private router: Router, private socketClient: HttpSocketClientService) {}
+
+  constructor(
+    private files: FilesService,
+    private router: Router,
+    private http: HttpClient
+  ) {}
 
   resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<LibraryFile> | Observable<never> {
     const id = route.paramMap.get('id');
@@ -18,8 +24,8 @@ export class VideoResolverService implements Resolve<LibraryFile> {
       take(1),
       switchMap((video: LibraryFile) => {
         if (video === undefined) {
-          return this.socketClient.get('/api/videos/' + encodeURIComponent(id)).pipe(
-            map((file: LibraryFile) => { file.id = id; return file; }),
+          return this.http.get(getAPIUrl('/api/videos/' + encodeURIComponent(id))).pipe(
+            map((file: LibraryFile) => { file.id = id; return file; }), // TODO review, setting id is useless now
             catchError(() => { this.router.navigateByUrl('/home(nav:library)'); return EMPTY; })
           );
         } else {

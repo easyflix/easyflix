@@ -32,11 +32,7 @@ class SocketActor(xhrRoutes: Route)(implicit materializer: ActorMaterializer, ap
   import context.dispatcher
 
   private val logger = Logging(context.system, this)
-
   private val client = context.parent
-
-  val askTimeout: akka.util.Timeout = 2.seconds
-
   private val key = app.config.getString("auth.key")
   private val algo = JwtAlgorithm.HS256
 
@@ -51,7 +47,7 @@ class SocketActor(xhrRoutes: Route)(implicit materializer: ActorMaterializer, ap
     "ShowUpdate"    -> classOf[ShowUpdate]
   )
 
-  private var subscriptions: Map[String, Int] = Map.empty
+  var subscriptions: Map[String, Int] = Map.empty
 
   app.system.scheduler.scheduleOnce(3.seconds, self, 'timeout)
 

@@ -14,7 +14,7 @@ import {
 } from '@app/actions/libraries.actions';
 import {Actions} from '@ngrx/effects';
 import {ServiceHelper} from '@app/services/service-helper';
-import {HttpSocketClientService} from '@app/services/http-socket-client.service';
+import {SocketService} from '@app/services/socket.service';
 import {tap} from 'rxjs/operators';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class LibrariesService extends ServiceHelper {
   private subscriptions: Subscription[] = [];
 
   constructor(
-    private socketClient: HttpSocketClientService,
+    private socket: SocketService,
     store: Store<State>,
     actions$: Actions
   ) {
@@ -33,7 +33,7 @@ export class LibrariesService extends ServiceHelper {
   init() {
     this.subscriptions.forEach(sub => sub.unsubscribe());
     this.subscriptions.push(
-      this.socketClient.observe('LibraryUpdate').pipe(
+      this.socket.observe('LibraryUpdate').pipe(
         tap(update => this.store.dispatch(new LibraryUpdate(update)))
       ).subscribe()
     );

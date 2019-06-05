@@ -15,7 +15,7 @@ import {
 import {AddFiles, FilesActionTypes, LoadFiles} from '@app/actions/files.actions';
 import {Actions} from '@ngrx/effects';
 import {ServiceHelper} from './service-helper';
-import {HttpSocketClientService} from './http-socket-client.service';
+import {SocketService} from './socket.service';
 import {bufferTime, filter, tap} from 'rxjs/operators';
 
 @Injectable()
@@ -24,7 +24,7 @@ export class FilesService extends ServiceHelper {
   private subscriptions: Subscription[] = [];
 
   constructor(
-    private socketClient: HttpSocketClientService,
+    private socket: SocketService,
     store: Store<State>, actions$: Actions
   ) {
     super(store, actions$);
@@ -33,7 +33,7 @@ export class FilesService extends ServiceHelper {
   init() {
     this.subscriptions.forEach(sub => sub.unsubscribe());
     this.subscriptions.push(
-      this.socketClient.observe('FileAdded').pipe(
+      this.socket.observe('FileAdded').pipe(
         bufferTime(100, null, 15),
         filter(files => files.length > 0),
         tap((files: LibraryFile[]) => this.store.dispatch(new AddFiles(files)))
