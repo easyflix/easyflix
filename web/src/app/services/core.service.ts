@@ -11,6 +11,7 @@ import {
   OpenSidenav,
   SetSidenavMode,
   SetSidenavSize,
+  SetToken,
   ToggleSidenav
 } from '../actions/core.actions';
 import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
@@ -68,6 +69,14 @@ export class CoreService extends ServiceHelper {
 
   getConfig(): Observable<Configuration> {
     return this.store.select(fromStore.getConfig);
+  }
+
+  getToken(): Observable<string> {
+    return this.store.select(fromStore.getToken);
+  }
+
+  setToken(token: string): void {
+    this.store.dispatch(new SetToken(token));
   }
 
   loadConfig(): Observable<Configuration> {

@@ -69,14 +69,14 @@ export class LoginComponent implements OnInit {
     });
 
     // reset login status // TODO figure out what to do if logged in
-    this.authenticationService.logout().subscribe();
+    // this.authenticationService.logout().subscribe();
 
     this.returnUrl = this.route.snapshot.queryParams.returnUrl || '/';
   }
 
   get f() { return this.loginForm.controls; }
 
-  login() {
+  login(): void {
     if (this.loginForm.invalid) {
       return;
     }

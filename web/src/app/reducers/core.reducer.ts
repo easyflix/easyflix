@@ -14,6 +14,7 @@ export interface State {
   sidenavWidth: SidenavWidthType;
   theme: Theme;
   config: Configuration;
+  token: string;
 }
 
 const initialState: State = {
@@ -22,6 +23,7 @@ const initialState: State = {
   sidenavWidth: 'normal',
   theme: ThemesUtils.allThemes[0],
   config: undefined,
+  token: null,
 };
 
 /**
@@ -75,6 +77,12 @@ export function reducer(
         config: action.payload
       };
 
+    case CoreActionTypes.SetToken:
+      return {
+        ...state,
+        token: action.payload
+      };
+
     default:
       return state;
   }
@@ -88,3 +96,4 @@ export const getSidenavMode = (state: State) => state.sidenavMode;
 export const getSidenavWidth = (state: State) => state.sidenavWidth;
 export const getTheme = (state: State) => state.theme;
 export const getConfig = (state: State) => state.config;
+export const getToken = (state: State) => state.token;

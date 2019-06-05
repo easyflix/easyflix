@@ -1,41 +1,38 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {map} from 'rxjs/operators';
+import {first, map, tap} from 'rxjs/operators';
 import {environment} from '@env/environment';
 import {Observable} from 'rxjs';
+import {HttpSocketClientService} from '@app/services/http-socket-client.service';
+import {CoreService} from '@app/services/core.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthenticationService {
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private socketClient: HttpSocketClientService, private core: CoreService) {
   }
 
-  get token(): string {
-    return localStorage.getItem('token');
-  }
-
-  isLoggedIn(): boolean {
-    return localStorage.getItem('token') !== null;
-  }
-
-  login(password: string): Observable<string> {
-    return this.http.post<string>(
+  login(password: string): Observable<object> {
+    return this.http.post(
       `${environment.apiEndpoint}/auth/login`,
       { password },
       { observe: 'response', withCredentials: true }
     ).pipe(
-      map(response => {
+      tap(response => {
         const token = response.headers.get('Access-Token');
         if (token) {
-          localStorage.setItem('token', token);
+          this.core.setToken(token);
         }
+      }),
+      map(response => {
         return response.body;
       })
     );
   }
 
   logout(): Observable<string> {
-    localStorage.removeItem('token');
+    this.core.setToken(null);
+    this.socketClient.close();
     return this.http.post(
       `${environment.apiEndpoint}/auth/logout`,
       null,

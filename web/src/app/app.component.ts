@@ -1,13 +1,12 @@
-import {ChangeDetectionStrategy, Component, HostListener, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, HostListener, OnDestroy, OnInit} from '@angular/core';
 import {concat, Observable} from 'rxjs';
 import {CoreService} from './services/core.service';
 import {playerAnimations} from '@app/animations';
 import {RouterOutlet} from '@angular/router';
 import {FilesService} from '@app/services/files.service';
 import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
-import {map, switchMap} from 'rxjs/operators';
+import {switchMap} from 'rxjs/operators';
 import {LibrariesService} from '@app/services/libraries.service';
-import {ThemesUtils} from '@app/utils/themes.utils';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 import {MoviesService} from '@app/services/movies.service';
 import {ShowsService} from '@app/services/shows.service';
@@ -15,33 +14,21 @@ import {ShowsService} from '@app/services/shows.service';
 @Component({
   selector: 'app-app',
   template: `
-    <div class="container" [ngClass]="themeCssClass$ | async">
-      <mat-sidenav-container>
-        <mat-sidenav [mode]="sidenavMode$ | async"
-                     [ngClass]="sidenavWidth$ | async"
-                     [opened]="showSidenav$ | async"
-                     [cdkTrapFocus]="showSidenav$ | async"
-                     (closedStart)="closeSidenav()">
-          <app-sidenav (closeSidenav)="closeSidenav()"></app-sidenav>
-        </mat-sidenav>
-        <mat-sidenav-content [@playerAnimation]="getAnimationData(player)">
-          <app-main></app-main>
-          <router-outlet name="player" #player="outlet"></router-outlet>
-        </mat-sidenav-content>
-      </mat-sidenav-container>
-    </div>
+    <mat-sidenav-container>
+      <mat-sidenav [mode]="sidenavMode$ | async"
+                   [ngClass]="sidenavWidth$ | async"
+                   [opened]="showSidenav$ | async"
+                   [cdkTrapFocus]="showSidenav$ | async"
+                   (closedStart)="closeSidenav()">
+        <app-sidenav (closeSidenav)="closeSidenav()"></app-sidenav>
+      </mat-sidenav>
+      <mat-sidenav-content [@playerAnimation]="getAnimationData(player)">
+        <app-main></app-main>
+        <router-outlet name="player" #player="outlet"></router-outlet>
+      </mat-sidenav-content>
+    </mat-sidenav-container>
   `,
   styles: [`
-    :host {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-    }
-    .container {
-      height: 100%;
-    }
     mat-sidenav-container {
       height: 100%;
     }
@@ -62,11 +49,8 @@ import {ShowsService} from '@app/services/shows.service';
   animations: [playerAnimations],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
 
-  // TODO remove theme css class
-
-  themeCssClass$: Observable<string>;
   showSidenav$: Observable<boolean>;
   sidenavMode$: Observable<SidenavModeType>;
   sidenavWidth$: Observable<SidenavWidthType>;
@@ -81,7 +65,6 @@ export class AppComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.themeCssClass$ = this.core.getTheme().pipe(map(t => t.cssClass));
     this.showSidenav$ = this.core.getShowSidenav();
     this.sidenavMode$ = this.core.getSidenavMode();
     this.sidenavWidth$ = this.core.getSidenavWidth();
@@ -104,8 +87,10 @@ export class AppComponent implements OnInit {
     this.shows.load().subscribe();
 
     this.core.loadConfig().subscribe();
+  }
 
-    this.core.changeTheme(ThemesUtils.allThemes[0]);
+  ngOnDestroy(): void {
+    // TODO unsubscribe to socket events
   }
 
   openSidenav() {

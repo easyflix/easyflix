@@ -12,7 +12,8 @@ export enum CoreActionTypes {
   ChangeTheme = 'core/theme',
   LoadConfig = 'core/config/load',
   LoadConfigSuccess = 'core/config/load/success',
-  LoadConfigError = 'core/config/load/error'
+  LoadConfigError = 'core/config/load/error',
+  SetToken = 'core/token',
 }
 
 export class OpenSidenav implements Action {
@@ -56,6 +57,11 @@ export class LoadConfigError implements Action {
   constructor(public payload: string) {}
 }
 
+export class SetToken implements Action {
+  readonly type = CoreActionTypes.SetToken;
+  constructor(public payload: string) {}
+}
+
 export type CoreActionsUnion =
   OpenSidenav |
   CloseSidenav |
@@ -65,4 +71,5 @@ export type CoreActionsUnion =
   ChangeTheme |
   LoadConfig |
   LoadConfigSuccess |
-  LoadConfigError;
+  LoadConfigError |
+  SetToken;

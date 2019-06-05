@@ -32,6 +32,7 @@ import {JwtInterceptor} from '@app/utils/jwt.interceptor';
 import {ErrorInterceptor} from '@app/utils/error.interceptor';
 import {RootComponent} from '@app/root.component';
 import {LoginComponent} from '@app/login.component';
+import {AuthenticationService} from '@app/services/authentication.service';
 
 @NgModule({
   declarations: [
@@ -68,6 +69,7 @@ import {LoginComponent} from '@app/login.component';
     // FilesLoadedGuard,
     LibrariesLoadedGuard,
     HttpSocketClientService,
+    AuthenticationService,
     MovieFiltersService,
     ShowFiltersService,
     KeyboardService,

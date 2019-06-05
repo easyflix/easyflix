@@ -383,6 +383,25 @@ export class AppEffects {
     tap(sidenav => +sidenav === 1 ? this.core.openSidenav() : this.core.closeSidenav())
   );
 
+  /**
+   * Token
+   */
+  @Effect({dispatch: false})
+  storeToken$ = this.core.getToken().pipe(
+    tap(token => {
+      if (token) {
+        localStorage.setItem('token', token);
+      } else {
+        localStorage.removeItem('token');
+      }
+    })
+  );
+  @Effect({dispatch: false})
+  getToken$ = scheduled([localStorage.getItem('token')], asapScheduler).pipe(
+    filter(token => !!token),
+    tap(token => this.core.setToken(token))
+  );
+
   constructor(
     private core: CoreService,
     private actions$: Actions,

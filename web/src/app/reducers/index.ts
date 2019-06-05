@@ -72,6 +72,11 @@ export const getConfig = createSelector(
   fromCore.getConfig
 );
 
+export const getToken = createSelector(
+  getCoreState,
+  fromCore.getToken
+);
+
 export const getVideoSource = createSelector(
   getVideoState,
   fromVideo.getVideoSource
