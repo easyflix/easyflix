@@ -79,7 +79,7 @@ export class CoreService extends ServiceHelper {
     this.store.dispatch(new SetToken(token));
   }
 
-  loadConfig(): Observable<Configuration> {
+  load(): Observable<Configuration> {
     return this.dispatchActionObservable(
       new LoadConfig(),
       CoreActionTypes.LoadConfigSuccess,

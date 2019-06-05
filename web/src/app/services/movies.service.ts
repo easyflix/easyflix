@@ -1,50 +1,47 @@
 import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs';
+import {Observable, Subscription} from 'rxjs';
 
 import {Movie} from '@app/models';
 import {Store} from '@ngrx/store';
-import {State, getAllMovies, getMovieById} from '@app/reducers';
+import {getAllMovies, getMovieById, State} from '@app/reducers';
 import {Actions} from '@ngrx/effects';
 import {ServiceHelper} from './service-helper';
 import {HttpSocketClientService} from './http-socket-client.service';
 import {AddMovies, DeleteMovies, LoadMovies, MoviesActionTypes, UpdateMovies} from '@app/actions/movies.actions';
-import {bufferTime, filter, map, tap} from 'rxjs/operators';
+import {bufferTime, filter, tap} from 'rxjs/operators';
 import {MovieDetails} from '@app/models/movie';
 
 @Injectable()
 export class MoviesService extends ServiceHelper {
+
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private socketClient: HttpSocketClientService,
     store: Store<State>, actions$: Actions
   ) {
     super(store, actions$);
+  }
 
-    this.socketClient.socket.pipe(
-      filter(message => message.method === 'MovieAdded'),
-      map(message => message.entity),
-      bufferTime(100, null, 15),
-      filter(movies => movies.length > 0),
-      // tap(movies => console.log(movies)),
-      tap((movies: Movie[]) => this.store.dispatch(new AddMovies(movies)))
-    ).subscribe();
-
-    this.socketClient.socket.pipe(
-      filter(message => message.method === 'MovieUpdate'),
-      map(message => message.entity),
-      bufferTime(100, null, 15),
-      filter(updates => updates.length > 0),
-      // tap(movies => console.log(movies)),
-      tap((updates: MovieDetails[]) => this.store.dispatch(new UpdateMovies(updates)))
-    ).subscribe();
-
-    this.socketClient.socket.pipe(
-      filter(message => message.method === 'MovieDeleted'),
-      map(message => message.entity),
-      bufferTime(100, null, 15),
-      filter(ids => ids.length > 0),
-      tap((ids: number[]) => this.store.dispatch(new DeleteMovies(ids)))
-    ).subscribe();
+  init(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.subscriptions.push(
+      this.socketClient.observe('MovieAdded').pipe(
+        bufferTime(100, null, 15),
+        filter(messages => messages.length > 0),
+        tap((movies: Movie[]) => this.store.dispatch(new AddMovies(movies)))
+      ).subscribe(),
+      this.socketClient.observe('MovieUpdate').pipe(
+        bufferTime(100, null, 15),
+        filter(messages => messages.length > 0),
+        tap((updates: MovieDetails[]) => this.store.dispatch(new UpdateMovies(updates)))
+      ).subscribe(),
+      this.socketClient.observe('MovieDeleted').pipe(
+        bufferTime(100, null, 15),
+        filter(messages => messages.length > 0),
+        tap((ids: number[]) => this.store.dispatch(new DeleteMovies(ids)))
+      ).subscribe()
+    );
   }
 
   getAll(): Observable<Movie[]> {

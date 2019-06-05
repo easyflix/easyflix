@@ -1,52 +1,46 @@
 import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs';
+import {Observable, Subscription} from 'rxjs';
 
-import {Show} from '@app/models/show';
+import {Show, ShowDetails} from '@app/models/show';
 import {Store} from '@ngrx/store';
-import {State, getAllShows, getShowById} from '@app/reducers';
+import {getAllShows, getShowById, State} from '@app/reducers';
 import {Actions} from '@ngrx/effects';
 import {ServiceHelper} from './service-helper';
 import {HttpSocketClientService} from './http-socket-client.service';
 import {AddShows, DeleteShows, LoadShows, ShowsActionTypes, UpdateShows} from '@app/actions/shows.actions';
-import {bufferTime, filter, map, tap} from 'rxjs/operators';
-import {ShowDetails} from '@app/models/show';
+import {bufferTime, filter, tap} from 'rxjs/operators';
 
 @Injectable()
 export class ShowsService extends ServiceHelper {
+
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private socketClient: HttpSocketClientService,
     store: Store<State>, actions$: Actions
   ) {
     super(store, actions$);
+  }
 
-    this.socketClient.socket.pipe(
-      filter(message => message.method === 'ShowAdded'),
-      map(message => message.entity),
-      bufferTime(100, null, 15),
-      filter(shows => shows.length > 0),
-      // tap(movies => console.log(movies)),
-      tap((shows: Show[]) => this.store.dispatch(new AddShows(shows)))
-    ).subscribe();
-
-    this.socketClient.socket.pipe(
-      filter(message => message.method === 'ShowUpdate'),
-      map(message => message.entity),
-      bufferTime(100, null, 15),
-      filter(updates => updates.length > 0),
-      // tap(movies => console.log(movies)),
-      tap((updates: ShowDetails[]) => this.store.dispatch(new UpdateShows(updates)))
-    ).subscribe();
-
-    this.socketClient.socket.pipe(
-      filter(message => message.method === 'ShowDeleted'),
-      map(message => message.entity),
-      bufferTime(100, null, 15),
-      filter(ids => ids.length > 0),
-      // tap(movies => console.log(movies)),
-      tap((ids: number[]) => this.store.dispatch(new DeleteShows(ids)))
-    ).subscribe();
-
+  init() {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.subscriptions.push(
+      this.socketClient.observe('ShowAdded').pipe(
+        bufferTime(100, null, 15),
+        filter(shows => shows.length > 0),
+        tap((shows: Show[]) => this.store.dispatch(new AddShows(shows)))
+      ).subscribe(),
+      this.socketClient.observe('ShowUpdate').pipe(
+        bufferTime(100, null, 15),
+        filter(updates => updates.length > 0),
+        tap((updates: ShowDetails[]) => this.store.dispatch(new UpdateShows(updates)))
+      ).subscribe(),
+      this.socketClient.observe('ShowDeleted').pipe(
+        bufferTime(100, null, 15),
+        filter(updates => updates.length > 0),
+        tap((ids: number[]) => this.store.dispatch(new DeleteShows(ids)))
+      ).subscribe()
+    );
   }
 
   getAll(): Observable<Show[]> {

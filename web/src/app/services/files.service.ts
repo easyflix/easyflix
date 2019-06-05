@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs';
+import {Observable, Subscription} from 'rxjs';
 
 import {Library, LibraryFile} from '@app/models';
 import {Store} from '@ngrx/store';
@@ -12,28 +12,33 @@ import {
   getLibraryCount,
   State
 } from '@app/reducers';
-import {FilesActionTypes, LoadFiles} from '@app/actions/files.actions';
+import {AddFiles, FilesActionTypes, LoadFiles} from '@app/actions/files.actions';
 import {Actions} from '@ngrx/effects';
 import {ServiceHelper} from './service-helper';
 import {HttpSocketClientService} from './http-socket-client.service';
+import {bufferTime, filter, tap} from 'rxjs/operators';
 
 @Injectable()
 export class FilesService extends ServiceHelper {
+
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private socketClient: HttpSocketClientService,
     store: Store<State>, actions$: Actions
   ) {
     super(store, actions$);
+  }
 
-    /*this.socketClient.getSocket().pipe(
-      filter(message => message.method === 'FileAdded'),
-      map(message => message.entity),
-      bufferTime(100, null, 15),
-      filter(files => files.length > 0),
-      tap(files => console.log(files)),
-      tap((files: LibraryFile[]) => this.store.dispatch(new AddFiles(files)))
-    ).subscribe();*/
+  init() {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.subscriptions.push(
+      this.socketClient.observe('FileAdded').pipe(
+        bufferTime(100, null, 15),
+        filter(files => files.length > 0),
+        tap((files: LibraryFile[]) => this.store.dispatch(new AddFiles(files)))
+      ).subscribe()
+    );
   }
 
   getAll(): Observable<LibraryFile[]> {

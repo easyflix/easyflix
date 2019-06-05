@@ -1,12 +1,13 @@
 import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs';
+import {Observable, Subscription} from 'rxjs';
 
 import {Library, LibraryFile} from '@app/models';
 import {Store} from '@ngrx/store';
 import {getAllLibraries, getLibrariesLoaded, getLibraryByName, State} from '@app/reducers';
 import {
   AddLibrary,
-  LibrariesActionTypes, LibraryUpdate,
+  LibrariesActionTypes,
+  LibraryUpdate,
   LoadLibraries,
   RemoveLibrary,
   ScanLibrary
@@ -14,10 +15,12 @@ import {
 import {Actions} from '@ngrx/effects';
 import {ServiceHelper} from '@app/services/service-helper';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
-import {filter, tap} from 'rxjs/operators';
+import {tap} from 'rxjs/operators';
 
 @Injectable()
 export class LibrariesService extends ServiceHelper {
+
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private socketClient: HttpSocketClientService,
@@ -25,12 +28,15 @@ export class LibrariesService extends ServiceHelper {
     actions$: Actions
   ) {
     super(store, actions$);
+  }
 
-    this.socketClient.socket.pipe(
-      filter(message => message.method === 'LibraryUpdate'),
-      tap(message => this.updateLibrary(message.entity))
-    ).subscribe();
-
+  init() {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.subscriptions.push(
+      this.socketClient.observe('LibraryUpdate').pipe(
+        tap(update => this.store.dispatch(new LibraryUpdate(update)))
+      ).subscribe()
+    );
   }
 
   getAll(): Observable<Library[]> {
@@ -75,10 +81,6 @@ export class LibrariesService extends ServiceHelper {
 
   getLoaded(): Observable<boolean> {
     return this.store.select(getLibrariesLoaded);
-  }
-
-  private updateLibrary(library: Library): void {
-    this.store.dispatch(new LibraryUpdate(library));
   }
 
 }

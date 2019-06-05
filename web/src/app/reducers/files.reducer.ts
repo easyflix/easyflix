@@ -23,19 +23,6 @@ export interface State extends EntityState<LibraryFile> {}
 
 export const initialState: State = adapter.getInitialState({});
 
-/*function processLibraryFile(file: LibraryFile, newFiles: LibraryFile[]): LibraryFile {
-  if (file.isDirectory === true) {
-    return {
-      ...file,
-      numberOfVideos: (file.numberOfVideos || 0) + newFiles
-          .filter(f => f.isDirectory === false && f.path.startsWith(`${file.path}/`))
-          .length
-    };
-  } else {
-    return file;
-  }
-}*/
-
 /**
  * Reducer
  */
@@ -45,15 +32,15 @@ export function reducer(
 ): State {
   switch (action.type) {
 
+    case FilesActionTypes.AddFiles: {
+      return adapter.upsertMany(action.payload, state);
+    }
+
     case FilesActionTypes.LoadFilesSuccess: {
-      // const stateWithFiles = adapter.upsertMany(action.payload, state);
-      // return adapter.map(file => processLibraryFile(file, action.payload), stateWithFiles);
       return adapter.upsertMany(action.payload, state);
     }
 
     case LibrariesActionTypes.ScanLibrarySuccess: {
-      // const stateWithFiles = adapter.upsertMany(action.payload, state);
-      // return adapter.upsertMany(processLibraryFiles(action.payload), state);
       return adapter.upsertMany(action.payload, state);
     }
 
@@ -68,8 +55,3 @@ export function reducer(
     default: return state;
   }
 }
-
-/**
- * Selectors
- */
-// export const getLoaded = (state: State) => state.loaded;

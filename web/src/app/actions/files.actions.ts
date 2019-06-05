@@ -2,9 +2,15 @@ import {Action} from '@ngrx/store';
 import {Library, LibraryFile} from '@app/models';
 
 export enum FilesActionTypes {
+  AddFiles = 'files/add',
   LoadFiles = 'files/load',
   LoadFilesSuccess = 'files/load/success',
   LoadFilesError = 'files/load/error',
+}
+
+export class AddFiles implements Action {
+  readonly type = FilesActionTypes.AddFiles;
+  constructor(public payload: LibraryFile[]) {}
 }
 
 export class LoadFiles implements Action {
@@ -23,6 +29,7 @@ export class LoadFilesError implements Action {
 }
 
 export type FilesActionsUnion =
+  AddFiles |
   LoadFiles |
   LoadFilesSuccess |
   LoadFilesError;

@@ -26,6 +26,14 @@ export class HttpSocketClientService implements OnDestroy {
     }
   });
 
+  observe(type: string): Observable<any> {
+    return this.socket.multiplex(
+      () => ({ method: 'Subscribe', id: 0, entity: type }),
+      () => ({ method: 'Unsubscribe', id: 0, entity: type }),
+      message => message.method === type
+    ).pipe(map(message => message.entity));
+  }
+
   send(message: SocketMessage): void {
     this.socket.next(message);
   }
@@ -97,20 +105,19 @@ export class HttpSocketClientService implements OnDestroy {
 
   private sendRequest(request: HttpRequest): Observable<object> {
     const expectResponse =
-      this.socket
-        .pipe(
-          filter((r: HttpResponse) => r.method === 'HttpResponse' && r.id === request.id),
-          map((r: HttpResponse) => {
-            const status = r.entity.status;
-            const statusText = r.entity.statusText;
-            const entity = r.entity.entity;
-            if (status >= 400) {
-              throw new HttpErrorResponse({error: entity, status, statusText, url: request.entity.url});
-            }
-            return entity;
-          }),
-          take(1)
-        );
+      this.socket.pipe(
+        filter((r: HttpResponse) => r.method === 'HttpResponse' && r.id === request.id),
+        map((r: HttpResponse) => {
+          const status = r.entity.status;
+          const statusText = r.entity.statusText;
+          const entity = r.entity.entity;
+          if (status >= 400) {
+            throw new HttpErrorResponse({error: entity, status, statusText, url: request.entity.url});
+          }
+          return entity;
+        }),
+        take(1)
+      );
     const sendRequest = new Observable(observer => {
       this.send(request);
       observer.complete();
