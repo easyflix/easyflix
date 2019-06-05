@@ -247,12 +247,21 @@ export class VideoComponent implements OnInit, OnDestroy {
     // https://developer.mozilla.org/en-US/docs/Web/API/MediaError/code
     console.error('VideoError', event.target.error);
     this.video.setLoading(false);
-    this.dialog.open(ErrorDialogComponent, {
-      data: {
-        title: 'Playback failed',
-        message: 'This format might not be supported by your current browser.<br/> Please try using another browser or report this error.'
-      }
-    });
+    if (event.target.error.code === 4) {
+      this.dialog.open(ErrorDialogComponent, {
+        data: {
+          title: 'Playback failed',
+          message: 'This format might not be supported by your current browser.<br/> Please try using another browser or report this error.'
+        }
+      });
+    } else {
+      this.dialog.open(ErrorDialogComponent, {
+        data: {
+          title: 'An error occurred',
+          message: event.target.error.message
+        }
+      });
+    }
   }
 
   closeVideo() {
