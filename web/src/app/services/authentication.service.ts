@@ -15,7 +15,7 @@ export class AuthenticationService {
 
   login(password: string): Observable<object> {
     return this.http.post(
-      `${environment.apiEndpoint}/auth/login`,
+      `${environment.endpoint}/auth/login`,
       { password },
       { observe: 'response', withCredentials: true }
     ).pipe(
@@ -34,7 +34,7 @@ export class AuthenticationService {
   logout(): Observable<string> {
     this.core.setToken(null);
     return this.http.post(
-      `${environment.apiEndpoint}/auth/logout`,
+      `${environment.endpoint}/auth/logout`,
       null,
       { responseType: 'text', withCredentials: true }
     );

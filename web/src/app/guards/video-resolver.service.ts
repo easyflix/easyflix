@@ -5,7 +5,7 @@ import {LibraryFile} from '@app/models';
 import {FilesService} from '@app/services/files.service';
 import {catchError, map, switchMap, take} from 'rxjs/operators';
 import {HttpClient} from '@angular/common/http';
-import {getAPIUrl} from '@app/utils';
+import {environment} from '@env/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -24,7 +24,7 @@ export class VideoResolverService implements Resolve<LibraryFile> {
       take(1),
       switchMap((video: LibraryFile) => {
         if (video === undefined) {
-          return this.http.get(getAPIUrl('/api/videos/' + encodeURIComponent(id))).pipe(
+          return this.http.get(`${environment.endpoint}/api/videos/${id}`).pipe(
             map((file: LibraryFile) => { file.id = id; return file; }), // TODO review, setting id is useless now
             catchError(() => { this.router.navigateByUrl('/home(nav:library)'); return EMPTY; })
           );

@@ -115,7 +115,7 @@ export class VideoComponent implements OnInit, OnDestroy {
     this.loading$ = this.video.getLoading();
 
     this.route.data.subscribe((data: { video: LibraryFile }) =>
-      this.video.setSource(`${environment.apiEndpoint}/videos/${data.video.libraryName}/${data.video.id}`) // TODO hardcoded url
+      this.video.setSource(`${environment.endpoint}/videos/${data.video.libraryName}/${data.video.id}`)
     );
 
     this.route.queryParamMap.pipe(

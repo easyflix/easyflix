@@ -18,7 +18,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {switchMap, take, tap} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
 import {HttpClient} from '@angular/common/http';
-import {getAPIUrl} from '@app/utils';
+import {environment} from '@env/environment';
 
 export interface AnimatableComponent {
   afterAnimation();
@@ -152,7 +152,7 @@ export class LibraryComponent implements OnInit, OnDestroy {
               if (file !== undefined) {
                 return of(file);
               } else {
-                return this.http.get(getAPIUrl('/api/videos/' + id));
+                return this.http.get(`${environment.endpoint}/api/videos/${id}`);
               }
             }),
             take(1)

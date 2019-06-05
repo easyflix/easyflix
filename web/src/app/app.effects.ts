@@ -33,10 +33,13 @@ import {ShowFilters, ShowFiltersService} from '@app/services/show-filters.servic
 import {CoreService} from '@app/services/core.service';
 import {MovieSortStrategy} from '@app/actions/movie-filters.actions';
 import {ShowSortStrategy} from '@app/actions/show-filters.actions';
-import {getAPIUrl} from '@app/utils';
+import {environment} from '@env/environment';
+import {encode} from '@app/utils';
 
 @Injectable()
 export class AppEffects {
+
+  endpoint = environment.endpoint;
 
   /**
    * Change Theme
@@ -59,7 +62,7 @@ export class AppEffects {
     this.actions$.pipe(
       ofType(FilesActionTypes.LoadFiles),
       switchMap((action: LoadFiles) =>
-        this.http.get(getAPIUrl('/api/libraries/' + encodeURIComponent(action.payload.name))).pipe(
+        this.http.get(`${this.endpoint}/api/libraries/${encode(action.payload.name)}`).pipe(
           map((result: { library: Library, files: LibraryFile[] }) => new LoadFilesSuccess(result.files)),
           catchError((error: HttpErrorResponse) => of(new LoadFilesError(error.message)))
         )
@@ -74,7 +77,7 @@ export class AppEffects {
     this.actions$.pipe(
       ofType(MoviesActionTypes.LoadMovies),
       switchMap(() =>
-        this.http.get(getAPIUrl('/api/movies')).pipe(
+        this.http.get(`${this.endpoint}/api/movies`).pipe(
           map((movies: Movie[]) => new LoadMoviesSuccess(movies)),
           catchError((error: HttpErrorResponse) => scheduled([new LoadMoviesError(error.message)], asapScheduler))
         )
@@ -89,7 +92,7 @@ export class AppEffects {
     this.actions$.pipe(
       ofType(ShowsActionTypes.LoadShows),
       switchMap(() =>
-        this.http.get(getAPIUrl('/api/shows')).pipe(
+        this.http.get(`${this.endpoint}/api/shows`).pipe(
           map((shows: Show[]) => new LoadShowsSuccess(shows)),
           catchError((error: HttpErrorResponse) => scheduled([new LoadShowsError(error.message)], asapScheduler))
         )
@@ -104,7 +107,7 @@ export class AppEffects {
     this.actions$.pipe(
       ofType(LibrariesActionTypes.LoadLibraries),
       switchMap(() =>
-        this.http.get(getAPIUrl('/api/libraries')).pipe(
+        this.http.get(`${this.endpoint}/api/libraries`).pipe(
           map((libs: Library[]) => new LoadLibrariesSuccess(libs)),
           catchError((error: HttpErrorResponse) => of(new LoadLibrariesError(error.message)))
         )
@@ -119,7 +122,7 @@ export class AppEffects {
     this.actions$.pipe(
       ofType(LibrariesActionTypes.AddLibrary),
       switchMap((action: AddLibrary) =>
-        this.http.post(getAPIUrl('/api/libraries'), action.payload).pipe(
+        this.http.post(`${this.endpoint}/api/libraries`, action.payload).pipe(
           map((library: Library) =>
             new AddLibrarySuccess(library) // , new LoadFilesSuccess(response.files))
           ),
@@ -136,7 +139,7 @@ export class AppEffects {
     this.actions$.pipe(
       ofType(LibrariesActionTypes.RemoveLibrary),
       switchMap((action: RemoveLibrary) =>
-        this.http.delete(getAPIUrl('/api/libraries/' + encodeURIComponent(action.payload.name))).pipe(
+        this.http.delete(`${this.endpoint}/api/libraries/${encode(action.payload.name)}`).pipe(
           map(() => new RemoveLibrarySuccess(action.payload)),
           catchError((error: HttpErrorResponse) => of(new RemoveLibraryError(error.error)))
         )
@@ -151,7 +154,7 @@ export class AppEffects {
     this.actions$.pipe(
       ofType(LibrariesActionTypes.ScanLibrary),
       switchMap((action: ScanLibrary) =>
-        this.http.post(getAPIUrl('/api/libraries/' + encodeURIComponent(action.payload.name) + '/scan'), null).pipe(
+        this.http.post(`${this.endpoint}/api/libraries/${encode(action.payload.name)}/scan`, null).pipe(
           map((files: LibraryFile[]) => new ScanLibrarySuccess(files, action.payload)),
           catchError((error: HttpErrorResponse) => of(new ScanLibraryError(error.error, action.payload)))
         )
@@ -166,7 +169,7 @@ export class AppEffects {
     this.actions$.pipe(
       ofType(CoreActionTypes.LoadConfig),
       switchMap(() =>
-        this.http.get(getAPIUrl('/api/config')).pipe(
+        this.http.get(`${this.endpoint}/api/config`).pipe(
           map((config: Configuration) => new LoadConfigSuccess(config)),
           catchError((error: HttpErrorResponse) => scheduled([new LoadConfigError(error.error)], asapScheduler))
         )
@@ -411,8 +414,8 @@ export class AppEffects {
     private showFilters: ShowFiltersService,
     private router: Router,
     private route: ActivatedRoute
-  ) {
+  ) {}
 
-  }
+
 
 }

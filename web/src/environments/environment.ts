@@ -5,7 +5,7 @@
 export const environment = {
   production: false,
   httpPort: 8081,
-  apiEndpoint: 'http://localhost:8081'
+  endpoint: 'http://localhost:8081'
 };
 
 /*

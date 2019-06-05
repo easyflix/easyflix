@@ -6,7 +6,7 @@ import {FilesService} from '@app/services/files.service';
 import {catchError, filter, map, shareReplay, switchMap, take} from 'rxjs/operators';
 import {ShowsService} from '@app/services/shows.service';
 import {HttpClient} from '@angular/common/http';
-import {getAPIUrl} from '@app/utils';
+import {environment} from '@env/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -25,7 +25,7 @@ export class ShowResolverService implements Resolve<Observable<Show>> {
     return this.shows.getById(+id).pipe(
       map(show => {
         if (show === undefined) {
-          return this.http.get(getAPIUrl('/api/shows/' + id)).pipe(
+          return this.http.get(`${environment.endpoint}/api/shows/${id}`).pipe(
             take(1),
             shareReplay(1),
             switchMap((mov: Show) => concat(

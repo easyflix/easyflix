@@ -6,7 +6,7 @@ import {FilesService} from '@app/services/files.service';
 import {catchError, filter, map, shareReplay, switchMap, take} from 'rxjs/operators';
 import {MoviesService} from '@app/services/movies.service';
 import {HttpClient} from '@angular/common/http';
-import {getAPIUrl} from '@app/utils';
+import {environment} from '@env/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -25,7 +25,7 @@ export class MovieResolverService implements Resolve<Observable<Movie>> {
     return this.movies.getById(+id).pipe(
       map(movie => {
         if (movie === undefined) {
-          return this.http.get(getAPIUrl('/api/movies/' + id)).pipe(
+          return this.http.get(`${environment.endpoint}/api/movies/${id}`).pipe(
             take(1),
             shareReplay(1),
             switchMap((mov: Movie) => concat(
