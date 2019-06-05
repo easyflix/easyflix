@@ -15,7 +15,7 @@ import spray.json._
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 object SocketActor {
   def props(xhrRoutes: Route)(implicit materializer: ActorMaterializer, app: Application): Props = Props(new SocketActor(xhrRoutes))
@@ -40,14 +40,18 @@ class SocketActor(xhrRoutes: Route)(implicit materializer: ActorMaterializer, ap
   private val key = app.config.getString("auth.key")
   private val algo = JwtAlgorithm.HS256
 
-  app.bus.subscribe(self, classOf[FileAdded])
-  app.bus.subscribe(self, classOf[LibraryUpdate])
-  app.bus.subscribe(self, classOf[MovieAdded])
-  app.bus.subscribe(self, classOf[MovieDeleted])
-  app.bus.subscribe(self, classOf[MovieUpdate])
-  app.bus.subscribe(self, classOf[ShowAdded])
-  app.bus.subscribe(self, classOf[ShowDeleted])
-  app.bus.subscribe(self, classOf[ShowUpdate])
+  private val classMap: Map[String, Class[_]] = Map(
+    "FileAdded"     -> classOf[FileAdded],
+    "LibraryUpdate" -> classOf[LibraryUpdate],
+    "MovieAdded"    -> classOf[MovieAdded],
+    "MovieDeleted"  -> classOf[MovieDeleted],
+    "MovieUpdate"   -> classOf[MovieUpdate],
+    "ShowAdded"     -> classOf[ShowAdded],
+    "ShowDeleted"   -> classOf[ShowDeleted],
+    "ShowUpdate"    -> classOf[ShowUpdate]
+  )
+
+  private var subscriptions: Map[String, Int] = Map.empty
 
   app.system.scheduler.scheduleOnce(3.seconds, self, 'timeout)
 
@@ -108,6 +112,29 @@ class SocketActor(xhrRoutes: Route)(implicit materializer: ActorMaterializer, ap
           "statusText" -> "Internal Server Error".toJson,
           "entity" -> failure.getMessage.toJson
         )).toJson
+      }
+
+    case JsonMessage("Subscribe", 0, JsString(channel)) =>
+      subscriptions.get(channel) match {
+        case Some(subscription) =>
+          subscriptions += channel -> (subscription + 1)
+        case None =>
+          Try {
+            app.bus.subscribe(self, classMap(channel))
+            subscriptions += channel -> 1
+          }
+      }
+
+    case JsonMessage("Unsubscribe", 0, JsString(channel)) =>
+      subscriptions.get(channel) match {
+        case Some(1) =>
+          Try {
+            app.bus.unsubscribe(self, classMap(channel))
+            subscriptions -= channel
+          }
+        case Some(value) =>
+          subscriptions += channel -> (value - 1)
+        case None => // do nothing
       }
 
     case a @ JsonMessage(_, _, _) =>
