@@ -69,6 +69,14 @@ export class AppComponent implements OnInit, OnDestroy {
     this.sidenavMode$ = this.core.getSidenavMode();
     this.sidenavWidth$ = this.core.getSidenavWidth();
 
+    // Open socket
+    this.socketClient.socket.subscribe();
+    // Authorize
+    this.core.getToken().pipe(
+      first(),
+      tap(token => this.socketClient.send({ method: 'Authorization', id: 0, entity: token }))
+    ).subscribe();
+
     this.libraries.load().pipe(
       switchMap(libraries => concat(...libraries.map(lib => this.files.load(lib))))
     ).subscribe(
@@ -77,21 +85,8 @@ export class AppComponent implements OnInit, OnDestroy {
       () => {}
     );
 
-    /**
-     * Socket
-     */
-    // Open
-    this.socketClient.socket.subscribe();
-    // Authorize
-    this.core.getToken().pipe(
-      first(),
-      tap(token => this.socketClient.send({ method: 'Authorization', id: 0, entity: token }))
-    ).subscribe();
-
     this.movies.load().subscribe();
-
     this.shows.load().subscribe();
-
     this.core.loadConfig().subscribe();
   }
 

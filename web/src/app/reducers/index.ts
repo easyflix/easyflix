@@ -12,7 +12,7 @@ import * as fromMovieFilters from './movie-filters.reducer';
 import * as fromShowFilters from './show-filters.reducer';
 
 import {Library, LibraryFile} from '@app/models';
-import {FilesUtils} from '@app/utils/files.utils';
+import {getParentPath} from '@app/utils';
 
 export interface State {
   core: fromCore.State;
@@ -117,7 +117,7 @@ export const getFilesOfFolder = createSelector(
   (files: LibraryFile[], folder: LibraryFile) => {
     return files.filter(file =>
       // file is a direct child of folder
-      FilesUtils.getParentPath(file) === folder.path &&
+      getParentPath(file) === folder.path &&
       // file is not a directory or is non empty)
       (!file.isDirectory || files.filter(f => !f.isDirectory && f.path.startsWith(file.path + '/')).length > 0)
     );

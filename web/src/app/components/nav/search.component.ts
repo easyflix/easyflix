@@ -5,7 +5,7 @@ import {LibraryFile} from '@app/models';
 import {map, switchMap, take, tap} from 'rxjs/operators';
 import {ActivatedRoute, Router} from '@angular/router';
 import {VideoService} from '@app/services/video.service';
-import {FilesUtils} from '@app/utils/files.utils';
+import {getParentPath} from '@app/utils';
 
 @Component({
   selector: 'app-search',
@@ -34,7 +34,7 @@ import {FilesUtils} from '@app/utils/files.utils';
               movie
             </mat-icon>
             <h3 matLine [innerHTML]="file.name | sgSearchTerms:searchTerms"></h3>
-            <span matLine class="subtext" [innerHTML]="getParentPath(file) | sgSearchTerms:searchTerms"></span>
+            <span matLine class="subtext" [innerHTML]="parentPath(file) | sgSearchTerms:searchTerms"></span>
             <mat-divider></mat-divider>
           </mat-list-item>
         </ng-template>
@@ -160,8 +160,8 @@ export class SearchComponent implements OnInit, AfterViewInit, OnDestroy {
     this.video.playVideo(video);
   }
 
-  getParentPath(file: LibraryFile): string {
-    return FilesUtils.getParentPath(file);
+  parentPath(file: LibraryFile): string {
+    return getParentPath(file);
   }
 
 }

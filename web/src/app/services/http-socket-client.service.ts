@@ -3,7 +3,7 @@ import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import {webSocket, WebSocketSubject} from 'rxjs/webSocket';
 import {concat, Observable} from 'rxjs';
 import {filter, map, take} from 'rxjs/operators';
-import {environment} from '@env/environment';
+import {getAPIUrl, getSocketUrl} from '@app/utils';
 
 @Injectable()
 export class HttpSocketClientService implements OnDestroy {
@@ -17,7 +17,7 @@ export class HttpSocketClientService implements OnDestroy {
   private preferHttpOverSocket = true;
 
   socket: WebSocketSubject<SocketMessage> = webSocket({
-    url: this.getSocketUrl(),
+    url: getSocketUrl(),
     openObserver: {
       next: () => this.socketOpened = true
     },
@@ -25,35 +25,6 @@ export class HttpSocketClientService implements OnDestroy {
       next: () => this.socketOpened = false
     }
   });
-
-  private static getAPIUrl(path: string) {
-    let url = '';
-    url += window.location.protocol + '//' + window.location.hostname;
-    if (environment.production) {
-      if (window.location.port) {
-        url += ':' + window.location.port;
-      }
-    } else {
-      url += ':' + environment.httpPort;
-    }
-    url += path;
-    return url;
-  }
-
-  private getSocketUrl() {
-    let socketUrl = '';
-    socketUrl += window.location.protocol === 'http:' ? 'ws://' : 'wss://';
-    socketUrl += window.location.hostname;
-    if (environment.production) {
-      if (window.location.port) {
-        socketUrl += ':' + window.location.port;
-      }
-    } else {
-      socketUrl += ':' + environment.httpPort;
-    }
-    socketUrl += '/socket';
-    return socketUrl;
-  }
 
   send(message: SocketMessage): void {
     this.socket.next(message);
@@ -69,13 +40,13 @@ export class HttpSocketClientService implements OnDestroy {
 
   get(path: string): Observable<object> {
     if (this.preferHttpOverSocket || !this.socketOpened) {
-      return this.httpClient.get(HttpSocketClientService.getAPIUrl(path));
+      return this.httpClient.get(getAPIUrl(path));
     } else {
       const request: HttpRequest = {
         method: 'HttpRequest',
         entity: {
           method: 'GET',
-          url: HttpSocketClientService.getAPIUrl(path)
+          url: getAPIUrl(path)
         },
         id: this.id++
       };
@@ -86,7 +57,7 @@ export class HttpSocketClientService implements OnDestroy {
   post(path: string, entity: object): Observable<object> {
     if (this.preferHttpOverSocket || !this.socketOpened) {
       return this.httpClient.post(
-        HttpSocketClientService.getAPIUrl(path),
+        getAPIUrl(path),
         JSON.stringify(entity),
         { headers: {'Content-Type': 'application/json'}}
       );
@@ -95,7 +66,7 @@ export class HttpSocketClientService implements OnDestroy {
         method: 'HttpRequest',
         entity: {
           method: 'POST',
-          url: HttpSocketClientService.getAPIUrl(path),
+          url: getAPIUrl(path),
           entity
         },
         id: this.id++
@@ -104,34 +75,10 @@ export class HttpSocketClientService implements OnDestroy {
     }
   }
 
-/*  postFiles(path: string, files: File[]): Observable<object> {
-    const filesObs: Observable<object>[] =
-      files.map( file => this.postFile(path, file).pipe(map(event => ({ event, file }))));
-
-    // const acknowledgment = Observable.create(observer => {
-    //   observer.next({ event: { type: 10 }});
-    //   observer.complete();
-    //   return () => {};
-    // });
-
-    return filesObs.reduce((obs1: Observable<object>, obs2) => concat(obs1, obs2));
-
-  }*/
-
-/*  postFile(path: string, file: File): Observable<object> {
-    const formData = new FormData();
-    formData.append('file', file, file.name);
-    return this.httpClient.post(
-      HttpSocketClientService.getAPIUrl(path),
-      formData,
-      {reportProgress: true, observe: 'events'}
-    );
-  }*/
-
   delete(path: string): Observable<object> {
     if (this.preferHttpOverSocket || !this.socketOpened) {
       return this.httpClient.delete(
-        HttpSocketClientService.getAPIUrl(path)/*,
+        getAPIUrl(path)/*,
         { headers: {'Content-Type': 'application/json'}}*/
       );
     } else {
@@ -139,7 +86,7 @@ export class HttpSocketClientService implements OnDestroy {
         method: 'HttpRequest',
         entity: {
           method: 'DELETE',
-          url: HttpSocketClientService.getAPIUrl(path),
+          url: getAPIUrl(path),
         },
         id: this.id++
       };
