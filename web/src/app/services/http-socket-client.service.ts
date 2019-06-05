@@ -1,16 +1,14 @@
 import {Injectable, OnDestroy} from '@angular/core';
 import {HttpClient, HttpErrorResponse} from '@angular/common/http';
-import {webSocket} from 'rxjs/webSocket';
-import {concat, Observable, Subject} from 'rxjs';
-import {filter, map, share, take} from 'rxjs/operators';
-
-import {AuthenticationService} from '@app/services/authentication.service';
+import {webSocket, WebSocketSubject} from 'rxjs/webSocket';
+import {concat, Observable} from 'rxjs';
+import {filter, map, take} from 'rxjs/operators';
 import {environment} from '@env/environment';
 
 @Injectable()
 export class HttpSocketClientService implements OnDestroy {
 
-  constructor(private httpClient: HttpClient, private authentication: AuthenticationService) { }
+  constructor(private httpClient: HttpClient) { }
 
   public id = 1;
 
@@ -18,19 +16,15 @@ export class HttpSocketClientService implements OnDestroy {
 
   private preferHttpOverSocket = true;
 
-  private get socketSubject(): Subject<object> {
-    return webSocket({
-      url: this.getSocketUrl(),
-      openObserver: {
-        next: () => this.socketOpened = true
-      },
-      closeObserver: {
-        next: () => this.socketOpened = false
-      }
-    });
-  }
-
-  private socketObs: Observable<SocketMessage>;
+  socket: WebSocketSubject<SocketMessage> = webSocket({
+    url: this.getSocketUrl(),
+    openObserver: {
+      next: () => this.socketOpened = true
+    },
+    closeObserver: {
+      next: () => this.socketOpened = false
+    }
+  });
 
   private static getAPIUrl(path: string) {
     let url = '';
@@ -46,14 +40,6 @@ export class HttpSocketClientService implements OnDestroy {
     return url;
   }
 
-  public get socket(): Observable<SocketMessage> {
-    if (this.socketObs) {
-      return this.socketObs;
-    } else {
-      return this.socketObs = this.socketSubject.asObservable().pipe(share()) as Observable<SocketMessage>;
-    }
-  }
-
   private getSocketUrl() {
     let socketUrl = '';
     socketUrl += window.location.protocol === 'http:' ? 'ws://' : 'wss://';
@@ -65,22 +51,20 @@ export class HttpSocketClientService implements OnDestroy {
     } else {
       socketUrl += ':' + environment.httpPort;
     }
-    socketUrl += '/socket' + `?access_token=${this.authentication.token}`;
+    socketUrl += '/socket';
     return socketUrl;
   }
 
+  send(message: SocketMessage): void {
+    this.socket.next(message);
+  }
 
-
-/*  getSocket(): Observable<SocketMessage> {
-    return this.socketObs;
-  }*/
-
-  send(message: any): void {
-    this.socketSubject.next(message);
+  close(): void {
+    this.socket.complete();
   }
 
   ngOnDestroy(): void {
-    this.socketSubject.unsubscribe();
+    this.socket.complete();
   }
 
   get(path: string): Observable<object> {

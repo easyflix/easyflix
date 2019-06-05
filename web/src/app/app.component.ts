@@ -5,7 +5,7 @@ import {playerAnimations} from '@app/animations';
 import {RouterOutlet} from '@angular/router';
 import {FilesService} from '@app/services/files.service';
 import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
-import {switchMap} from 'rxjs/operators';
+import {first, switchMap, tap} from 'rxjs/operators';
 import {LibrariesService} from '@app/services/libraries.service';
 import {HttpSocketClientService} from '@app/services/http-socket-client.service';
 import {MoviesService} from '@app/services/movies.service';
@@ -80,7 +80,13 @@ export class AppComponent implements OnInit, OnDestroy {
     /**
      * Socket
      */
+    // Open
     this.socketClient.socket.subscribe();
+    // Authorize
+    this.core.getToken().pipe(
+      first(),
+      tap(token => this.socketClient.send({ method: 'Authorization', id: 0, entity: token }))
+    ).subscribe();
 
     this.movies.load().subscribe();
 

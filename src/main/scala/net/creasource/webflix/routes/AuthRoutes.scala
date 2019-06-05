@@ -88,7 +88,7 @@ class AuthRoutes(val app: Application) extends Directives with JsonSupport {
     }
   }
 
-  def parameterAuthenticated: Directive0 = {
+  /*def parameterAuthenticated: Directive0 = {
       parameter("access_token".?).flatMap {
         case Some(token) =>
           JwtSprayJson.decodeJson(token, key, Seq(algo)) /*.flatMap(obj => Try(obj.convertTo[Claim]))*/ match {
@@ -99,6 +99,6 @@ class AuthRoutes(val app: Application) extends Directives with JsonSupport {
           }
         case _ => complete(StatusCodes.Unauthorized)
       }
-  }
+  }*/
 
 }

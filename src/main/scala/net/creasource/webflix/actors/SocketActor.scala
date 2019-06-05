@@ -10,10 +10,12 @@ import akka.stream.scaladsl.{Sink, Source}
 import net.creasource.Application
 import net.creasource.json.{JsonMessage, JsonSupport}
 import net.creasource.webflix.events._
+import pdi.jwt.{JwtAlgorithm, JwtSprayJson}
 import spray.json._
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 object SocketActor {
   def props(xhrRoutes: Route)(implicit materializer: ActorMaterializer, app: Application): Props = Props(new SocketActor(xhrRoutes))
@@ -35,6 +37,9 @@ class SocketActor(xhrRoutes: Route)(implicit materializer: ActorMaterializer, ap
 
   val askTimeout: akka.util.Timeout = 2.seconds
 
+  private val key = app.config.getString("auth.key")
+  private val algo = JwtAlgorithm.HS256
+
   app.bus.subscribe(self, classOf[FileAdded])
   app.bus.subscribe(self, classOf[LibraryUpdate])
   app.bus.subscribe(self, classOf[MovieAdded])
@@ -44,7 +49,35 @@ class SocketActor(xhrRoutes: Route)(implicit materializer: ActorMaterializer, ap
   app.bus.subscribe(self, classOf[ShowDeleted])
   app.bus.subscribe(self, classOf[ShowUpdate])
 
-  override def receive: Receive = {
+  app.system.scheduler.scheduleOnce(3.seconds, self, 'timeout)
+
+  override def receive: Receive = authenticating
+
+  def authenticating: Receive = {
+
+    case value: JsValue => value match {
+      case JsonMessage("Authorization", 0, JsString(token)) =>
+        JwtSprayJson.decodeJson(token, key, Seq(algo)) match {
+          case Success(_) =>
+            context.become(behavior)
+          case Failure(exception) =>
+            logger.warning("Socket authentication failed! {}", exception.getMessage)
+            context.stop(self)
+        }
+      case v =>
+        logger.warning("Received unknown message instead of Authorization: {}", v.prettyPrint)
+        context.stop(self)
+    }
+
+    case 'timeout =>
+      logger.warning("Authentication timeout! Stopping Socket Actor.")
+      context.stop(self)
+
+  }
+
+  def behavior: Receive = {
+
+    case 'timeout => // ignore
 
     case FileAdded(file) =>     client ! JsonMessage("FileAdded", 0, file.toJson).toJson
     case LibraryUpdate(lib) =>  client ! JsonMessage("LibraryUpdate", 0, lib.toJson).toJson
@@ -55,14 +88,14 @@ class SocketActor(xhrRoutes: Route)(implicit materializer: ActorMaterializer, ap
     case ShowDeleted(id) =>     client ! JsonMessage("ShowDeleted", 0, id.toJson).toJson
     case ShowUpdate(update) =>  client ! JsonMessage("ShowUpdate", 0, update.toJson).toJson
 
-    case value: JsValue =>
-      handleMessages.applyOrElse(value, (v: JsValue) => logger.warning("Unhandled client Json message:\n{}", v.prettyPrint))
+    // Client sent messages
+    case value: JsValue if sender() == client => handleMessage(value)
 
     case value => logger.error("Unhandled message: {}", value.toString)
 
   }
 
-  def handleMessages: PartialFunction[JsValue, Unit] = {
+  def handleMessage: JsValue => Unit = {
 
     case JsonMessage("HttpRequest", id, entity) =>
       val f = toHttpResponse(entity.convertTo[HttpRequest])

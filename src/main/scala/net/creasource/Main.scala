@@ -39,7 +39,7 @@ object Main extends App with SPAWebServer with SocketWebServer {
       }
     },
     pathPrefix("videos")(Route.seal(authRoutes.cookieAuthenticated(videosRoutes.routes))),
-    pathPrefix("socket")(Route.seal(authRoutes.parameterAuthenticated(socketRoute))),
+    pathPrefix("socket")(Route.seal(socketRoute)),
     super.routes
   )
 
