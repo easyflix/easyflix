@@ -8,7 +8,7 @@ import {DomSanitizer, SafeStyle} from '@angular/platform-browser';
 import {CoreService} from '@app/services/core.service';
 import {FilesService} from '@app/services/files.service';
 import {VideoService} from '@app/services/video.service';
-import {MovieFiltersService} from '@app/services/movie-filters.service';
+import {ShowFiltersService} from '@app/services/show-filters.service';
 
 @Component({
   selector: 'app-show-info',
@@ -112,7 +112,7 @@ export class ShowInfoComponent implements OnInit {
     private core: CoreService,
     private files: FilesService,
     private video: VideoService,
-    private filters: MovieFiltersService,
+    private filters: ShowFiltersService,
     private router: Router,
     private route: ActivatedRoute,
     private sanitizer: DomSanitizer,
@@ -168,8 +168,15 @@ export class ShowInfoComponent implements OnInit {
     return show.details.seasons.filter(season => seasonNumbers.includes(season.season_number));
   }
 
+  navigateToShows(): Promise<boolean> {
+    return this.router.navigate(
+      ['app', { outlets: { primary: 'shows', details: null } }],
+      { queryParamsHandling: 'preserve' }
+    );
+  }
+
   searchPeople(person: string) {
-    this.router.navigate(['/', {outlets: {show: null}}], {queryParamsHandling: 'preserve'}).then(
+    this.navigateToShows().then(
       () => {
         this.filters.clear();
         this.filters.setSearch(person);
@@ -178,7 +185,7 @@ export class ShowInfoComponent implements OnInit {
   }
 
   searchLanguage(language: string) {
-    this.router.navigate(['/', {outlets: {show: null}}], {queryParamsHandling: 'preserve'}).then(
+    this.navigateToShows().then(
       () => {
         this.filters.clear();
         this.filters.setLanguages([language]);
@@ -187,7 +194,7 @@ export class ShowInfoComponent implements OnInit {
   }
 
   searchGenre(genre: string) {
-    this.router.navigate(['/', {outlets: {show: null}}], {queryParamsHandling: 'preserve'}).then(
+    this.navigateToShows().then(
       () => {
         this.filters.clear();
         this.filters.setGenres([genre]);
@@ -195,16 +202,13 @@ export class ShowInfoComponent implements OnInit {
     );
   }
 
-  searchTag(tag: string) {
-    this.router.navigate(['/', {outlets: {show: null}}], {queryParamsHandling: 'preserve'}).then(
+  searchNetwork(network: string) {
+    this.navigateToShows().then(
       () => {
         this.filters.clear();
-        this.filters.setTags([tag]);
+        this.filters.setNetworks([network]);
       }
     );
-  }
-
-  searchNetwork(network: string) {
   }
 
 }

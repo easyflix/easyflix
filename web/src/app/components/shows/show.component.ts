@@ -6,9 +6,9 @@ import {EMPTY, Observable} from 'rxjs';
 import {filter, map, take} from 'rxjs/operators';
 import {VideoService} from '@app/services/video.service';
 import {FilesService} from '@app/services/files.service';
-import {MovieFiltersService} from '@app/services/movie-filters.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ShowsService} from '@app/services/shows.service';
+import {ShowFiltersService} from '@app/services/show-filters.service';
 
 @Component({
   selector: 'app-show',
@@ -105,7 +105,7 @@ export class ShowComponent implements OnInit {
     private files: FilesService,
     private shows: ShowsService,
     private video: VideoService,
-    private filters: MovieFiltersService,
+    private filters: ShowFiltersService,
     private router: Router,
     private route: ActivatedRoute,
     private sanitizer: DomSanitizer,
@@ -196,7 +196,10 @@ export class ShowComponent implements OnInit {
   }
 
   searchYear(year: string) {
-    this.router.navigate(['/', {outlets: {show: null}}], {queryParamsHandling: 'preserve'}).then(
+    this.router.navigate(
+      ['app', { outlets: { primary: 'shows', details: null } }],
+      { queryParamsHandling: 'preserve' }
+    ).then(
       () => {
         this.filters.clear();
         this.filters.setYears([year]);

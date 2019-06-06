@@ -11,7 +11,7 @@ import {MovieFiltersService} from '@app/services/movie-filters.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {FileSelectionComponent} from '@app/components/dialogs/file-selection.component';
 import {MatDialog} from '@angular/material';
-import {MoviesService} from "@app/services/movies.service";
+import {MoviesService} from '@app/services/movies.service';
 
 @Component({
   selector: 'app-movie',
@@ -297,8 +297,15 @@ export class MovieComponent implements OnInit {
     }
   }
 
+  navigateToMovies(): Promise<boolean> {
+    return this.router.navigate(
+      ['app', { outlets: { primary: 'movies', details: null } }],
+      { queryParamsHandling: 'preserve' }
+    );
+  }
+
   searchYear(year: string) {
-    this.router.navigate(['/', {outlets: {details: null}}], {queryParamsHandling: 'preserve'}).then(
+    this.navigateToMovies().then(
       () => {
         this.filters.clear();
         this.filters.setYears([year]);
@@ -307,7 +314,7 @@ export class MovieComponent implements OnInit {
   }
 
   searchLanguage(language: string) {
-    this.router.navigate(['/', {outlets: {details: null}}], {queryParamsHandling: 'preserve'}).then(
+    this.navigateToMovies().then(
       () => {
         this.filters.clear();
         this.filters.setLanguages([language]);
@@ -316,7 +323,7 @@ export class MovieComponent implements OnInit {
   }
 
   searchGenre(genre: string) {
-    this.router.navigate(['/', {outlets: {details: null}}], {queryParamsHandling: 'preserve'}).then(
+    this.navigateToMovies().then(
       () => {
         this.filters.clear();
         this.filters.setGenres([genre]);
@@ -325,7 +332,7 @@ export class MovieComponent implements OnInit {
   }
 
   searchPeople(person: string) {
-    this.router.navigate(['/', {outlets: {details: null}}], {queryParamsHandling: 'preserve'}).then(
+    this.navigateToMovies().then(
       () => {
         this.filters.clear();
         this.filters.setSearch(person);
@@ -334,7 +341,7 @@ export class MovieComponent implements OnInit {
   }
 
   searchTag(tag: string) {
-    this.router.navigate(['/', {outlets: {details: null}}], {queryParamsHandling: 'preserve'}).then(
+    this.navigateToMovies().then(
       () => {
         this.filters.clear();
         this.filters.setTags([tag]);
