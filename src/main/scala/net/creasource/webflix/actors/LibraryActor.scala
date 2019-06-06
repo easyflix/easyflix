@@ -43,6 +43,7 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
 
   case object LibraryScanComplete
   case class ScanComplete(path: Path)
+  case class ScanResult(files: Seq[LibraryFile])
 
   case class WatchComplete(path: Path)
 
@@ -70,8 +71,16 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
       }
 
     case file: LibraryFile =>
-      app.bus.publish(FileAdded(file))
-      files += (file.path -> file)
+      if (files.contains(file.path)) {
+        val newFile = file.copy(id = files(file.path).id) // Keep the id, update the rest
+        if (newFile != files(file.path)) {
+          app.bus.publish(FileAdded(newFile))
+          files += (file.path -> newFile)
+        }
+      } else {
+        app.bus.publish(FileAdded(file))
+        files += (file.path -> file)
+      }
 
     case LibraryFileChange.Creation(file: LibraryFile) =>
       logger.info(s"File created: ${file.path}")
@@ -152,10 +161,19 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
         })
         .runWith(Sink.seq)
         .onComplete {
-          case Success(scannedFiles) => if (client != self) { client ! scannedFiles }
-          case Failure(exception) => if (client != self) { client ! Status.Failure(exception) }
+          case Success(scannedFiles) =>
+            if (client != self) { client ! scannedFiles }
+            self ! ScanResult(scannedFiles)
+          case Failure(exception) =>
+            if (client != self) { client ! Status.Failure(exception) }
         }
       context become scanning(library)
+
+      // TODO test this with an ftp library
+    case ScanResult(scannedFiles) =>
+      // Delete files that are not part of the scanResult (for FTP and S3 libs)
+      val pathsToDelete = files.values.map(_.path).filter(path => !scannedFiles.map(_.path).contains(path))
+      files --= pathsToDelete
 
   }
 

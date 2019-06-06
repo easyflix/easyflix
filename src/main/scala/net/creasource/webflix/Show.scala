@@ -24,6 +24,9 @@ case class Show(
 
   def withEpisode(episode: Episode): Show = copy(episodes = episodes :+ episode)
 
+  def withFiles(files: Set[LibraryFile]): Show =
+    copy(files = this.files ++ files.filter(f => !this.files.map(_.path).contains(f.path)))
+
 }
 
 object Show extends JsonSupport {

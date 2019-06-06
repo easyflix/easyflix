@@ -57,6 +57,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
 
   application.bus.subscribe(self, classOf[FileAdded])
   application.bus.subscribe(self, classOf[FileDeleted])
+  application.bus.subscribe(self, classOf[LibraryDeleted])
 
   val (tmdbActor: ActorRef, connectionPool: Http.HostConnectionPool) =
     Source.actorRef(10000, OverflowStrategy.dropNew)
@@ -96,6 +97,19 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
             movies += movie.id -> updated
           }
         }
+      case LibraryDeleted(name) =>
+        logger.info(name + " has been deleted")
+        movies.values.filter(_.files.map(_.libraryName).contains(name)).foreach{ movie =>
+          logger.info("found movie for that library " + movie.title)
+          val updated = movie.copy(files = movie.files.filter(_.libraryName != name))
+          if (updated.files.isEmpty) {
+            application.bus.publish(MovieDeleted(movie.id))
+            movies -= movie.id
+          } else {
+            application.bus.publish(MovieAdded(updated))
+            movies += movie.id -> updated
+          }
+        }
       case MovieMetadata(name, year, file) =>
         val searchContext = MovieSearchContext(name, year)
         movieSearches.get(searchContext) match {
@@ -109,23 +123,23 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
         movieSearches.get(searchContext).foreach(files =>
           if (result.total_results > 0) {
             val head = result.results.head
-            val movie = movies.get(head.id)
-              .map(movie => movie.copy(files = movie.files ++ files)) // TODO keep newer movie
-              .getOrElse(
-                Movie(
-                  id = head.id,
-                  title = head.title,
-                  original_title = head.original_title,
-                  original_language = head.original_language,
-                  release_date = head.release_date,
-                  poster = head.poster_path,
-                  backdrop = head.backdrop_path,
-                  overview = head.overview,
-                  vote_average = head.vote_average,
-                  files = files,
-                  details = None
-                )
-              )
+            val initial = Movie(
+              id = head.id,
+              title = head.title,
+              original_title = head.original_title,
+              original_language = head.original_language,
+              release_date = head.release_date,
+              poster = head.poster_path,
+              backdrop = head.backdrop_path,
+              overview = head.overview,
+              vote_average = head.vote_average,
+              files = files,
+              details = None
+            )
+            val movie = movies.get(head.id) match {
+              case Some(m) => initial.withFiles(m.files)
+              case None => initial
+            }
             movies += head.id -> movie
             logger.info("Received search results for: " + movie.title)
             tmdbActor ! createRequest(MovieDetailsContext(movie.id))
@@ -173,6 +187,17 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
             shows += show.id -> updated
           }
         }
+      case LibraryDeleted(name) =>
+        shows.values.filter(_.files.map(_.libraryName).contains(name)).foreach{ show =>
+          val updated = show.copy(files = show.files.filter(_.libraryName != name))
+          if (updated.files.isEmpty) {
+            application.bus.publish(ShowDeleted(show.id))
+            shows -= show.id
+          } else {
+            application.bus.publish(ShowAdded(updated))
+            shows += show.id -> updated
+          }
+        }
       case TVEpisodeMetadata(name, _, _, file) =>
         val searchContext = TVSearchContext(name)
         showSearches.get(searchContext) match {
@@ -186,25 +211,25 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
         showSearches.get(searchContext).foreach(files =>
           if (result.total_results > 0) {
             val head = result.results.head
-            val show = shows.get(head.id)
-              .map(show => show.copy(files = show.files ++ files)) // TODO keep newer show
-              .getOrElse(
-                Show(
-                  id = head.id,
-                  name = head.name,
-                  original_name = head.original_name,
-                  original_language = head.original_language,
-                  origin_country = head.origin_country,
-                  first_air_date = head.first_air_date,
-                  poster = head.poster_path,
-                  backdrop = head.backdrop_path,
-                  overview = head.overview,
-                  vote_average = head.vote_average,
-                  files = files,
-                  details = None,
-                  episodes = List.empty
-                )
-              )
+            val initial = Show(
+              id = head.id,
+              name = head.name,
+              original_name = head.original_name,
+              original_language = head.original_language,
+              origin_country = head.origin_country,
+              first_air_date = head.first_air_date,
+              poster = head.poster_path,
+              backdrop = head.backdrop_path,
+              overview = head.overview,
+              vote_average = head.vote_average,
+              files = files,
+              details = None,
+              episodes = List.empty
+            )
+            val show = shows.get(head.id) match {
+              case Some(s) => initial.withFiles(s.files)
+              case None => initial
+            }
             shows += head.id -> show
             logger.info("Received search results for show: " + show.name)
             tmdbActor ! createRequest(TVDetailsContext(show.id))
@@ -320,6 +345,10 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
     case fileDeleted: FileDeleted =>
       moviesActor ! fileDeleted
       showsActor ! fileDeleted
+
+    case libraryDeleted: LibraryDeleted =>
+      moviesActor ! libraryDeleted
+      showsActor ! libraryDeleted
 
     // TMDB responses
     case (Success(HttpResponse(StatusCodes.OK, _, entity, _)), requestContext: RuntimeContext) =>

@@ -19,6 +19,9 @@ case class Movie(
 
   def withDetails(details: Movie.Details): Movie = copy(details = Some(details))
 
+  def withFiles(files: Set[LibraryFile]): Movie =
+    copy(files = this.files ++ files.filter(f => !this.files.map(_.path).contains(f.path)))
+
 }
 
 object Movie extends JsonSupport {

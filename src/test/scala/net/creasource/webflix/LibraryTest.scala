@@ -130,6 +130,7 @@ class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer  {
 
   "A FTP Library" should {
 
+    // TODO write tests for FTP libraries
     "instantiate" in {
 
       val lib = Library.FTP("Ftp-library", Paths.get(""), "localhost", ftpPort, userName, userPass, passive = true, Library.FTP.Types.FTPS)
