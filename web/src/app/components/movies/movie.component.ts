@@ -1,9 +1,9 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
-import {LibraryFile, Movie} from '@app/models';
+import {Movie} from '@app/models';
 import {DomSanitizer, SafeStyle, SafeUrl} from '@angular/platform-browser';
 import {CoreService} from '@app/services/core.service';
 import {EMPTY, Observable} from 'rxjs';
-import {filter, map, switchMap, take} from 'rxjs/operators';
+import {filter, map, take} from 'rxjs/operators';
 import {Cast, Crew, MovieDetails} from '@app/models/movie';
 import {VideoService} from '@app/services/video.service';
 import {FilesService} from '@app/services/files.service';
@@ -11,6 +11,7 @@ import {MovieFiltersService} from '@app/services/movie-filters.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {FileSelectionComponent} from '@app/components/dialogs/file-selection.component';
 import {MatDialog} from '@angular/material';
+import {MoviesService} from "@app/services/movies.service";
 
 @Component({
   selector: 'app-movie',
@@ -193,6 +194,7 @@ export class MovieComponent implements OnInit {
   constructor(
     private core: CoreService,
     private files: FilesService,
+    private movies: MoviesService,
     private video: VideoService,
     private filters: MovieFiltersService,
     private dialog: MatDialog,
@@ -202,8 +204,9 @@ export class MovieComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.movie$ = this.route.data.pipe(
-      switchMap((data: { movie$: Observable<Movie> }) => data.movie$)
+    const id = this.route.snapshot.paramMap.get('id');
+    this.movie$ = this.movies.getById(+id).pipe(
+      filter(movie => !!movie)
     );
   }
 

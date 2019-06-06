@@ -7,10 +7,7 @@ import {SearchComponent} from './components/nav/search.component';
 import {AboutComponent} from './components/nav/about.component';
 import {VideoComponent} from './components/video/video.component';
 import {MoviesComponent} from './components/movies/movies.component';
-import {VideoResolverService} from '@app/guards/video-resolver.service';
-import {MovieResolverService} from '@app/guards/movie-resolver.service';
 import {ShowsComponent} from '@app/components/shows/shows.component';
-import {ShowResolverService} from '@app/guards/show-resolver.service';
 import {DetailsComponent} from '@app/components/details.component';
 import {ShowComponent} from '@app/components/shows/show.component';
 import {MovieComponent} from '@app/components/movies/movie.component';
@@ -29,9 +26,6 @@ export const detailsRoutes = [
         path: ':id',
         component: ShowComponent,
         data: { reuse: false, animation: 'show' },
-        resolve: {
-          show$: ShowResolverService
-        }
       }
     ],
   },
@@ -43,10 +37,7 @@ export const detailsRoutes = [
       {
         path: ':id',
         component: MovieComponent,
-        data: { reuse: false, animation: 'movie' },
-        resolve: {
-          movie$: MovieResolverService
-        }
+        data: { reuse: false, animation: 'movie' }
       }
     ],
   }
@@ -107,7 +98,6 @@ export const routes: Routes = [
         path: ':id',
         outlet: 'player',
         component: VideoComponent,
-        resolve: { video: VideoResolverService },
         data: { animation: 'player' }
       }
     ]

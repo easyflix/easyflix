@@ -1,13 +1,13 @@
 import {ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {VideoService} from '@app/services/video.service';
 import {Observable, Subscription, zip} from 'rxjs';
-import {filter, map, take, tap, throttleTime} from 'rxjs/operators';
+import {filter, first, map, skip, take, tap, throttleTime} from 'rxjs/operators';
 import {CoreService} from '@app/services/core.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {LibraryFile} from '@app/models';
 import {MatDialog} from '@angular/material';
 import {ErrorDialogComponent} from '@app/components/dialogs/error-dialog.component';
 import {environment} from '@env/environment';
+import {FilesService} from '@app/services/files.service';
 
 @Component({
   selector: 'app-video',
@@ -96,6 +96,7 @@ export class VideoComponent implements OnInit, OnDestroy {
   constructor(
     private core: CoreService,
     private video: VideoService,
+    private files: FilesService,
     private router: Router,
     private route: ActivatedRoute,
     private dialog: MatDialog
@@ -114,16 +115,16 @@ export class VideoComponent implements OnInit, OnDestroy {
     this.duration$ = this.video.getDuration();
     this.loading$ = this.video.getLoading();
 
-    this.route.data.subscribe((data: { video: LibraryFile }) =>
-      this.video.setSource(`${environment.endpoint}/videos/${data.video.libraryName}/${data.video.id}`)
-    );
-
-    this.route.queryParamMap.pipe(
-      take(1),
-      map(params => params.get('play')),
-      filter(play => play !== null),
-      tap(play => play === '0' ? setTimeout(() => this.pause(), 0) : {})
-    ).subscribe();
+    const id = this.route.snapshot.paramMap.get('id');
+    this.files.getById(id).pipe(
+      first(video => !!video),
+    ).subscribe(video => {
+      this.video.setSource(`${environment.endpoint}/videos/${video.libraryName}/${video.id}`);
+      const play = this.route.snapshot.queryParamMap.get('play');
+      if (+play === 0) {
+        setTimeout(() => this.pause());
+      }
+    });
 
     this.route.queryParamMap.pipe(
       take(1),
@@ -136,14 +137,15 @@ export class VideoComponent implements OnInit, OnDestroy {
 
       this.video.getCurrentTime().pipe(
         throttleTime(1000),
-        map(ct => Math.floor(ct)),
-        tap(ct => this.router.navigate(
+        map(time => Math.floor(time)),
+        tap(time => this.router.navigate(
           [],
-          { queryParams: { time: ct }, queryParamsHandling: 'merge', replaceUrl: true })
+          { queryParams: { time }, queryParamsHandling: 'merge', replaceUrl: true })
         )
       ).subscribe(),
 
       this.video.getPlaying().pipe(
+        skip(1),
         tap(playing => this.router.navigate(
           [],
           { queryParams: { play: playing ? 1 : 0 }, queryParamsHandling: 'merge', replaceUrl: true })

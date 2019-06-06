@@ -3,11 +3,12 @@ import {Season, Show} from '@app/models/show';
 import {DomSanitizer, SafeStyle, SafeUrl} from '@angular/platform-browser';
 import {CoreService} from '@app/services/core.service';
 import {EMPTY, Observable} from 'rxjs';
-import {filter, map, switchMap, take} from 'rxjs/operators';
+import {filter, map, take} from 'rxjs/operators';
 import {VideoService} from '@app/services/video.service';
 import {FilesService} from '@app/services/files.service';
 import {MovieFiltersService} from '@app/services/movie-filters.service';
 import {ActivatedRoute, Router} from '@angular/router';
+import {ShowsService} from '@app/services/shows.service';
 
 @Component({
   selector: 'app-show',
@@ -102,6 +103,7 @@ export class ShowComponent implements OnInit {
   constructor(
     private core: CoreService,
     private files: FilesService,
+    private shows: ShowsService,
     private video: VideoService,
     private filters: MovieFiltersService,
     private router: Router,
@@ -110,8 +112,9 @@ export class ShowComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.show$ = this.route.data.pipe(
-      switchMap((data: { show$: Observable<Show> }) => data.show$)
+    const id = this.route.snapshot.paramMap.get('id');
+    this.show$ = this.shows.getById(+id).pipe(
+      filter(show => !!show)
     );
     this.seasons$ = this.show$.pipe(
       filter(show => show.details !== undefined),
