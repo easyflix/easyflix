@@ -2,6 +2,8 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@an
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {AuthenticationService} from '@app/services/authentication.service';
 import {ActivatedRoute, Router} from '@angular/router';
+import {CoreService} from '@app/services/core.service';
+import {first, map} from 'rxjs/operators';
 
 @Component({
   selector: 'app-login',
@@ -56,6 +58,7 @@ export class LoginComponent implements OnInit {
   loading = false;
 
   constructor(
+    private core: CoreService,
     private formBuilder: FormBuilder,
     private authenticationService: AuthenticationService,
     private route: ActivatedRoute,
@@ -68,10 +71,16 @@ export class LoginComponent implements OnInit {
       password: ['', Validators.required],
     });
 
-    // reset login status // TODO figure out what to do if logged in
-    // this.authenticationService.logout().subscribe();
-
     this.returnUrl = this.route.snapshot.queryParams.returnUrl || '/';
+
+    // If logged in redirect
+    this.core.getToken().pipe(
+      first(),
+      map(token => {
+        if (token) { this.router.navigateByUrl(this.returnUrl, { replaceUrl: true }); }
+      })
+    ).subscribe();
+
   }
 
   get f() { return this.loginForm.controls; }
