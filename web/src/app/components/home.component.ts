@@ -150,7 +150,7 @@ export class HomeComponent implements OnInit {
   }
 
   exploreMovies(genre?: string): void {
-    this.router.navigate(['movies'], { queryParamsHandling: 'preserve' }).then(
+    this.router.navigate(['app', 'movies'], { queryParamsHandling: 'preserve' }).then(
       () => {
         this.movieFilters.clear();
         if (genre) {
@@ -161,7 +161,7 @@ export class HomeComponent implements OnInit {
   }
 
   exploreShows(): void {
-    this.router.navigate(['shows'], { queryParamsHandling: 'preserve' }).then(
+    this.router.navigate(['app', 'shows'], { queryParamsHandling: 'preserve' }).then(
       () => this.showFilters.clear()
     );
   }
