@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {Router} from '@angular/router';
 import {Observable, Subject} from 'rxjs';
-import {publishReplay, refCount, throttleTime} from 'rxjs/operators';
+import {throttleTime} from 'rxjs/operators';
 import {Store} from '@ngrx/store';
 
 import * as fromStore from '../reducers';
@@ -25,7 +25,7 @@ export class VideoService {
     private store: Store<fromStore.State>,
     private router: Router
   ) {
-    this.currentTime$ = this.currentTimeSubject.asObservable().pipe(publishReplay(1), refCount(), throttleTime(100));
+    this.currentTime$ = this.currentTimeSubject.asObservable().pipe(throttleTime(100));
   }
 
   playVideo(video: LibraryFile) { // TODO

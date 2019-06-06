@@ -121,7 +121,7 @@ export class VideoComponent implements OnInit, OnDestroy {
     ).subscribe(video => {
       this.video.setSource(`${environment.endpoint}/videos/${video.libraryName}/${video.id}`);
       const play = this.route.snapshot.queryParamMap.get('play');
-      if (+play === 0) {
+      if (play && +play === 0) {
         setTimeout(() => this.pause());
       }
     });
@@ -140,8 +140,8 @@ export class VideoComponent implements OnInit, OnDestroy {
         map(time => Math.floor(time)),
         tap(time => this.router.navigate(
           [],
-          { queryParams: { time }, queryParamsHandling: 'merge', replaceUrl: true })
-        )
+          { queryParams: { time }, queryParamsHandling: 'merge', replaceUrl: true }
+        ))
       ).subscribe(),
 
       this.video.getPlaying().pipe(
