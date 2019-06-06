@@ -28,6 +28,10 @@
       radial-gradient(mat-color($background, status-bar, 0.7), mat-color($background, status-bar, 0.8)),
       url('assets/theater_1920.jpg');
     background-size: 100% 100%, cover;
+
+    input {
+      @include cdk-text-field-autofill-color(transparent, mat-color($foreground, text));
+    }
   }
 
   app-sidenav {
@@ -68,7 +72,7 @@
     }
   }
 
-  app-filters-movies, app-filters-shows {
+  app-movies-filters, app-shows-filters {
     input {
       @include cdk-text-field-autofill-color(transparent, mat-color($foreground, text))
     }
