@@ -18,7 +18,6 @@ import {ComponentsModule} from './components/components.module';
 import {routes} from './routes';
 import {CoreService} from './services/core.service';
 import {FilesService} from './services/files.service';
-import {LibrariesLoadedGuard} from '@app/guards/libraries-loaded.guard';
 import {LibrariesService} from '@app/services/libraries.service';
 import {SocketService} from '@app/services/socket.service';
 import {MoviesService} from '@app/services/movies.service';
@@ -65,7 +64,6 @@ import {SocketInterceptor} from '@app/utils/socket.interceptor';
     LibrariesService,
     MoviesService,
     ShowsService,
-    LibrariesLoadedGuard,
     SocketService,
     AuthenticationService,
     MovieFiltersService,
