@@ -61,7 +61,7 @@ export function isPrev(from, to) {
     }
   `],
   animations: [trigger('foldersAnimation', [
-    transition(debugAnimation('folders'), []),
+    // transition(debugAnimation('folders'), []),
     transition('void => *', []),
     transition(isNext, slideLeft),
     transition(isPrev, slideRight),
