@@ -1,28 +1,18 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  ComponentFactory,
-  ComponentFactoryResolver,
-  ComponentRef,
-  OnDestroy,
-  OnInit,
-  ViewChild
-} from '@angular/core';
-import {PanelDirective} from '@app/shared/directives/panel.directive';
-import {FileListComponent} from './file-list.component';
-import {combineLatest, EMPTY, of, Subscription} from 'rxjs';
-import {LibraryListComponent} from './library-list.component';
-import {LibraryFile} from '@app/models';
+import {ChangeDetectionStrategy, Component, OnDestroy, OnInit} from '@angular/core';
+import {Library, LibraryFile} from '@app/models';
 import {ActivatedRoute, Router} from '@angular/router';
-import {switchMap, take, tap} from 'rxjs/operators';
+import {first, tap} from 'rxjs/operators';
 import {FilesService} from '@app/services/files.service';
-import {HttpClient} from '@angular/common/http';
-import {environment} from '@env/environment';
+import {combineLatest} from 'rxjs';
+import {transition, trigger} from '@angular/animations';
+import {debugAnimation, slideLeft, slideRight} from '@app/animations';
 
-export interface AnimatableComponent {
-  afterAnimation();
-  beforeAnimation();
+export function isNext(from, to) {
+  return to.startsWith('next');
+}
+
+export function isPrev(from, to) {
+  return to.startsWith('prev');
 }
 
 @Component({
@@ -30,11 +20,17 @@ export interface AnimatableComponent {
   template: `
     <header>
       <h2>Video Libraries</h2>
-      <h3 class="path">{{getCurrentPath()}}</h3>
     </header>
     <mat-divider></mat-divider>
-    <div class='content' [ngClass]='state'>
-      <ng-template appPanels #myPanels></ng-template>
+    <div class='content' [@foldersAnimation]="getAnimation()">
+      <app-library-list *ngIf="currentFolder === null" (openLibrary)="openLibrary($event)"></app-library-list>
+      <ng-container *ngFor="let folder of openFolders">
+        <app-file-list *ngIf="currentFolder === folder"
+                       [currentFolder]="folder"
+                       (next)="openFolder($event)"
+                       (prev)="closeCurrentFolder()">
+        </app-file-list>
+      </ng-container>
     </div>
   `,
   styles: [`
@@ -56,178 +52,85 @@ export interface AnimatableComponent {
       font-size: 18px;
       white-space: nowrap;
     }
-    h3 {
-      flex-grow: 1;
-      margin: 0 0 0 auto;
-      text-align: right;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-size: 12px;
-      padding-left: 1rem;
-    }
     .content {
       overflow-y: auto;
       display: flex;
       flex-direction: row;
-      flex-grow: 1
-    }
-    .content.s0 {
-      transition: none;
-      transform: translate(0);
-      width: 100%
-    }
-    .content.s-right {
-      transition: transform 0.4s ease;
-      transform: translate(-50%);
-      width: 200%
-    }
-    .content.s-left {
+      flex-grow: 1;
       position: relative;
-      left: -100%;
-      transition: transform 0.4s ease;
-      transform: translate(+50%);
-      width: 200%
     }
   `],
+  animations: [trigger('foldersAnimation', [
+    transition(debugAnimation('folders'), []),
+    transition('void => *', []),
+    transition(isNext, slideLeft),
+    transition(isPrev, slideRight),
+  ])],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LibraryComponent implements OnInit, OnDestroy {
+export class LibraryComponent implements OnInit {
 
-  DRAWER_ANIMATION_TIME = 400;
-
-  state = 's0';
-  animating = false;
-
-  @ViewChild('myPanels', { read: PanelDirective, static: true })
-  panels: PanelDirective;
-
-  librariesComponent: ComponentRef<LibraryListComponent>;
-  librariesSub: Subscription;
-  routeSub: Subscription;
-
-  breadcrumbs: string[] = [];
-  breadcrumbsIds: string[] = [];
-
-  components: ComponentRef<any>[] = [];
-
-  private readonly folderFactory: ComponentFactory<FileListComponent>;
-  private readonly librariesFactory: ComponentFactory<LibraryListComponent>;
+  currentFolder: LibraryFile = null;
+  openFolders: LibraryFile[] = [];
+  animateNext = true;
 
   constructor(
-    private cdr: ChangeDetectorRef,
-    private componentFactoryResolver: ComponentFactoryResolver,
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
     private files: FilesService,
-    private http: HttpClient
-  ) {
-    this.folderFactory = this.componentFactoryResolver.resolveComponentFactory(FileListComponent);
-    this.librariesFactory = this.componentFactoryResolver.resolveComponentFactory(LibraryListComponent);
-  }
+    private router: Router,
+    private route: ActivatedRoute,
+  ) {}
 
   ngOnInit() {
-    this.librariesComponent = this.librariesFactory.create(this.panels.viewContainerRef.injector);
-
-    this.librariesSub =
-      this.librariesComponent.instance.openLibrary.pipe(
-        switchMap(library => this.files.getByPath(library.name).pipe(take(1)))
-      ).subscribe((folder: LibraryFile) => this.goTo(folder));
-
-    this.panels.viewContainerRef.insert(this.librariesComponent.hostView, 0);
-
-    this.librariesComponent.instance.afterAnimation();
-
-    this.components.push(this.librariesComponent);
-
-    this.routeSub = this.activatedRoute.queryParamMap.pipe(
-      take(1),
-      switchMap(route => {
-        const param = route.get('path');
-        if (param === null) { return EMPTY; }
-        const foldersIds = param.split(':');
-        return combineLatest(foldersIds.map(id =>
-          this.files.getById(id).pipe(
-            switchMap(file => {
-              if (file !== undefined) {
-                return of(file);
-              } else {
-                return this.http.get(`${environment.endpoint}/api/videos/${id}`);
-              }
-            }),
-            take(1)
-          )
-        ));
-      }),
-      tap(() => this.resetBreadcrumbs()),
-      tap((folders: LibraryFile[]) => folders.forEach(f => this.goTo(f, false, 0))),
+    const path = this.route.snapshot.queryParamMap.get('path');
+    const ids = path ? path.split(':') : [];
+    combineLatest(ids.map(id => this.files.getById(id).pipe(first(f => !!f)))).pipe(
+      tap(folders => {
+        this.openFolders = folders;
+        this.currentFolder = folders[folders.length - 1];
+      })
     ).subscribe();
   }
 
-  ngOnDestroy() {
-    this.librariesSub.unsubscribe();
-    this.routeSub.unsubscribe();
+  openLibrary(library: Library): void {
+    this.files.getByPath(library.name).pipe(
+      first(file => !!file),
+    ).subscribe(folder => {
+      this.animateNext = true;
+      this.openFolders.push(folder);
+      this.currentFolder = folder;
+      this.navigate();
+    });
   }
 
-  resetBreadcrumbs() {
-    this.breadcrumbsIds = [];
-    this.breadcrumbs = [];
+  openFolder(file: LibraryFile): void {
+    this.files.getById(file.id).pipe(
+      first(folder => !!folder)
+    ).subscribe(folder => {
+      this.animateNext = true;
+      this.openFolders.push(folder);
+      this.currentFolder = folder;
+      this.navigate();
+    });
+  }
+
+  closeCurrentFolder(): void {
+    this.animateNext = false;
+    this.openFolders.pop();
+    this.currentFolder = this.openFolders[this.openFolders.length - 1] || null;
+    this.navigate();
   }
 
   navigate() {
-    const id = this.breadcrumbsIds.length === 0 ? null : this.breadcrumbsIds.reduce((a, b) => `${a}:${b}`);
-    this.router.navigate([], { queryParams: { path: id }, queryParamsHandling: 'merge', replaceUrl: true });
+    const id = this.openFolders.length === 0 ?
+      null : this.openFolders.map(f => f.id).reduce((a, b) => `${a}:${b}`);
+    this.router.navigate(
+      [],
+      { queryParams: { path: id }, queryParamsHandling: 'merge', replaceUrl: true }
+    );
   }
 
-  goTo(folder: LibraryFile, navigate: boolean = true, animationTime: number = this.DRAWER_ANIMATION_TIME) {
-    if (this.animating) { return; }
-    this.animating = true;
-    const fromRef = this.components[this.components.length - 1];
-    const toRef = this.folderFactory.create(this.panels.viewContainerRef.injector);
-    toRef.instance.currentFolder = folder;
-    toRef.instance.prev.subscribe(() => this.goBack());
-    toRef.instance.next.subscribe(f => this.goTo(f));
-    this.components.push(toRef);
-    this.breadcrumbs.push(folder.path);
-    this.breadcrumbsIds.push(folder.id);
-    if (navigate) { this.navigate(); }
-    this.animate(fromRef, toRef, true, animationTime);
-  }
-
-  goBack() {
-    if (this.animating) { return; }
-    this.animating = true;
-    const fromRef = this.components.pop();
-    this.breadcrumbs.pop();
-    this.breadcrumbsIds.pop();
-    this.navigate();
-    this.animate(fromRef, this.components[this.components.length - 1], false, this.DRAWER_ANIMATION_TIME);
-  }
-
-  animate<T, R extends AnimatableComponent>(from: ComponentRef<T>, to: ComponentRef<R>, ltr: boolean, animationTime: number) {
-    const viewContainer = this.panels.viewContainerRef;
-    this.state = ltr ? 's-right' : 's-left';
-    viewContainer.insert(to.hostView, ltr ? viewContainer.length : 0);
-    to.instance.beforeAnimation();
-    const f = () => {
-      this.state = 's0';
-      this.animating = false;
-      this.cdr.detectChanges();
-      ltr ?
-        viewContainer.detach(viewContainer.indexOf(from.hostView)) :
-        viewContainer.remove(viewContainer.indexOf(from.hostView));
-      to.instance.afterAnimation();
-    };
-    if (animationTime === 0) {
-      f();
-    } else {
-      setTimeout(f, animationTime);
-    }
-  }
-
-  getCurrentPath(): string {
-    if (this.breadcrumbs.length === 0) { return ''; }
-    return this.breadcrumbs[this.breadcrumbs.length - 1]; // reduce((a, b) => `${a}/${b}`);
+  getAnimation(): string {
+    return (this.animateNext ? 'next-' : 'prev-') + (this.currentFolder && this.currentFolder.id || 'void');
   }
 
 }

@@ -1,14 +1,27 @@
-import {ChangeDetectionStrategy, Component, ElementRef, EventEmitter, OnInit, ViewChild} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  ViewChild
+} from '@angular/core';
 import {Observable} from 'rxjs';
 
 import {FilesService} from '@app/services/files.service';
 import {LibraryFile} from '@app/models';
 import {VideoService} from '@app/services/video.service';
-import {AnimatableComponent} from '@app/components/nav/library/library.component';
+import {CoreService} from '@app/services/core.service';
 
 @Component({
-  selector: 'app-folder',
+  selector: 'app-file-list',
   template: `
+    <h4 class="path">
+      {{ currentFolder.path }}
+    </h4>
+    <mat-divider></mat-divider>
     <mat-action-list dense class="back">
       <button mat-list-item (click)='prev.emit()' #back>
         <mat-icon matListIcon class="back-icon">chevron_left</mat-icon>
@@ -60,6 +73,18 @@ import {AnimatableComponent} from '@app/components/nav/library/library.component
       display: flex;
       flex-direction: column;
     }
+    .path {
+      margin: 0;
+      height: 48px;
+      box-sizing: border-box;
+      line-height: 16px;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 1rem 1.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     cdk-virtual-scroll-viewport {
       flex-grow: 1;
       width: 100%;
@@ -87,13 +112,18 @@ import {AnimatableComponent} from '@app/components/nav/library/library.component
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class FileListComponent implements OnInit, AnimatableComponent {
+export class FileListComponent implements OnInit {
 
+  @Input()
+  currentFolder: LibraryFile;
+
+  @Output()
   next: EventEmitter<LibraryFile> = new EventEmitter();
+
+  @Output()
   prev: EventEmitter<void> = new EventEmitter();
 
   files$: Observable<LibraryFile[]>;
-  currentFolder: LibraryFile;
 
   @ViewChild('back', { read: ElementRef, static: true })
   back: ElementRef;
@@ -102,6 +132,7 @@ export class FileListComponent implements OnInit, AnimatableComponent {
   scrollable: ElementRef;
 
   constructor(
+    private core: CoreService,
     private files: FilesService,
     private video: VideoService
   ) {}
@@ -111,38 +142,9 @@ export class FileListComponent implements OnInit, AnimatableComponent {
   }
 
   playVideo(video: LibraryFile) {
-    this.video.playVideo(video);
+    this.core.closeSidenav();
+    setTimeout(() => this.video.playVideo(video));
   }
-
-  beforeAnimation() {
-    const container = this.scrollable.nativeElement as HTMLElement;
-    // wake up cdk-virtual-scroll (uses polyfill)
-    container.scrollTo(0, 1);
-    container.scrollTo(0, 0);
-  }
-
-  afterAnimation() {
-/*    const container = this.scrollable.nativeElement as HTMLElement;
-    // wake up cdk-virtual-scroll (uses polyfill)
-    container.scrollTo(0, 1);
-    container.scrollTo(0, 0);*/
-  /*    const back = this.back.nativeElement as HTMLElement;
-      const container = this.scrollable.nativeElement as HTMLElement;
-      /!*const first = back.nextElementSibling as HTMLElement;
-      if (first) { first.focus(); }*!/
-      // back.focus();
-      console.log(container.children[0]);
-      (container.children[0] as HTMLElement).translate = false;
-      container.scrollBy(0, 1);*/
-    // setTimeout(() => back.focus(), 0);
-  }
-
-/*  getCurrentPath() {
-    switch (this.currentFolder.type) {
-      case 'library': return this.currentFolder.name;
-      case 'folder': return this.currentFolder.parent + this.currentFolder.name;
-    }
-  }*/
 
   getFolderCount(folder: LibraryFile): Observable<number> {
     return this.files.getFolderCount(folder);

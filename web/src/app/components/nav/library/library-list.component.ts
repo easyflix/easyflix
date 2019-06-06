@@ -1,8 +1,7 @@
-import {ChangeDetectionStrategy, Component, ElementRef, EventEmitter, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, ElementRef, EventEmitter, OnInit, Output, ViewChild} from '@angular/core';
 import {EMPTY, Observable} from 'rxjs';
 import {map, switchMap} from 'rxjs/operators';
 import {Library} from '@app/models';
-import {AnimatableComponent} from '@app/components/nav/library/library.component';
 import {LibrariesService} from '@app/services/libraries.service';
 import {MatDialog} from '@angular/material/dialog';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -12,7 +11,7 @@ import {FTPLibrary, LocalLibrary, S3Library} from '@app/models/library';
 import {ConfirmDialogComponent} from '@app/components/dialogs/confirm-dialog.component';
 
 @Component({
-  selector: 'app-libraries-view',
+  selector: 'app-library-list',
   template: `
     <mat-action-list>
 
@@ -203,12 +202,13 @@ import {ConfirmDialogComponent} from '@app/components/dialogs/confirm-dialog.com
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LibraryListComponent implements OnInit, AnimatableComponent {
+export class LibraryListComponent implements OnInit {
 
   localLibraries$: Observable<LocalLibrary[]>;
   ftpLibraries$: Observable<FTPLibrary[]>;
   s3Libraries$: Observable<S3Library[]>;
 
+  @Output()
   openLibrary: EventEmitter<Library> = new EventEmitter();
 
   @ViewChild('matList', { read: ElementRef, static: false })
@@ -219,9 +219,7 @@ export class LibraryListComponent implements OnInit, AnimatableComponent {
     private files: FilesService,
     private dialog: MatDialog,
     private snack: MatSnackBar
-  ) {
-
-  }
+  ) {}
 
   ngOnInit() {
 
@@ -235,12 +233,6 @@ export class LibraryListComponent implements OnInit, AnimatableComponent {
       map(libs => libs.filter(lib => lib.type === 's3') as S3Library[])
     );
     // setTimeout(() => this.openLibraryCreationDialog());
-  }
-
-  beforeAnimation() {}
-
-  afterAnimation() {
-    // setTimeout(() => this.matList.nativeElement.children[0].focus(), 0);
   }
 
   /*focusNext(event: KeyboardEvent) {
