@@ -49,12 +49,15 @@ import {ShowsService} from '@app/services/shows.service';
         </mat-select>
       </mat-form-field>
       <button mat-raised-button *ngIf="showClear$ | async"
-              color="warn"
-              (click)="clearFilters()">Clear</button>
+              color="warn" class="clear"
+              (click)="clearFilters()">CLEAR</button>
   `,
   styles: [`
     mat-form-field {
       width: 100%;
+    }
+    .clear {
+      margin-top: 2rem;
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
