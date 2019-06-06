@@ -415,6 +415,10 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
         tags +:= "mp4"
       if (lower.endsWith("avi"))
         tags +:= "avi"
+      if (lower.endsWith("mov"))
+        tags +:= "mov"
+      if (lower.contains("480p"))
+        tags +:= "480p"
       if (lower.contains("720p"))
         tags +:= "720p"
       if (lower.contains("1080p"))
