@@ -31,6 +31,7 @@
 
   <logger name="akka.event.slf4j.Slf4jLogger" level="WARN" />
   <logger name="akka.actor.ActorSystemImpl" level="ERROR" />
+  <logger name="akka.actor.RepointableActorRef" level="OFF" />
 
   <root level="INFO">
     <appender-ref ref="ASYNCFILE" />
