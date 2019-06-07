@@ -1,7 +1,6 @@
 import {ChangeDetectionStrategy, Component, HostBinding, OnInit} from '@angular/core';
 import {map} from 'rxjs/operators';
 import {CoreService} from '@app/services/core.service';
-import {ThemesUtils} from '@app/utils/themes.utils';
 
 @Component({
   selector: 'app-root',
@@ -32,7 +31,6 @@ export class RootComponent implements OnInit {
     this.core.getTheme().pipe(map(t => t.cssClass)).subscribe(
       cssClass => this.class = cssClass
     );
-    this.core.changeTheme(ThemesUtils.allThemes[0]);
   }
 
 }

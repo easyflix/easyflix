@@ -15,8 +15,8 @@ import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
         <dd>Thomas Gambet</dd>
         <dt>Contact</dt>
         <dd><a href="mailto:contact@creasource.net">contact@creasource.net</a></dd>
-        <dt>Website</dt>
-        <dd><a href="https://webflix.creasource.net" target="_blank">https://webflix.creasource.net</a></dd>
+        <!--<dt>Website</dt>
+        <dd><a href="https://webflix.creasource.net" target="_blank">https://webflix.creasource.net</a></dd>-->
         <dt>Github</dt>
         <dd><a href="https://github.com/tgambet/webflix" target="_blank">https://github.com/tgambet/webflix</a></dd>
       </dl>

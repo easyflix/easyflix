@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import {Action} from '@ngrx/store';
 import {Actions, Effect, ofType} from '@ngrx/effects';
-import {asapScheduler, Observable, of, scheduled} from 'rxjs';
+import {asapScheduler, combineLatest, Observable, of, scheduled} from 'rxjs';
 import {catchError, filter, map, skip, switchMap, take, tap} from 'rxjs/operators';
 
 import {FilesActionTypes, LoadFiles, LoadFilesError, LoadFilesSuccess} from '@app/actions/files.actions';
@@ -35,6 +35,8 @@ import {MovieSortStrategy} from '@app/actions/movie-filters.actions';
 import {ShowSortStrategy} from '@app/actions/show-filters.actions';
 import {environment} from '@env/environment';
 import {encode} from '@app/utils';
+import {ThemesUtils} from '@app/utils/themes.utils';
+import {SidenavModeType, SidenavWidthType} from '@app/reducers/core.reducer';
 
 @Injectable()
 export class AppEffects {
@@ -403,6 +405,49 @@ export class AppEffects {
   getToken$ = scheduled([localStorage.getItem('token')], asapScheduler).pipe(
     filter(token => !!token),
     tap(token => this.core.setToken(token))
+  );
+
+  /**
+   * Theme
+   */
+  @Effect({dispatch: false})
+  storeTheme$ = this.core.getTheme().pipe(
+    tap(theme =>
+      localStorage.setItem('theme', theme.cssClass)
+    )
+  );
+  @Effect({dispatch: false})
+  getTheme$ = scheduled([localStorage.getItem('theme')], asapScheduler).pipe(
+    tap(theme => {
+      if (theme) {
+        this.core.changeTheme(ThemesUtils.allThemes.find(t => t.cssClass === theme) || ThemesUtils.allThemes[0]);
+      } else {
+        this.core.changeTheme(ThemesUtils.allThemes[0]);
+      }
+    })
+  );
+
+  /**
+   * Sidenav
+   */
+  @Effect({dispatch: false})
+  storeSidenav$ = combineLatest([this.core.getSidenavMode(), this.core.getSidenavWidth()]).pipe(
+    tap(settings =>
+      localStorage.setItem('sidenav', JSON.stringify({
+        mode: settings[0],
+        width: settings[1]
+      }))
+    )
+  );
+  @Effect({dispatch: false})
+  getSidenavSettings$ = scheduled([localStorage.getItem('sidenav')], asapScheduler).pipe(
+    tap(value => {
+      if (value) {
+        const settings = JSON.parse(value) as { mode: SidenavModeType, width: SidenavWidthType };
+        this.core.setSidenavMode(settings.mode);
+        this.core.setSidenavSize(settings.width);
+      }
+    })
   );
 
   constructor(

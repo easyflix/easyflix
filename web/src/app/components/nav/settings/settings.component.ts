@@ -51,13 +51,6 @@ import {map} from 'rxjs/operators';
       margin: 0;
       font-size: 18px;
     }
-    h3 {
-      margin: 1.25rem 0;
-      font-size: 18px;
-    }
-    p {
-      margin: 0 0 1rem 0;
-    }
     .settings {
       flex-grow: 1;
       display: flex;
@@ -65,8 +58,8 @@ import {map} from 'rxjs/operators';
       padding: 0.75rem 1.25rem 0.25rem 1.25rem;
       overflow-y: auto;
     }
-    .settings form {
-      margin-bottom: 1rem;
+    nav {
+      display: none; /* TODO */
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush
