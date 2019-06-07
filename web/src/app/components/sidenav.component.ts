@@ -27,12 +27,12 @@ import {CoreService} from '@app/services/core.service';
               queryParamsHandling="preserve">
         <mat-icon>search</mat-icon>
       </button>
-      <button mat-icon-button
+      <!--<button mat-icon-button
               [routerLink]="[{ outlets: { nav: ['history'] } }]"
               routerLinkActive="active"
               queryParamsHandling="preserve">
         <mat-icon>history</mat-icon>
-      </button>
+      </button>-->
       <button mat-icon-button
               [routerLink]="[{ outlets: { nav: ['settings'] } }]"
               routerLinkActive="active"
