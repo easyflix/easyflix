@@ -6,6 +6,9 @@ import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
 import {Episode, Show} from '@app/models/show';
 import {LibraryFile} from '@app/models';
 import {ActivatedRoute} from '@angular/router';
+import {VideoService} from '@app/services/video.service';
+import {FileSelectionComponent} from '@app/components/dialogs/file-selection.component';
+import {MatDialog} from '@angular/material';
 
 @Component({
   selector: 'app-episode',
@@ -17,6 +20,9 @@ import {ActivatedRoute} from '@angular/router';
             <mat-icon>movie</mat-icon>
           </div>
         </ng-template>
+        <button class="play" mat-mini-fab color="primary" (click)="play()">
+          <mat-icon>play_arrow</mat-icon>
+        </button>
       </div>
       <div class="content">
         <app-tabs>
@@ -99,6 +105,7 @@ import {ActivatedRoute} from '@angular/router';
       margin-right: 30px;
       font-size: 0;
       min-width: 300px;
+      position: relative;
     }
     .no-still {
       height: 169px;
@@ -110,6 +117,16 @@ import {ActivatedRoute} from '@angular/router';
       font-size: 4rem;
       height: 4rem;
       width: 4rem;
+    }
+    .play {
+      position: absolute;
+      right: 50%;
+      bottom: 50%;
+      transform: translate(50%, 50%);
+      display: none;
+    }
+    .still:hover .play {
+      display: unset;
     }
     .content {
       min-width: calc(100% - 330px);
@@ -141,8 +158,10 @@ export class EpisodeComponent implements OnInit {
   files: LibraryFile[];
 
   constructor(
-    private route: ActivatedRoute,
     private core: CoreService,
+    private video: VideoService,
+    private route: ActivatedRoute,
+    private dialog: MatDialog,
     private sanitizer: DomSanitizer,
   ) {
 
@@ -187,6 +206,21 @@ export class EpisodeComponent implements OnInit {
     return this.route.paramMap.pipe(
       map(params => params.get('file') === null)
     );
+  }
+
+  play(): void {
+    if (this.files.length > 1) {
+      const fileRef = this.dialog.open(FileSelectionComponent, {
+        minWidth: '650px',
+        maxWidth: '85%',
+        data: { files: this.files }
+      });
+      fileRef.afterClosed().subscribe(
+        file => file ? this.video.playVideo(file) : {}
+      );
+    } else {
+      this.video.playVideo(this.files[0]);
+    }
   }
 
 }
