@@ -1,3 +1,2 @@
-# Webflix
+# Easyflix
 
-Coming soon

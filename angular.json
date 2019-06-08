@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "webflix": {
+    "easyflix": {
       "root": "web",
       "sourceRoot": "web/src",
       "projectType": "application",
@@ -64,18 +64,18 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "webflix:build"
+            "browserTarget": "easyflix:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "webflix:build:production"
+              "browserTarget": "easyflix:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "webflix:build"
+            "browserTarget": "easyflix:build"
           }
         },
         "test": {
@@ -111,7 +111,7 @@
         }
       }
     },
-    "webflix-e2e": {
+    "easyflix-e2e": {
       "root": "web/e2e/",
       "projectType": "application",
       "prefix": "",
@@ -120,11 +120,11 @@
           "builder": "@angular-devkit/build-angular:protractor",
           "options": {
             "protractorConfig": "web/e2e/protractor.conf.js",
-            "devServerTarget": "webflix:serve"
+            "devServerTarget": "easyflix:serve"
           },
           "configurations": {
             "production": {
-              "devServerTarget": "webflix:serve:production"
+              "devServerTarget": "easyflix:serve:production"
             }
           }
         },
@@ -140,5 +140,5 @@
       }
     }
   },
-  "defaultProject": "webflix"
+  "defaultProject": "easyflix"
 }

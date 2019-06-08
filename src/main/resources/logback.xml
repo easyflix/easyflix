@@ -1,15 +1,15 @@
 <configuration>
 
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>${webflix.cache-folder:-./data}/logs/application.log</file>
+    <file>${easyflix.cache-folder:-./data}/logs/application.log</file>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <fileNamePattern>${webflix.cache-folder:-./data}/logs/application.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <fileNamePattern>${easyflix.cache-folder:-./data}/logs/application.%d{yyyy-MM-dd}.log</fileNamePattern>
       <maxHistory>10</maxHistory>
       <totalSizeCap>10MB</totalSizeCap>
     </rollingPolicy>
     <encoder>
       <!--<pattern>%date{ISO8601} %-5level [%logger] [%X{sourceThread}] [%X{akkaSource}] - %msg%n</pattern>-->
-      <pattern>%date{ISO8601} %-5level [%logger] [%X{akkaSource}] - %msg%n</pattern>
+      <pattern>%-5level %date{ISO8601} [%logger] [%X{akkaSource}] - %msg%n</pattern>
     </encoder>
   </appender>
 
@@ -27,7 +27,7 @@
     <appender-ref ref="STDOUT" />
   </appender>
 
-  <logger name="net.creasource.webflix.actors.LibraryActor" level="INFO" />
+  <logger name="net.easyflix.app.actors.LibraryActor" level="INFO" />
 
   <logger name="akka.event.slf4j.Slf4jLogger" level="WARN" />
   <logger name="akka.actor.ActorSystemImpl" level="ERROR" />

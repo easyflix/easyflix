@@ -18,7 +18,7 @@ import {getParentPath} from '@app/utils';
       <mat-form-field [floatLabel]="'never'">
         <mat-label>File path, name, extension</mat-label>
         <input matInput
-               name="webflix-search"
+               name="ef-search"
                [(ngModel)]="search"
                spellcheck="false"/>
         <mat-icon class="close" matSuffix (click)="search = ''" *ngIf="search !== ''">close</mat-icon>

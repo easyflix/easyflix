@@ -1,8 +1,8 @@
 {
-  "name": "webflix",
-  "version": "0.0.0",
-  "author": "Thomas Gambet <thomas.gambet@gmail.com> (https://github.com/tgambet/)",
-  "license": "MIT",
+  "name": "easyflix",
+  "version": "1.0.0",
+  "author": "Thomas Gambet (https://github.com/tgambet/)",
+  "license": "AGPLv3",
   "scripts": {
     "ng": "ng",
     "ng:start": "ng serve",
