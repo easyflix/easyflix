@@ -6,7 +6,7 @@ This project and everyone participating in it is governed by the [Contributor Co
 
 ## Contributing code
 
-We follow the standard GitHub fork & pull approach to pull requests. 
+We follow the standard [GitHub fork & pull approach](https://help.github.com/en/articles/creating-a-pull-request-from-a-fork) to pull requests. 
 
 Just fork the official repository, develop in a branch, and submit a pull request.
 
