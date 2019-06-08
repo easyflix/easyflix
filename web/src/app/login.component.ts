@@ -35,7 +35,7 @@ import {first, map} from 'rxjs/operators';
     }
     app-logo {
       width: 300px;
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
     }
     form {
       display: flex;
