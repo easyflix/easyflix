@@ -6,9 +6,29 @@ It is written in Typescript and Scala, and is licensed under the GNU Affero Gene
 
 ![GitHub](https://img.shields.io/github/license/tgambet/easyflix.svg?color=green&style=flat-square)
 
+## Features
+
+* Local, FTP and Amazon S3 libraries support
+* Auto-discovery of movies and TV shows
+* Authentication (password protection)
+* Searching, sorting and filtering
+* Keyboard navigable
+* Shareable URLs
+* Themes
+
 ## Presentation
 
-TODO
+### Library creation
+
+![presentation-01](https://raw.githubusercontent.com/easyflix/easyflix-assets/master/gifs/presentation-01-library.gif)
+
+### The player
+
+![presentation-02](https://raw.githubusercontent.com/easyflix/easyflix-assets/master/gifs/presentation-02-player.gif)
+
+### Sorting and filtering
+
+![presentation-03](https://raw.githubusercontent.com/easyflix/easyflix-assets/master/gifs/presentation-03-filters.gif)
 
 ## Roadmap
 
