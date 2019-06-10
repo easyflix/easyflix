@@ -22,6 +22,8 @@ lazy val root = (project in file("."))
     libraryDependencies += alpakkaS3,
     libraryDependencies += JwtSprayJson,
     libraryDependencies += akkaHttpCors,
+    libraryDependencies += catsEffect,
+    libraryDependencies += decline,
 
     libraryDependencies += scalaTest % Test,
     libraryDependencies += akkaTestkit % Test,

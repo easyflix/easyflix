@@ -27,4 +27,6 @@ object Dependencies {
   lazy val shortId = "me.nimavat" % "shortid" % "1.0.1.RC1"
   lazy val JwtSprayJson = "com.pauldijou" %% "jwt-spray-json" % "2.1.0"
   lazy val akkaHttpCors = "ch.megard" %% "akka-http-cors" % "0.4.0"
+  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "2.0.0-M3"
+  lazy val decline = "com.monovore" %% "decline" % "0.5.0"
 }
