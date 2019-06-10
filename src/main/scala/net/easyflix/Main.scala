@@ -6,6 +6,7 @@ import akka.http.scaladsl.server._
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.{cors, corsRejectionHandler}
 import net.easyflix.http.{SPAWebServer, SocketWebServer}
 import net.easyflix.actors.SocketActor
+import net.easyflix.app.Application
 import net.easyflix.routes.{APIRoutes, AuthRoutes, VideosRoutes}
 
 import scala.io.StdIn

@@ -7,7 +7,7 @@ import akka.actor.SupervisorStrategy.{Restart, Stop}
 import akka.actor._
 import akka.event.Logging
 import akka.pattern.ask
-import net.easyflix.Application
+import net.easyflix.app.Application
 import net.easyflix.events.{LibraryCreated, LibraryDeleted}
 import net.easyflix.exceptions.{NotFoundException, ValidationException}
 import net.easyflix.json.JsonSupport

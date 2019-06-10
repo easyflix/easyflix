@@ -1,4 +1,4 @@
-package net.easyflix
+package net.easyflix.app
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.model.MediaType.NotCompressible

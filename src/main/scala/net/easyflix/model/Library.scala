@@ -17,7 +17,7 @@ import akka.util.ByteString
 import com.amazonaws.auth.{AWSStaticCredentialsProvider, BasicAWSCredentials}
 import com.amazonaws.regions.{AwsRegionProvider, Regions}
 import me.nimavat.shortid.ShortId
-import net.easyflix.Application
+import net.easyflix.app.Application
 import net.easyflix.exceptions.ValidationException
 import net.easyflix.json.JsonSupport
 import net.easyflix.model.Library.FTP.Types

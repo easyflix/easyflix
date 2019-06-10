@@ -6,7 +6,7 @@ import akka.actor.{Actor, Props, Status}
 import akka.event.Logging
 import akka.stream.scaladsl.{Keep, Sink}
 import akka.stream.{KillSwitches, SharedKillSwitch, UniqueKillSwitch}
-import net.easyflix.Application
+import net.easyflix.app.Application
 import net.easyflix.events.{FileAdded, FileDeleted, LibraryUpdate}
 import net.easyflix.exceptions.NotFoundException
 import net.easyflix.model.{Library, LibraryFile, LibraryFileChange}

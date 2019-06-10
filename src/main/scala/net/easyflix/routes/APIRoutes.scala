@@ -4,9 +4,9 @@ import akka.Done
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.{Directives, Route}
 import akka.pattern.ask
-import net.easyflix.Application
 import net.easyflix.actors.LibrarySupervisor._
 import net.easyflix.actors.TMDBActor
+import net.easyflix.app.Application
 import net.easyflix.exceptions.{NotFoundException, ValidationException}
 import net.easyflix.json.JsonSupport
 import net.easyflix.model._

@@ -8,10 +8,11 @@ import akka.http.scaladsl.model.{HttpRequest, HttpResponse, ResponseEntity, Stat
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.util.ByteString
+import net.easyflix.app.Application
 import net.easyflix.events._
 import net.easyflix.exceptions.NotFoundException
 import net.easyflix.model._
-import net.easyflix.{Application, tmdb}
+import net.easyflix.tmdb
 import spray.json.DefaultJsonProtocol._
 
 import scala.concurrent.Future

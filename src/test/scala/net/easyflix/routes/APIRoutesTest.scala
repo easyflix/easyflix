@@ -2,7 +2,7 @@ package net.easyflix.routes
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit._
-import net.easyflix.Application
+import net.easyflix.app.Application
 import net.easyflix.json.JsonSupport
 import net.easyflix.model.{Library, LibraryFile}
 import net.easyflix.util.WithLibrary

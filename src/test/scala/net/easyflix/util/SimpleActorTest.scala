@@ -2,7 +2,7 @@ package net.easyflix.util
 
 import akka.stream.ActorMaterializer
 import akka.testkit.{ImplicitSender, TestKit}
-import net.easyflix.Application
+import net.easyflix.app.Application
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 

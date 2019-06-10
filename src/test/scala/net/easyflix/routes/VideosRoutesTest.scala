@@ -5,8 +5,8 @@ import java.nio.file.Paths
 import akka.http.scaladsl.model.{ContentType, HttpEntity, MediaTypes, StatusCodes}
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.util.Timeout
-import net.easyflix.Application
 import net.easyflix.actors.LibrarySupervisor.{AddLibrary, ScanLibrary}
+import net.easyflix.app.Application
 import net.easyflix.json.JsonSupport
 import net.easyflix.model.Library.{FTP, Local}
 import net.easyflix.model.LibraryFile

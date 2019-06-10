@@ -8,8 +8,8 @@ import akka.http.scaladsl.server.directives.RouteDirectives.complete
 import akka.http.scaladsl.server.directives.{FileAndResourceDirectives, RangeDirectives}
 import akka.pattern.ask
 import akka.stream.scaladsl.Sink
-import net.easyflix.Application
 import net.easyflix.actors.LibrarySupervisor.{GetFileById, GetLibrary}
+import net.easyflix.app.Application
 import net.easyflix.exceptions.NotFoundException
 import net.easyflix.model.{Library, LibraryFile}
 

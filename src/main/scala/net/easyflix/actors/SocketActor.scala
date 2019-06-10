@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.RouteResult.route2HandlerFlow
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
-import net.easyflix.Application
+import net.easyflix.app.Application
 import net.easyflix.json.{JsonMessage, JsonSupport}
 import net.easyflix.events._
 import pdi.jwt.{JwtAlgorithm, JwtSprayJson}

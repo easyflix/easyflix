@@ -3,7 +3,7 @@ package net.easyflix.routes
 import akka.http.scaladsl.model.headers.{CacheDirectives, HttpCookie, RawHeader, `Cache-Control`}
 import akka.http.scaladsl.model.{DateTime, StatusCodes}
 import akka.http.scaladsl.server.{Directive0, Directives, Route}
-import net.easyflix.Application
+import net.easyflix.app.Application
 import net.easyflix.json.JsonSupport
 import net.easyflix.routes.AuthRoutes.LoginRequest
 import pdi.jwt.{JwtAlgorithm, JwtClaim, JwtSprayJson}

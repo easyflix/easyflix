@@ -5,7 +5,7 @@ import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit._
-import net.easyflix.Application
+import net.easyflix.app.Application
 import net.easyflix.json.JsonSupport
 import net.easyflix.util.WithLibrary
 import net.easyflix.routes.AuthRoutes.LoginRequest
