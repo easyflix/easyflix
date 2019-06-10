@@ -5,7 +5,6 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.RouteResult.route2HandlerFlow
 import akka.stream.ActorMaterializer
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -26,7 +25,7 @@ trait WebServer {
   def routes: Route = reject
 
   def start(host: String, port: Int): Future[Unit] = {
-    bindingFuture = Http().bindAndHandle(route2HandlerFlow(routes), host, port)
+    bindingFuture = Http().bindAndHandle(Route.handlerFlow(routes), host, port)
     bindingFuture.failed.foreach { ex =>
       system.log.error(ex, "Failed to bind to {}:{}!", host, port)
     }

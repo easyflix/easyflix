@@ -6,8 +6,8 @@ import akka.http.scaladsl.model.{ContentType, MediaType}
 import akka.http.scaladsl.server.directives.ContentTypeResolver
 import akka.stream.ActorMaterializer
 import com.typesafe.config.{Config, ConfigFactory}
-import net.easyflix.app.actors.{LibrarySupervisor, TMDBActor}
-import net.easyflix.app.events.ApplicationBus
+import net.easyflix.actors.{LibrarySupervisor, TMDBActor}
+import net.easyflix.events.ApplicationBus
 
 import scala.concurrent.Await
 
@@ -15,26 +15,29 @@ object Application {
 
   def apply() = new Application
 
+  case class Config(
+      port: Int,
+      host: String,
+      tmdbApiKey: String,
+      authKey: String,
+      authTokenExpiration: String,
+      authPassword: String)
+
 }
 
-/**
-  * Represents an application. This is where you'll instantiate your top actors, connect to a database, etc...
-  */
 class Application {
 
   val config: Config = ConfigFactory.load().getConfig("easyflix")
 
-  implicit val system: ActorSystem = ActorSystem("MySystem", config)
+  implicit val system: ActorSystem = ActorSystem("Easyflix", config)
   implicit val materializer: ActorMaterializer = ActorMaterializer()
-
-  system.log.info("Application starting.")
 
   val bus: ApplicationBus = new ApplicationBus
   val libraries: ActorRef = system.actorOf(LibrarySupervisor.props()(this), "libraries")
   val tmdb: ActorRef = system.actorOf(TMDBActor.props()(this), "tmdb")
 
+  // TODO Move that to a util class ?
   private val `video/x-mastroka`: MediaType.Binary = MediaType.video("x-mastroka", NotCompressible, "mkv")
-
   private def getContentTypeResolver(customMediaTypes: Seq[MediaType.Binary]): ContentTypeResolver = (fileName: String) =>  {
     val lastDotIx = fileName.lastIndexOf('.')
     if (lastDotIx >= 0) {
@@ -45,11 +48,10 @@ class Application {
       }
     } else ContentTypeResolver.Default(fileName)
   }
-
   implicit val contentTypeResolver: ContentTypeResolver = getContentTypeResolver(Seq(`video/x-mastroka`))
 
   def shutdown() {
-    system.log.info("Shutting down Akka materializer and system.")
+    system.log.info("Shutting down.")
     import scala.concurrent.duration._
     materializer.shutdown()
     Await.result(system.terminate(), 30.seconds)

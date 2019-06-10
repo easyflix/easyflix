@@ -27,7 +27,7 @@
     <appender-ref ref="STDOUT" />
   </appender>
 
-  <logger name="net.easyflix.app.actors.LibraryActor" level="INFO" />
+  <logger name="net.easyflix.actors.LibraryActor" level="INFO" />
 
   <logger name="akka.event.slf4j.Slf4jLogger" level="WARN" />
   <logger name="akka.actor.ActorSystemImpl" level="INFO" />

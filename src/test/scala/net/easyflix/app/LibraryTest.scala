@@ -4,8 +4,9 @@ import java.nio.file.Paths
 
 import akka.stream.KillSwitches
 import akka.stream.scaladsl.{Keep, Sink}
+import net.easyflix.model.LibraryFileChange.{Creation, Deletion}
+import net.easyflix.model.{Library, LibraryFile}
 import net.easyflix.util.{SimpleTest, WithFTPServer, WithLibrary}
-import net.easyflix.app.LibraryFileChange.{Creation, Deletion}
 import org.scalatest.time.{Seconds, Span}
 
 import scala.concurrent.duration._
