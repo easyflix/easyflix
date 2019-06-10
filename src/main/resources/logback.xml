@@ -15,7 +15,7 @@
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>%X{akkaTimestamp} %-5level [%logger] - %msg%n</pattern>
+      <pattern>%X{akkaTimestamp} %-5level - %msg%n</pattern>
     </encoder>
   </appender>
 
@@ -30,7 +30,9 @@
   <logger name="net.easyflix.app.actors.LibraryActor" level="INFO" />
 
   <logger name="akka.event.slf4j.Slf4jLogger" level="WARN" />
-  <logger name="akka.actor.ActorSystemImpl" level="ERROR" />
+  <logger name="akka.actor.ActorSystemImpl" level="INFO" />
+
+  <!-- TODO: report to alpakka the issue with partial read of ftp file -->
   <logger name="akka.actor.RepointableActorRef" level="OFF" />
 
   <root level="INFO">
