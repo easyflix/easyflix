@@ -1,16 +1,16 @@
 # Easyflix
 
-Easyflix is a self-hosted and reactive video-streaming server. Use it to stream your digitalized movies and TV shows (or any other video) to your family and friends devices.
+Easyflix is a self-hosted and reactive video-streaming server. Use it to stream your digitalized movies and TV shows (or any other videos) to your family and friends devices.
 
 It is written in Typescript and Scala, and is licensed under the GNU Affero General Public License v3.
 
-![GitHub](https://img.shields.io/github/license/tgambet/easyflix.svg?color=green&style=flat-square)
+![License](https://img.shields.io/github/license/tgambet/easyflix.svg?color=green&style=flat-square)
 
 ## Features
 
 * Local, FTP and Amazon S3 libraries support
 * Auto-discovery of movies and TV shows
-* Authentication (password protection)
+* Authentication
 * Searching, sorting and filtering
 * Keyboard navigable
 * Shareable URLs
@@ -46,7 +46,7 @@ Easyflix provides an HTML5 player which means that you can only play videos in a
 
 * Where does Easyflix find metadata for my movies and TV Shows?
 
-Easyflix is powered by [The Movie Database](https://www.themoviedb.org/) and use [its API](https://developers.themoviedb.org) to fetch presentation metadata of your videos. As such you will need [an account](https://www.themoviedb.org/account/signup) and a [valid API key](https://www.themoviedb.org/settings/api) from The Movie Database to run Easyflix.
+Easyflix is powered by [The Movie Database](https://www.themoviedb.org/) and uses [its API](https://developers.themoviedb.org) to fetch presentation metadata for your videos. As such you will need [an account](https://www.themoviedb.org/account/signup) and a [valid API key](https://www.themoviedb.org/settings/api) from The Movie Database to run Easyflix.
 
 ## Install
 
@@ -70,8 +70,10 @@ However Easyflix uses The Movie Database API to retrieve metadata about your mov
 
 ## License
 
-Licensed under the AGPL-3.0 License.
-
 Copyright © 2019 Thomas Gambet
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
 
 For more information, please see [LICENSE](https://github.com/tgambet/easyflix/blob/master/LICENSE).
