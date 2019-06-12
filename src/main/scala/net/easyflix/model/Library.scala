@@ -11,30 +11,29 @@ import akka.stream.alpakka.file.scaladsl.{Directory, DirectoryChangesSource}
 import akka.stream.alpakka.ftp.scaladsl.{Ftp, Ftps}
 import akka.stream.alpakka.ftp.{FtpCredentials, FtpSettings, FtpsSettings}
 import akka.stream.alpakka.s3.scaladsl.{S3 => AS3}
-import akka.stream.alpakka.s3.{ObjectMetadata, S3Attributes, S3Ext}
+import akka.stream.alpakka.s3.{ObjectMetadata, S3Attributes, S3Settings}
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import com.amazonaws.auth.{AWSStaticCredentialsProvider, BasicAWSCredentials}
 import com.amazonaws.regions.{AwsRegionProvider, Regions}
+import com.typesafe.config.ConfigFactory
 import me.nimavat.shortid.ShortId
-import net.easyflix.app.Application
 import net.easyflix.exceptions.ValidationException
 import net.easyflix.json.JsonSupport
 import net.easyflix.model.Library.FTP.Types
+import net.easyflix.util.VideoResolver.isVideo
 import spray.json._
 
 import scala.concurrent.Future
 import scala.concurrent.duration.{FiniteDuration, _}
 import scala.util.{Failure, Success, Try}
 
-import net.easyflix.util.VideoResolver.isVideo
-
 sealed trait Library {
   val name: String
   val path: Path
 
-  def scan()(implicit app: Application): Source[LibraryFile, NotUsed] = scan(path)
-  def scan(path: Path)(implicit app: Application): Source[LibraryFile, NotUsed]
+  def scan(): Source[LibraryFile, NotUsed] = scan(path)
+  def scan(path: Path): Source[LibraryFile, NotUsed]
 
   def relativizePath(path: Path): Path = {
     val relativePath = this.path.relativize(path)
@@ -56,8 +55,8 @@ object Library extends JsonSupport {
 
   trait Watchable { self: Library =>
     val pollInterval: FiniteDuration
-    def watch()(implicit app: Application): Source[LibraryFileChange, NotUsed] = watch(path)
-    def watch(path: Path)(implicit app: Application): Source[LibraryFileChange, NotUsed]
+    def watch(): Source[LibraryFileChange, NotUsed] = watch(path)
+    def watch(path: Path): Source[LibraryFileChange, NotUsed]
   }
 
   case class Local(
@@ -68,7 +67,7 @@ object Library extends JsonSupport {
       pollInterval: FiniteDuration = 1.second
   ) extends Library with Library.Watchable {
 
-    override def scan(path: Path)(implicit app: Application): Source[LibraryFile, NotUsed] = {
+    override def scan(path: Path): Source[LibraryFile, NotUsed] = {
       if (path.isAbsolute & path != this.path)
         throw new IllegalArgumentException("Path must be the library path or a sub-folder relative path")
       Directory.walk(resolvePath(path)).map(p => {
@@ -87,7 +86,7 @@ object Library extends JsonSupport {
       }).collect{ case option if option.isDefined => option.get }
     }
 
-    override def watch(path: Path)(implicit app: Application): Source[LibraryFileChange, NotUsed] = {
+    override def watch(path: Path): Source[LibraryFileChange, NotUsed] = {
       if (path.isAbsolute & path != this.path)
         throw new IllegalArgumentException("Path must be the library path or a sub-folder relative path")
       DirectoryChangesSource(resolvePath(path), pollInterval, maxBufferSize = 1000).collect {
@@ -145,7 +144,7 @@ object Library extends JsonSupport {
       .withCredentials(FtpCredentials.create(username, password))
       .withPassiveMode(passive)
 
-    override def scan()(implicit app: Application): Source[LibraryFile, NotUsed] =
+    override def scan(): Source[LibraryFile, NotUsed] =
       Source.single(LibraryFile(
         ShortId.generate(),
         name,
@@ -156,7 +155,7 @@ object Library extends JsonSupport {
         name
       )).concat(scan(path))
 
-    override def scan(path: Path)(implicit app: Application): Source[LibraryFile, NotUsed] = {
+    override def scan(path: Path): Source[LibraryFile, NotUsed] = {
       val source = conType match {
         case Types.FTP => Ftp.ls(path.toString, ftpSettings, _ => true, emitTraversedDirectories = true)
         case Types.FTPS => Ftps.ls(path.toString, ftpsSettings, _ => true, emitTraversedDirectories = true)
@@ -203,7 +202,25 @@ object Library extends JsonSupport {
       region: Regions
   ) extends Library {
 
-    private def settings()(implicit app: Application) = S3Ext(app.system).settings
+    // https://github.com/akka/alpakka/blob/v1.0.2/s3/src/main/resources/reference.conf
+    private val s3Config =
+      """
+        |  buffer = "memory"
+        |  aws {
+        |    credentials {
+        |      provider = default
+        |    }
+        |    region {
+        |      provider = default
+        |    }
+        |  }
+        |  path-style-access = true
+        |  list-bucket-api-version = 2
+        |
+      """.stripMargin
+
+    // NOTE: config of S3 is not loaded from file
+    private lazy val settings: S3Settings = S3Settings(ConfigFactory.parseString(s3Config))
       .withCredentialsProvider(new AWSStaticCredentialsProvider(
         new BasicAWSCredentials(accessId, accessSecret)
       ))
@@ -214,12 +231,12 @@ object Library extends JsonSupport {
     def download(
         path: Path,
         range: Option[ByteRange]
-    )(implicit app: Application): Source[Option[(Source[ByteString, NotUsed], ObjectMetadata)], NotUsed] = {
+    ): Source[Option[(Source[ByteString, NotUsed], ObjectMetadata)], NotUsed] = {
       AS3.download(bucket, path.toString.replaceAll("""\\""", "/"), range)
           .withAttributes(S3Attributes.settings(settings))
     }
 
-    override def scan()(implicit app: Application): Source[LibraryFile, NotUsed] =
+    override def scan(): Source[LibraryFile, NotUsed] =
       Source.single(LibraryFile(
         ShortId.generate(),
         name,
@@ -230,7 +247,7 @@ object Library extends JsonSupport {
         name
       )).concat(scan(path))
 
-    override def scan(path: Path)(implicit app: Application): Source[LibraryFile, NotUsed] = {
+    override def scan(path: Path): Source[LibraryFile, NotUsed] = {
       AS3.listBucket(bucket, Some(path.toString)).withAttributes(S3Attributes.settings(settings)).map { content =>
         val isDirectory = content.key.endsWith("/")
         val fileName = Paths.get(content.key).getFileName.toString

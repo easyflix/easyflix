@@ -53,7 +53,7 @@ class VideosRoutes(val app: Application) extends FileAndResourceDirectives {
                     case Some(Range(RangeUnits.Bytes, Seq(range))) => Some(range)
                     case _ => None
                   }
-                  onSuccess(lib.download(path, rangeOpt)(app).runWith(Sink.head)(app.materializer)) {
+                  onSuccess(lib.download(path, rangeOpt).runWith(Sink.head)(app.materializer)) {
                     case Some((source, metadata)) =>
                       val contentRangeHeader: Seq[HttpHeader] = rangeOpt match {
                         case Some(ByteRange.FromOffset(offset)) =>
