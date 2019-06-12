@@ -14,7 +14,7 @@ class LibraryActorTest extends SimpleActorTest with WithLibrary {
   "A LibraryActor" should {
 
     val pollInterval = 100.milliseconds
-    val actor = system.actorOf(LibraryActor.props(Library.Local("name", libraryPath, pollInterval = pollInterval)))
+    val actor = system.actorOf(LibraryActor.props(Library.Local("name", libraryPath, pollInterval = pollInterval), application.bus))
 
     "scan its library" in {
 

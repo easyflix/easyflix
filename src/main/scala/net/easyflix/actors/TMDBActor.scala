@@ -5,10 +5,10 @@ import akka.actor.{Actor, ActorRef, Props, Stash, Status}
 import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, ResponseEntity, StatusCodes}
-import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
+import akka.stream.{Materializer, OverflowStrategy}
 import akka.util.ByteString
-import net.easyflix.app.Application
+import com.typesafe.config.Config
 import net.easyflix.events._
 import net.easyflix.exceptions.NotFoundException
 import net.easyflix.model._
@@ -27,7 +27,8 @@ object TMDBActor {
   case class GetMovie(id: Int)
   case class GetShow(id: Int)
 
-  def props()(implicit application: Application): Props = Props(new TMDBActor)
+  def props(bus: ApplicationBus, config: Config)(implicit materializer: Materializer): Props =
+    Props(new TMDBActor(bus, config))
 
   sealed trait Context
   private case object ConfigurationContext extends Context
@@ -46,24 +47,23 @@ object TMDBActor {
   private case class UnknownMetadata(file: LibraryFile) extends Metadata
 }
 
-class TMDBActor()(implicit application: Application) extends Actor with Stash {
+class TMDBActor(bus: ApplicationBus, config: Config)(implicit materializer: Materializer) extends Actor with Stash {
 
   import TMDBActor._
-  import application.{materializer, system}
   import context.dispatcher
 
   val logger = Logging(context.system, this)
 
-  private val api_key = application.config.getString("tmdb.api-key")
+  private val api_key = config.getString("tmdb.api-key")
 
-  application.bus.subscribe(self, classOf[FileAdded])
-  application.bus.subscribe(self, classOf[FileDeleted])
-  application.bus.subscribe(self, classOf[LibraryDeleted])
+  bus.subscribe(self, classOf[FileAdded])
+  bus.subscribe(self, classOf[FileDeleted])
+  bus.subscribe(self, classOf[LibraryDeleted])
 
   val (tmdbActor: ActorRef, connectionPool: Http.HostConnectionPool) =
     Source.actorRef(10000, OverflowStrategy.dropNew)
       .via(Flow[(HttpRequest, Context)].throttle(40, 10.seconds))
-      .viaMat(Http().cachedHostConnectionPoolHttps[Context]("api.themoviedb.org"))(Keep.both)
+      .viaMat(Http()(context.system).cachedHostConnectionPoolHttps[Context]("api.themoviedb.org"))(Keep.both)
       .log("TMDB error")
       .to(Sink.actorRef(self, Done))
       .run()
@@ -91,10 +91,10 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
         movies.values.find(_.files.map(_.path).contains(path)).foreach{ movie =>
           val updated = movie.copy(files = movie.files.filter(_.path != path))
           if (updated.files.isEmpty) {
-            application.bus.publish(MovieDeleted(movie.id))
+            bus.publish(MovieDeleted(movie.id))
             movies -= movie.id
           } else {
-            application.bus.publish(MovieAdded(updated))
+            bus.publish(MovieAdded(updated))
             movies += movie.id -> updated
           }
         }
@@ -104,10 +104,10 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
           logger.info("found movie for that library " + movie.title)
           val updated = movie.copy(files = movie.files.filter(_.libraryName != name))
           if (updated.files.isEmpty) {
-            application.bus.publish(MovieDeleted(movie.id))
+            bus.publish(MovieDeleted(movie.id))
             movies -= movie.id
           } else {
-            application.bus.publish(MovieAdded(updated))
+            bus.publish(MovieAdded(updated))
             movies += movie.id -> updated
           }
         }
@@ -144,7 +144,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
             movies += head.id -> movie
             logger.info("Received search results for: " + movie.title)
             tmdbActor ! createRequest(MovieDetailsContext(movie.id))
-            application.bus.publish(MovieAdded(movie))
+            bus.publish(MovieAdded(movie))
             movieSearches -= searchContext
           } else {
             // TODO deal with empty search results
@@ -159,7 +159,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
             )
           )
           logger.info("Received movie details for: " + movie.title)
-          application.bus.publish(MovieUpdate(cleanedDetails))
+          bus.publish(MovieUpdate(cleanedDetails))
           movies += movie.id -> movie.withDetails(cleanedDetails)
         }
     }
@@ -181,10 +181,10 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
         shows.values.find(_.files.map(_.path).contains(path)).foreach{ show =>
           val updated = show.copy(files = show.files.filter(_.path != path))
           if (updated.files.isEmpty) {
-            application.bus.publish(ShowDeleted(show.id))
+            bus.publish(ShowDeleted(show.id))
             shows -= show.id
           } else {
-            application.bus.publish(ShowAdded(updated))
+            bus.publish(ShowAdded(updated))
             shows += show.id -> updated
           }
         }
@@ -192,10 +192,10 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
         shows.values.filter(_.files.map(_.libraryName).contains(name)).foreach{ show =>
           val updated = show.copy(files = show.files.filter(_.libraryName != name))
           if (updated.files.isEmpty) {
-            application.bus.publish(ShowDeleted(show.id))
+            bus.publish(ShowDeleted(show.id))
             shows -= show.id
           } else {
-            application.bus.publish(ShowAdded(updated))
+            bus.publish(ShowAdded(updated))
             shows += show.id -> updated
           }
         }
@@ -245,7 +245,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
               .map(ep => TVEpisodeContext(show.id, ep.season_number, ep.episode_number))
               .toSeq.contains(context)
             ).foreach(tmdbActor ! createRequest(_))
-            application.bus.publish(ShowAdded(show))
+            bus.publish(ShowAdded(show))
             showSearches -= searchContext
           }
         )
@@ -258,7 +258,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
               cast = details.credits.cast.take(7)
             )
           )
-          application.bus.publish(ShowUpdate(cleanedDetails))
+          bus.publish(ShowUpdate(cleanedDetails))
           shows += show.id -> show.withDetails(cleanedDetails)
         }
       case (TVEpisodeContext(id, seasonNumber, episodeNumber), episode: Episode) =>
@@ -268,7 +268,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
           )
           logger.info(s"Received episode details for show: ${show.name} - $seasonNumber/$episodeNumber")
           shows += show.id -> show.withEpisode(cleanedEpisode) // TODO check if this episodes exists already
-          application.bus.publish(ShowAdded(show.withEpisode(cleanedEpisode))) // TODO publish only an update
+          bus.publish(ShowAdded(show.withEpisode(cleanedEpisode))) // TODO publish only an update
         }
     }
   }), "shows")
@@ -373,7 +373,7 @@ class TMDBActor()(implicit application: Application) extends Actor with Stash {
         .flatMap(header => Try(header.value.toInt).toOption)
         .getOrElse(1)
       logger.info(s"Rescheduling request in $retryIn seconds: " + requestContext.log)
-      system.scheduler.scheduleOnce(FiniteDuration(retryIn, SECONDS))(tmdbActor ! createRequest(requestContext))
+      context.system.scheduler.scheduleOnce(FiniteDuration(retryIn, SECONDS))(tmdbActor ! createRequest(requestContext))
 
     case (Success(HttpResponse(code, _, entity, _)), _) =>
       entity.discardBytes()

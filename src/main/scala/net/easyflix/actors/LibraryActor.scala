@@ -5,9 +5,8 @@ import java.nio.file.Path
 import akka.actor.{Actor, Props, Status}
 import akka.event.Logging
 import akka.stream.scaladsl.{Keep, Sink}
-import akka.stream.{KillSwitches, SharedKillSwitch, UniqueKillSwitch}
-import net.easyflix.app.Application
-import net.easyflix.events.{FileAdded, FileDeleted, LibraryUpdate}
+import akka.stream.{KillSwitches, Materializer, SharedKillSwitch, UniqueKillSwitch}
+import net.easyflix.events.{ApplicationBus, FileAdded, FileDeleted, LibraryUpdate}
 import net.easyflix.exceptions.NotFoundException
 import net.easyflix.model.{Library, LibraryFile, LibraryFileChange}
 
@@ -23,14 +22,14 @@ object LibraryActor {
 
   case object Scan
 
-  def props(library: Library)(implicit app: Application): Props = Props(new LibraryActor(library))
+  def props(library: Library, bus: ApplicationBus)(implicit materializer: Materializer): Props =
+    Props(new LibraryActor(library, bus))
 
 }
 
-class LibraryActor(library: Library)(implicit app: Application) extends Actor {
+class LibraryActor(library: Library, bus: ApplicationBus)(implicit materializer: Materializer) extends Actor {
 
   import LibraryActor._
-  import app.materializer
   import context.dispatcher
 
   val logger = Logging(context.system, this)
@@ -50,7 +49,7 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
   case class UpdateLibrary(library: Library.Local)
 
   library match {
-    case lib: Library.Local => app.system.scheduler.schedule(1.minutes, 1.minutes, self, UpdateLibrary(lib))
+    case lib: Library.Local => context.system.scheduler.schedule(1.minutes, 1.minutes, self, UpdateLibrary(lib))
     case _ =>
   }
 
@@ -74,17 +73,17 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
       if (files.contains(file.path)) {
         val newFile = file.copy(id = files(file.path).id) // Keep the id, update the rest
         if (newFile != files(file.path)) {
-          app.bus.publish(FileAdded(newFile))
+          bus.publish(FileAdded(newFile))
           files += (file.path -> newFile)
         }
       } else {
-        app.bus.publish(FileAdded(file))
+        bus.publish(FileAdded(file))
         files += (file.path -> file)
       }
 
     case LibraryFileChange.Creation(file: LibraryFile) =>
       logger.info(s"File created: ${file.path}")
-      app.bus.publish(FileAdded(file))
+      bus.publish(FileAdded(file))
       files += (file.path -> file)
       if (file.isDirectory) {
         // Watch it
@@ -120,7 +119,7 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
         } else {
           logger.info(s"File deleted: $path")
         }
-        app.bus.publish(FileDeleted(path))
+        bus.publish(FileDeleted(path))
         files -= path
       }
 
@@ -137,7 +136,7 @@ class LibraryActor(library: Library)(implicit app: Application) extends Actor {
     case UpdateLibrary(lib) =>
       val updated = lib.copy(totalSpace = lib.path.toFile.getTotalSpace, freeSpace = lib.path.toFile.getFreeSpace)
       if (updated != library) {
-        app.bus.publish(LibraryUpdate(updated))
+        bus.publish(LibraryUpdate(updated))
         context become ready(updated)
       }
 

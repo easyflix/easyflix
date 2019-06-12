@@ -10,8 +10,6 @@ import scala.concurrent.Await
 
 object Application {
 
-  def apply() = new Application
-
   case class Config(
       port: Int,
       host: String,
@@ -30,8 +28,8 @@ class Application {
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   val bus: ApplicationBus = new ApplicationBus
-  val libraries: ActorRef = system.actorOf(LibrarySupervisor.props()(this), "libraries")
-  val tmdb: ActorRef = system.actorOf(TMDBActor.props()(this), "tmdb")
+  val libraries: ActorRef = system.actorOf(LibrarySupervisor.props(bus)(materializer), "libraries")
+  val tmdb: ActorRef = system.actorOf(TMDBActor.props(bus, config)(materializer), "tmdb")
 
   def shutdown() {
     system.log.info("Shutting down.")

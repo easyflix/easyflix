@@ -7,8 +7,8 @@ import akka.actor.SupervisorStrategy.{Restart, Stop}
 import akka.actor._
 import akka.event.Logging
 import akka.pattern.ask
-import net.easyflix.app.Application
-import net.easyflix.events.{LibraryCreated, LibraryDeleted}
+import akka.stream.Materializer
+import net.easyflix.events.{ApplicationBus, LibraryCreated, LibraryDeleted}
 import net.easyflix.exceptions.{NotFoundException, ValidationException}
 import net.easyflix.json.JsonSupport
 import net.easyflix.model.{Library, LibraryFile}
@@ -29,11 +29,12 @@ object LibrarySupervisor extends JsonSupport {
   case class RemoveLibrary(name: String)
   case class GetFileById(libraryName: String, id: String)
 
-  def props()(implicit app: Application): Props = Props(new LibrarySupervisor())
+  def props(bus: ApplicationBus)(implicit materializer: Materializer): Props =
+    Props(new LibrarySupervisor(bus))
 
 }
 
-class LibrarySupervisor()(implicit val app: Application) extends Actor {
+class LibrarySupervisor(bus: ApplicationBus)(implicit materializer: Materializer) extends Actor {
 
   import LibrarySupervisor._
   import context.dispatcher
@@ -87,10 +88,10 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
             Success(())
         actorName = libraries.size + "-" + library.name.replaceAll("""[^0-9a-zA-Z-_.*$+:@&=,!~';]""", "")
         _ <-
-          Try(context.actorOf(LibraryActor.props(library), actorName)) map { actorRef =>
+          Try(context.actorOf(LibraryActor.props(library, bus), actorName)) map { actorRef =>
             libraries += (library.name -> (actorRef -> library))
             context.watch(actorRef)
-            app.bus.publish(LibraryCreated(library))
+            bus.publish(LibraryCreated(library))
           } recover { case e =>
             throw ValidationException("other", "failure", Some(e.getMessage))
           }
@@ -105,7 +106,7 @@ class LibrarySupervisor()(implicit val app: Application) extends Actor {
         .get(name)
         .foreach { case (actorRef, library) =>
           context.stop(actorRef)
-          app.bus.publish(LibraryDeleted(name))
+          bus.publish(LibraryDeleted(name))
           libraries -= name
         }
       sender() ! Done

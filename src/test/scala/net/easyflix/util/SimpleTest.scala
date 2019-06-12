@@ -11,7 +11,7 @@ abstract class SimpleTest
     with BeforeAndAfterAll
     with ScalaFutures {
 
-  implicit val application: Application = Application()
+  implicit val application: Application = new Application
   implicit val materializer: ActorMaterializer = application.materializer
 
   override def beforeAll(): Unit = super.beforeAll()

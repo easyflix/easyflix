@@ -16,7 +16,7 @@ class APIRoutesTest
     with ScalatestRouteTest
     with JsonSupport {
 
-  val application = Application()
+  val application = new Application
 
   override def afterAll(): Unit = {
     application.shutdown()
@@ -25,7 +25,7 @@ class APIRoutesTest
 
   "API routes (libraries)" should {
 
-    val route = new APIRoutes(application).routes
+    val route = new APIRoutes(application.libraries, application.tmdb).routes
 
     val lib = Library.Local("name", libraryPath)
 

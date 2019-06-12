@@ -18,14 +18,14 @@ class AuthRoutesTest
     with ScalatestRouteTest
     with JsonSupport {
 
-  val application = Application()
+  val application = new Application
 
   override def afterAll(): Unit = {
     application.shutdown()
     super.afterAll()
   }
 
-  val auth = new AuthRoutes(application)
+  val auth = new AuthRoutes(application.config)
 
   "Auth routes" should {
 

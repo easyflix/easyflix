@@ -1,5 +1,6 @@
 package net.easyflix.routes
 
+import akka.actor.ActorRef
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{ByteRange, Range, RangeUnits, `Accept-Ranges`, `Content-Range`}
 import akka.http.scaladsl.server.Directives._
@@ -7,9 +8,9 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.directives.RouteDirectives.complete
 import akka.http.scaladsl.server.directives.{FileAndResourceDirectives, RangeDirectives}
 import akka.pattern.ask
+import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import net.easyflix.actors.LibrarySupervisor.{GetFileById, GetLibrary}
-import net.easyflix.app.Application
 import net.easyflix.exceptions.NotFoundException
 import net.easyflix.model.{Library, LibraryFile}
 import net.easyflix.util.VideoResolver
@@ -18,7 +19,7 @@ import scala.collection.immutable.Seq
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-class VideosRoutes(val app: Application) extends FileAndResourceDirectives {
+class VideosRoutes(librariesActor: ActorRef) extends FileAndResourceDirectives {
 
   implicit val askTimeout: akka.util.Timeout = 2.seconds
 
@@ -27,9 +28,9 @@ class VideosRoutes(val app: Application) extends FileAndResourceDirectives {
       path(Segment) { id =>
         extractExecutionContext { implicit executor =>
           val f1: Future[Route] = for {
-            file <- (app.libraries ? GetFileById(libraryName, id)).mapTo[LibraryFile]
+            file <- (librariesActor ? GetFileById(libraryName, id)).mapTo[LibraryFile]
             if !file.isDirectory
-            library <- (app.libraries ? GetLibrary(file.libraryName)).mapTo[Library]
+            library <- (librariesActor ? GetLibrary(file.libraryName)).mapTo[Library]
           } yield {
             val ctr = VideoResolver.contentTypeResolver
             val path = library.resolvePath(file.path)
@@ -53,20 +54,23 @@ class VideosRoutes(val app: Application) extends FileAndResourceDirectives {
                     case Some(Range(RangeUnits.Bytes, Seq(range))) => Some(range)
                     case _ => None
                   }
-                  onSuccess(lib.download(path, rangeOpt).runWith(Sink.head)(app.materializer)) {
-                    case Some((source, metadata)) =>
-                      val contentRangeHeader: Seq[HttpHeader] = rangeOpt match {
-                        case Some(ByteRange.FromOffset(offset)) =>
-                          Seq(`Content-Range`(RangeUnits.Bytes, ContentRange(offset, file.size - 1, file.size)))
-                        case _ => Nil
-                      }
-                      complete(HttpResponse(
-                        status = rangeOpt.map(_ => StatusCodes.PartialContent).getOrElse(StatusCodes.OK),
-                        headers = Seq(`Accept-Ranges`(RangeUnits.Bytes)) ++ contentRangeHeader,
-                        entity = HttpEntity.Default(ctr(path.getFileName.toString), metadata.contentLength, source)
-                      ))
-                    case None => complete(StatusCodes.NotFound)
+                  extractMaterializer { materializer =>
+                    onSuccess(lib.download(path, rangeOpt).runWith(Sink.head)(materializer)) {
+                      case Some((source, metadata)) =>
+                        val contentRangeHeader: Seq[HttpHeader] = rangeOpt match {
+                          case Some(ByteRange.FromOffset(offset)) =>
+                            Seq(`Content-Range`(RangeUnits.Bytes, ContentRange(offset, file.size - 1, file.size)))
+                          case _ => Nil
+                        }
+                        complete(HttpResponse(
+                          status = rangeOpt.map(_ => StatusCodes.PartialContent).getOrElse(StatusCodes.OK),
+                          headers = Seq(`Accept-Ranges`(RangeUnits.Bytes)) ++ contentRangeHeader,
+                          entity = HttpEntity.Default(ctr(path.getFileName.toString), metadata.contentLength, source)
+                        ))
+                      case None => complete(StatusCodes.NotFound)
+                    }
                   }
+
                 }
 
             }

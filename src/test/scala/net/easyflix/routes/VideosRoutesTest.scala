@@ -24,7 +24,7 @@ class VideosRoutesTest
     with WithFTPServer
     with ScalaFutures {
 
-  val application = Application()
+  val application = new Application
   var testFile: LibraryFile = _
   var testFolder: LibraryFile = _
   var ftpFile: LibraryFile = _
@@ -59,7 +59,7 @@ class VideosRoutesTest
 
   "Videos routes" should {
 
-    val route = new VideosRoutes(application).routes
+    val route = new VideosRoutes(application.libraries).routes
 
     "return a OK status for GETs on /{id}" in {
 

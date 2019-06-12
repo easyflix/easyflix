@@ -4,12 +4,11 @@ import akka.actor.{Actor, Props, Stash}
 import akka.event.Logging
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.server.RouteResult.route2HandlerFlow
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
-import net.easyflix.app.Application
-import net.easyflix.json.{JsonMessage, JsonSupport}
+import com.typesafe.config.Config
 import net.easyflix.events._
+import net.easyflix.json.{JsonMessage, JsonSupport}
 import pdi.jwt.{JwtAlgorithm, JwtSprayJson}
 import spray.json._
 
@@ -18,7 +17,8 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
 object SocketActor {
-  def props(xhrRoutes: Route)(implicit materializer: ActorMaterializer, app: Application): Props = Props(new SocketActor(xhrRoutes))
+  def props(xhrRoutes: Route, bus: ApplicationBus, config: Config)(implicit materializer: ActorMaterializer): Props =
+    Props(new SocketActor(xhrRoutes, bus, config))
 }
 
 /**
@@ -27,13 +27,14 @@ object SocketActor {
   * @param xhrRoutes XHR routes that this socket can handle
   * @param materializer An actor materializer
   */
-class SocketActor(xhrRoutes: Route)(implicit materializer: ActorMaterializer, app: Application) extends Actor with Stash with JsonSupport {
+class SocketActor(xhrRoutes: Route, bus: ApplicationBus, config: Config)(implicit materializer: ActorMaterializer) extends Actor
+  with Stash with JsonSupport {
 
   import context.dispatcher
 
   private val logger = Logging(context.system, this)
   private val client = context.parent
-  private val key = app.config.getString("auth.key")
+  private val key = config.getString("auth.key")
   private val algo = JwtAlgorithm.HS256
 
   private val classMap: Map[String, Class[_]] = Map(
@@ -49,7 +50,7 @@ class SocketActor(xhrRoutes: Route)(implicit materializer: ActorMaterializer, ap
 
   var subscriptions: Map[String, Int] = Map.empty
 
-  app.system.scheduler.scheduleOnce(3.seconds, self, 'timeout)
+  context.system.scheduler.scheduleOnce(3.seconds, self, 'timeout)
 
   override def receive: Receive = authenticating
 
@@ -116,7 +117,7 @@ class SocketActor(xhrRoutes: Route)(implicit materializer: ActorMaterializer, ap
           subscriptions += channel -> (subscription + 1)
         case None =>
           Try {
-            app.bus.subscribe(self, classMap(channel))
+            bus.subscribe(self, classMap(channel))
             subscriptions += channel -> 1
           }
       }
@@ -125,7 +126,7 @@ class SocketActor(xhrRoutes: Route)(implicit materializer: ActorMaterializer, ap
       subscriptions.get(channel) match {
         case Some(1) =>
           Try {
-            app.bus.unsubscribe(self, classMap(channel))
+            bus.unsubscribe(self, classMap(channel))
             subscriptions -= channel
           }
         case Some(value) =>
@@ -144,7 +145,7 @@ class SocketActor(xhrRoutes: Route)(implicit materializer: ActorMaterializer, ap
   val toHttpResponse: HttpRequest => Future[HttpResponse] = route2Response(xhrRoutes)
 
   def route2Response(route: Route)(implicit materializer: ActorMaterializer): HttpRequest => Future[HttpResponse] =
-    request => route2HandlerFlow(route).runWith(Source.single[HttpRequest](request), Sink.head)._2
+    request => Route.handlerFlow(route).runWith(Source.single[HttpRequest](request), Sink.head)._2
 
 }
 

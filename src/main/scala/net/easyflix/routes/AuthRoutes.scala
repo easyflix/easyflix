@@ -1,9 +1,9 @@
 package net.easyflix.routes
 
-import akka.http.scaladsl.model.headers.{CacheDirectives, HttpCookie, RawHeader, `Cache-Control`}
+import akka.http.scaladsl.model.headers.{HttpCookie, RawHeader}
 import akka.http.scaladsl.model.{DateTime, StatusCodes}
 import akka.http.scaladsl.server.{Directive0, Directives, Route}
-import net.easyflix.app.Application
+import com.typesafe.config.Config
 import net.easyflix.json.JsonSupport
 import net.easyflix.routes.AuthRoutes.LoginRequest
 import pdi.jwt.{JwtAlgorithm, JwtClaim, JwtSprayJson}
@@ -19,11 +19,11 @@ object AuthRoutes extends JsonSupport {
   implicit val claimFormat: RootJsonFormat[Claim] = jsonFormat1(Claim.apply)*/
 }
 
-class AuthRoutes(val app: Application) extends Directives with JsonSupport {
+class AuthRoutes(config: Config) extends Directives with JsonSupport {
 
-  private val key = app.config.getString("auth.key")
-  private val tokenExpiration = app.config.getDuration("auth.tokenExpiration")
-  private val password = app.config.getString("auth.password")
+  private val key = config.getString("auth.key")
+  private val tokenExpiration = config.getDuration("auth.tokenExpiration")
+  private val password = config.getString("auth.password")
 
   private val algo = JwtAlgorithm.HS256
 

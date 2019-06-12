@@ -11,7 +11,7 @@ class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
 
   "A LibrarySupervisor" should {
 
-    val supervisor = TestActorRef[LibrarySupervisor](LibrarySupervisor.props()) //system.actorOf(LibrarySupervisor.props())
+    val supervisor = TestActorRef[LibrarySupervisor](LibrarySupervisor.props(application.bus))
 
     "add a Library successfully" in {
 

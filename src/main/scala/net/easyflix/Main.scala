@@ -16,7 +16,7 @@ import scala.io.StdIn
   */
 object Main extends App with SPAWebServer with SocketWebServer {
 
-  implicit private val app: Application = Application()
+  implicit private val app: Application = new Application
 
   private val host = app.config.getString("http.host")
   private val port = app.config.getInt("http.port")
@@ -24,11 +24,12 @@ object Main extends App with SPAWebServer with SocketWebServer {
 
   override implicit val system: ActorSystem = app.system
 
-  private val authRoutes = new AuthRoutes(app)
-  private val apiRoutes = new APIRoutes(app)
-  private val videosRoutes = new VideosRoutes(app)
+  private val authRoutes = new AuthRoutes(app.config)
+  private val apiRoutes = new APIRoutes(app.libraries, app.tmdb)
+  private val videosRoutes = new VideosRoutes(app.libraries)
 
-  override val socketActorProps: Props = SocketActor.props(pathPrefix("api")(Route.seal(apiRoutes.routes)))
+  override val socketActorProps: Props =
+    SocketActor.props(pathPrefix("api")(Route.seal(apiRoutes.routes)), app.bus, app.config)
 
   override val routes: Route = concat(
     handleRejections(corsRejectionHandler) {
