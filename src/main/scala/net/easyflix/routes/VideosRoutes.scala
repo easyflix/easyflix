@@ -12,6 +12,7 @@ import net.easyflix.actors.LibrarySupervisor.{GetFileById, GetLibrary}
 import net.easyflix.app.Application
 import net.easyflix.exceptions.NotFoundException
 import net.easyflix.model.{Library, LibraryFile}
+import net.easyflix.util.VideoResolver
 
 import scala.collection.immutable.Seq
 import scala.concurrent.Future
@@ -30,7 +31,7 @@ class VideosRoutes(val app: Application) extends FileAndResourceDirectives {
             if !file.isDirectory
             library <- (app.libraries ? GetLibrary(file.libraryName)).mapTo[Library]
           } yield {
-            val ctr = app.contentTypeResolver
+            val ctr = VideoResolver.contentTypeResolver
             val path = library.resolvePath(file.path)
             library match {
               case _: Library.Local =>

@@ -27,6 +27,8 @@ import scala.concurrent.Future
 import scala.concurrent.duration.{FiniteDuration, _}
 import scala.util.{Failure, Success, Try}
 
+import net.easyflix.util.VideoResolver.isVideo
+
 sealed trait Library {
   val name: String
   val path: Path
@@ -71,7 +73,7 @@ object Library extends JsonSupport {
         throw new IllegalArgumentException("Path must be the library path or a sub-folder relative path")
       Directory.walk(resolvePath(path)).map(p => {
         val file = p.toFile
-        Option(file.isDirectory || app.contentTypeResolver(file.getName).mediaType.isVideo).collect{
+        Option(file.isDirectory || isVideo(file.getName)).collect{
           case true => LibraryFile(
             ShortId.generate(),
             file.getName,
@@ -89,7 +91,7 @@ object Library extends JsonSupport {
       if (path.isAbsolute & path != this.path)
         throw new IllegalArgumentException("Path must be the library path or a sub-folder relative path")
       DirectoryChangesSource(resolvePath(path), pollInterval, maxBufferSize = 1000).collect {
-        case (p, DirectoryChange.Creation) if p.toFile.isDirectory || app.contentTypeResolver(p.getFileName.toString).mediaType.isVideo =>
+        case (p, DirectoryChange.Creation) if p.toFile.isDirectory || isVideo(p.getFileName.toString) =>
           val file = p.toFile
           LibraryFileChange.Creation(LibraryFile(
             ShortId.generate(),
@@ -100,7 +102,7 @@ object Library extends JsonSupport {
             file.lastModified(),
             name
           ))
-        case (p, DirectoryChange.Deletion) if p.toFile.isDirectory || app.contentTypeResolver(p.getFileName.toString).mediaType.isVideo =>
+        case (p, DirectoryChange.Deletion) if p.toFile.isDirectory || isVideo(p.getFileName.toString) =>
           LibraryFileChange.Deletion(relativizePath(p))
       }
     }
@@ -161,7 +163,7 @@ object Library extends JsonSupport {
       }
       source.map(file => {
         val filePath = Paths.get(file.path.replaceFirst("^/", ""))
-        Option(file.isDirectory || app.contentTypeResolver(file.name).mediaType.isVideo).collect{
+        Option(file.isDirectory || isVideo(file.name)).collect{
           case true => LibraryFile(
             ShortId.generate(),
             file.name,
@@ -233,7 +235,7 @@ object Library extends JsonSupport {
         val isDirectory = content.key.endsWith("/")
         val fileName = Paths.get(content.key).getFileName.toString
         val path = Paths.get(content.key)
-        Option(isDirectory || app.contentTypeResolver(fileName).mediaType.isVideo).collect{
+        Option(isDirectory || isVideo(fileName)).collect{
           case true => LibraryFile(
             ShortId.generate(),
             fileName,
