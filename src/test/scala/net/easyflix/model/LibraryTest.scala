@@ -1,11 +1,10 @@
-package net.easyflix.app
+package net.easyflix.model
 
 import java.nio.file.Paths
 
 import akka.stream.KillSwitches
 import akka.stream.scaladsl.{Keep, Sink}
 import net.easyflix.model.LibraryFileChange.{Creation, Deletion}
-import net.easyflix.model.{Library, LibraryFile}
 import net.easyflix.util.{SimpleTest, WithFTPServer, WithLibrary}
 import org.scalatest.time.{Seconds, Span}
 
