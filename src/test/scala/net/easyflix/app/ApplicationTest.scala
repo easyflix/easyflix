@@ -18,6 +18,7 @@ class ApplicationTest extends WordSpecLike with Matchers {
 
       val program = for {
         _ <- app.start
+        _ <- app.run { case (_, _) => IO.unit }
         _ <- app.stop
       } yield ()
 

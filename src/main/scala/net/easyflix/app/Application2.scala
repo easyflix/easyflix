@@ -11,6 +11,8 @@ import net.easyflix.events.ApplicationBus
 import net.easyflix.http.actors.{SocketSinkActor, SocketSinkSupervisor}
 import net.easyflix.routes.Routes
 
+import scala.concurrent.duration._
+
 object Application2 extends BaseApplication[(SharedKillSwitch, Http.ServerBinding)] {
 
   def createSocketProps(conf: Config, bus: ApplicationBus, apiRoute: Route, mat: ActorMaterializer): IO[Props] = IO {
@@ -70,11 +72,12 @@ object Application2 extends BaseApplication[(SharedKillSwitch, Http.ServerBindin
        hsb <- startServer("0.0.0.0", 8081, route)(sys, mat)
     } yield (sk, hsb)
 
-  override def release(resource: (SharedKillSwitch, Http.ServerBinding)): IO[Unit] =
+  override def release: ((SharedKillSwitch, Http.ServerBinding)) => IO[Unit] = { case (ks, hsb) =>
     for {
-      _ <- IO(println("Killing sockets and unbinding"))
-      _ <- IO(resource._1.shutdown())
-      _ <- IO.fromFuture(IO(resource._2.unbind()))
+      _ <- IO(println("Stopping server"))
+      _ <- IO.fromFuture(IO(hsb.unbind())) // Unbind = accept no new connections
+      _ <- IO(ks.shutdown())
+      _ <- IO.fromFuture(IO(hsb.terminate(10.seconds)))
     } yield ()
-
+  }
 }

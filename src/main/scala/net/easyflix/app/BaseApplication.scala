@@ -25,7 +25,7 @@ object BaseApplication {
 
   val loadResources: IO[(Config, ActorSystem, ActorMaterializer)] = {
     for {
-      _ <- IO(println("Creating Actor System"))
+      _ <- IO(println("Creating actor system"))
       config <- loadConfig
       system <- createSystem(config)
       materializer <- createMaterializer(system)
@@ -47,7 +47,7 @@ trait BaseApplication[T] {
 
   def acquire(config: Config, system: ActorSystem, mat: ActorMaterializer): IO[T]
 
-  def release(resource: T): IO[Unit]
+  def release: T => IO[Unit]
 
   def start: IndexedStateT[IO, Stopped.type, Started[T], Unit] = IndexedStateT { _ =>
     val resourcePromise = Promise[T]()

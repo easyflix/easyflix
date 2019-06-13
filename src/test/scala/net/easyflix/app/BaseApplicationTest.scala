@@ -13,7 +13,7 @@ class BaseApplicationTest extends WordSpecLike with Matchers {
 
     val app = new BaseApplication[String] {
       def acquire(conf: Config, sys: ActorSystem, mat: ActorMaterializer): IO[String] = IO.pure("resources")
-      def release(resource: String): IO[Unit] = IO.unit
+      def release: String => IO[Unit] = _ => IO.unit
     }
 
     "start and stop" in {
@@ -67,7 +67,7 @@ class BaseApplicationTest extends WordSpecLike with Matchers {
       val app = new BaseApplication[Unit] {
         def acquire(conf: Config, sys: ActorSystem, mat: ActorMaterializer): IO[Unit] =
           IO.raiseError(CustomException)
-        def release(resource: Unit): IO[Unit] = IO.unit
+        def release: Unit => IO[Unit] = _ => IO.unit
       }
 
       val program = for {
