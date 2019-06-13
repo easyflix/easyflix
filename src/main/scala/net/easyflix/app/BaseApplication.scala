@@ -49,29 +49,23 @@ trait BaseApplication[T] {
 
   def release(resource: T): IO[Unit]
 
-  def start: IndexedStateT[IO, Stopped.type, Started[T], IO[Unit]] = IndexedStateT { _ =>
-    val resultPromise = Promise[Unit]()
+  def start: IndexedStateT[IO, Stopped.type, Started[T], Unit] = IndexedStateT { _ =>
     val resourcePromise = Promise[T]()
     val start: IO[Unit] =
       loadResources.bracket { case (c, s, m) =>
         for {
           t <- acquire(c, s, m).attempt
           _ <- IO.pure(t.fold(resourcePromise.failure, resourcePromise.success))
-          _ <- IO.fromEither(t) *> IO.fromFuture(IO(resultPromise.future))
+          _ <- IO.fromEither(t)
+          _ <- IO.never
         } yield ()
       } {
         case (_, s, m) => shutdown(s, m)
       }
-    val stop: IO[Unit] =
-      IO { resultPromise.trySuccess(()) }.flatMap {
-        case false => IO.fromFuture(IO.pure(resultPromise.future))
-        case true  => IO.unit
-      }
-    val state = Started[T](stop, IO.fromFuture(IO(resourcePromise.future)))
-    start.runAsync {
-      case Left(throwable) => IO { resultPromise.failure(throwable) }
+    start.runCancelable {
+      case Left(_) => IO.unit // IO { throwable.printStackTrace(Console.err) }
       case Right(_) => IO.unit
-    }.map(_ => (state, IO.fromFuture(IO(resultPromise.future)))).toIO
+    }.map(stop => (Started[T](stop, IO.fromFuture(IO(resourcePromise.future))), ())).toIO
   }
 
   def stop: IndexedStateT[IO, Started[T], Stopped.type, Unit] = IndexedStateT {

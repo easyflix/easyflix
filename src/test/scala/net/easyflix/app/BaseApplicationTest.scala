@@ -7,18 +7,13 @@ import com.typesafe.config.Config
 import net.easyflix.app.BaseApplication._
 import org.scalatest.{Matchers, WordSpecLike}
 
-import scala.concurrent.duration._
-
 class BaseApplicationTest extends WordSpecLike with Matchers {
 
   "A BaseApplication" should {
 
-    import cats.implicits._
-
     val app = new BaseApplication[String] {
-      def acquire(conf: Config, sys: ActorSystem, mat: ActorMaterializer): IO[String] =
-        IO(println("acquire")) *> IO.pure("resources")
-      def release(resource: String): IO[Unit] = IO(println("release")) *> IO.unit
+      def acquire(conf: Config, sys: ActorSystem, mat: ActorMaterializer): IO[String] = IO.pure("resources")
+      def release(resource: String): IO[Unit] = IO.unit
     }
 
     "start and stop" in {
@@ -32,50 +27,55 @@ class BaseApplicationTest extends WordSpecLike with Matchers {
 
     }
 
-    "run some IO" in {
+    "run some IO with side effects" in {
+
+      var run: Boolean = false
 
       val program = for {
         _ <- app.start
-        _ <- app.run(r => IO(println(r)))
+        _ <- app.run(_ => IO { run = true })
         _ <- app.stop
       } yield ()
 
       program.runA(Stopped).unsafeRunSync()
 
+      run shouldBe true
+
     }
 
     "report run failures" in {
 
-      val ex = new Exception("boom")
+      def ex(msg: String) = new Exception(msg)
 
       val program = for {
         _ <- app.start
-        r <- app.run(_ => IO.raiseError(ex))
+        r <- app.run(t => IO.raiseError(ex(t)))
         _ <- app.stop
       } yield r
 
       val result: Either[Throwable, Unit] = program.runA(Stopped).unsafeRunSync()
 
-      result shouldBe Left(ex)
+      result.isLeft shouldBe true
+      result.left.get.getMessage shouldBe "resources"
 
     }
 
     "report start failures immediately" in {
 
-      val ex = new Exception("boom")
+      case object CustomException extends Exception("boom")
 
       val app = new BaseApplication[Unit] {
         def acquire(conf: Config, sys: ActorSystem, mat: ActorMaterializer): IO[Unit] =
-          IO.raiseError(ex)
+          IO.raiseError(CustomException)
         def release(resource: Unit): IO[Unit] = IO.unit
       }
 
       val program = for {
-        s <- app.start
+        _ <- app.start
         _ <- app.stop
-      } yield s
+      } yield ()
 
-      assertThrows[Exception](program.runA(BaseApplication.Stopped).unsafeRunSync())
+      assertThrows[CustomException.type](program.runA(BaseApplication.Stopped).unsafeRunSync())
 
     }
 
@@ -85,9 +85,9 @@ class BaseApplicationTest extends WordSpecLike with Matchers {
         r <- app.start
       } yield r
 
-      val result: IO[Unit] = program.runA(Stopped).unsafeRunSync()
+      val result: Unit = program.runA(Stopped).unsafeRunSync()
 
-      result.unsafeRunTimed(1.second) shouldBe None
+      result should ===(())
 
     }
 
