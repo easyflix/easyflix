@@ -1,4 +1,4 @@
-package net.easyflix.util
+package net.easyflix.main
 
 object ConsoleColors {
   val RESET = "\u001b[0m"
