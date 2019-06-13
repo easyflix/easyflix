@@ -6,7 +6,7 @@ import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, ResponseEntity, StatusCodes}
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
-import akka.stream.{Materializer, OverflowStrategy}
+import akka.stream.{KillSwitch, KillSwitches, Materializer, OverflowStrategy}
 import akka.util.ByteString
 import com.typesafe.config.Config
 import net.easyflix.events._
@@ -60,11 +60,12 @@ class TMDBActor(bus: ApplicationBus, config: Config)(implicit materializer: Mate
   bus.subscribe(self, classOf[FileDeleted])
   bus.subscribe(self, classOf[LibraryDeleted])
 
-  val (tmdbActor: ActorRef, connectionPool: Http.HostConnectionPool) =
+  val ((tmdbActor: ActorRef, connectionPool: Http.HostConnectionPool), poolKillSwitch: KillSwitch) =
     Source.actorRef(10000, OverflowStrategy.dropNew)
       .via(Flow[(HttpRequest, Context)].throttle(40, 10.seconds))
       .viaMat(Http()(context.system).cachedHostConnectionPoolHttps[Context]("api.themoviedb.org"))(Keep.both)
       .log("TMDB error")
+      .viaMat(KillSwitches.single)(Keep.both)
       .to(Sink.actorRef(self, Done))
       .run()
 
@@ -480,6 +481,7 @@ class TMDBActor(bus: ApplicationBus, config: Config)(implicit materializer: Mate
   }
 
   override def postStop(): Unit = {
+    poolKillSwitch.shutdown()
     Await.result(connectionPool.shutdown(), 5.seconds)
   }
 
