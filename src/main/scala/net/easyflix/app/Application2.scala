@@ -10,15 +10,17 @@ import net.easyflix.actors.{LibrarySupervisor, SocketActor, TMDBActor}
 import net.easyflix.events.ApplicationBus
 import net.easyflix.http.actors.{SocketSinkActor, SocketSinkSupervisor}
 import net.easyflix.routes.Routes
+import org.slf4j.Logger
 
 import scala.concurrent.duration._
 
-object Application2 extends BaseApplication[(SharedKillSwitch, Http.ServerBinding)] {
+object Application2 extends BaseApplication[(Logger, SharedKillSwitch, Http.ServerBinding)] {
 
-  def createSocketProps(conf: Config, bus: ApplicationBus, apiRoute: Route, mat: ActorMaterializer): IO[Props] = IO {
-    val socketActorProps: Props = SocketActor.props(pathPrefix("api")(Route.seal(apiRoute)), bus, conf)(mat)
-    SocketSinkActor.props(socketActorProps)(mat)
-  }
+  def createSocketProps(conf: Config, bus: ApplicationBus, apiRoute: Route, mat: ActorMaterializer): IO[Props] =
+    IO {
+      val socketActorProps: Props = SocketActor.props(pathPrefix("api")(Route.seal(apiRoute)), bus, conf)(mat)
+      SocketSinkActor.props(socketActorProps)(mat)
+    }
 
   def createVideosRoute(libs: ActorRef): IO[Route] =
     IO { Routes.createVideosRoute(libs) }
@@ -52,13 +54,19 @@ object Application2 extends BaseApplication[(SharedKillSwitch, Http.ServerBindin
   def createTmdbActor(bus: ApplicationBus, conf: Config, sys: ActorSystem, mat: ActorMaterializer): IO[ActorRef] =
     IO { sys.actorOf(TMDBActor.props(bus, conf)(mat), "tmdb") }
 
-  def startServer(host: String, port: Int, routes: Route)(implicit sys: ActorSystem, mat: ActorMaterializer)
-      : IO[Http.ServerBinding] =
+  def startServer(
+      host: String,
+      port: Int,
+      routes: Route)(implicit sys: ActorSystem, mat: ActorMaterializer): IO[Http.ServerBinding] =
     IO.fromFuture(IO(Http().bindAndHandle(Route.handlerFlow(routes), host, port)))
 
-  override def acquire(conf: Config, sys: ActorSystem, mat: ActorMaterializer): IO[(SharedKillSwitch, Http.ServerBinding)] =
+  override def acquire(
+      log: Logger,
+      conf: Config,
+      sys: ActorSystem,
+      mat: ActorMaterializer): IO[(Logger, SharedKillSwitch, Http.ServerBinding)] =
     for {
-         _ <- IO(println("Creating top actors and routes"))
+         _ <- IO(log.info("Creating top actors and routes"))
        bus <- createApplicationBus
         sk <- createSocketKillSwitch
         ss <- createSocketSupervisor(sys)
@@ -68,13 +76,14 @@ object Application2 extends BaseApplication[(SharedKillSwitch, Http.ServerBindin
        vid <- createVideosRoute(libs)
         sp <- createSocketProps(conf, bus, api, mat)
      route <- createRoute(conf, api, vid, ss, sp, sk)
-         _ <- IO(println("Starting server"))
+         _ <- IO(log.info("Starting server"))
        hsb <- startServer("0.0.0.0", 8081, route)(sys, mat)
-    } yield (sk, hsb)
+         _ <- IO(log.info("Server online at http://127.0.0.1:8081"))
+    } yield (log, sk, hsb)
 
-  override def release: ((SharedKillSwitch, Http.ServerBinding)) => IO[Unit] = { case (ks, hsb) =>
+  override def release: ((Logger, SharedKillSwitch, Http.ServerBinding)) => IO[Unit] = { case (log, ks, hsb) =>
     for {
-      _ <- IO(println("Stopping server"))
+      _ <- IO(log.info("Stopping server"))
       _ <- IO.fromFuture(IO(hsb.unbind())) // Unbind = accept no new connections
       _ <- IO(ks.shutdown())
       _ <- IO.fromFuture(IO(hsb.terminate(10.seconds)))

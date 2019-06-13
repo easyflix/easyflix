@@ -6,13 +6,15 @@ import cats.effect.IO
 import com.typesafe.config.Config
 import net.easyflix.app.BaseApplication._
 import org.scalatest.{Matchers, WordSpecLike}
+import org.slf4j.Logger
 
 class BaseApplicationTest extends WordSpecLike with Matchers {
 
   "A BaseApplication" should {
 
     val app = new BaseApplication[String] {
-      def acquire(conf: Config, sys: ActorSystem, mat: ActorMaterializer): IO[String] = IO.pure("resources")
+      def acquire(log: Logger, conf: Config, sys: ActorSystem, mat: ActorMaterializer): IO[String] =
+        IO.pure("resources")
       def release: String => IO[Unit] = _ => IO.unit
     }
 
@@ -65,7 +67,7 @@ class BaseApplicationTest extends WordSpecLike with Matchers {
       case object CustomException extends Exception("boom")
 
       val app = new BaseApplication[Unit] {
-        def acquire(conf: Config, sys: ActorSystem, mat: ActorMaterializer): IO[Unit] =
+        def acquire(logger: Logger, conf: Config, sys: ActorSystem, mat: ActorMaterializer): IO[Unit] =
           IO.raiseError(CustomException)
         def release: Unit => IO[Unit] = _ => IO.unit
       }

@@ -6,6 +6,7 @@ import cats.data.IndexedStateT
 import cats.effect.{CancelToken, IO}
 import cats.implicits._
 import com.typesafe.config.{Config, ConfigFactory}
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.concurrent.Promise
 
@@ -13,6 +14,8 @@ object BaseApplication {
   sealed trait State
   final case class Started[T](stop: CancelToken[IO], resources: IO[T]) extends State
   case object Stopped extends State
+
+  val createLogger = IO { LoggerFactory.getLogger(this.getClass.getCanonicalName) }
 
   val loadConfig: IO[Config] =
     IO { ConfigFactory.load().getConfig("easyflix") }
@@ -23,18 +26,19 @@ object BaseApplication {
   def createMaterializer(system: ActorSystem): IO[ActorMaterializer] =
     IO { ActorMaterializer()(system) }
 
-  val loadResources: IO[(Config, ActorSystem, ActorMaterializer)] = {
+  val loadResources: IO[(Logger, Config, ActorSystem, ActorMaterializer)] = {
     for {
-      _ <- IO(println("Creating actor system"))
+      logger <- createLogger
+           _ <- IO { logger.info("Creating actor system") }
       config <- loadConfig
       system <- createSystem(config)
       materializer <- createMaterializer(system)
-    } yield (config, system, materializer)
+    } yield (logger, config, system, materializer)
   }
 
-  def shutdown(system: ActorSystem, materializer: ActorMaterializer): IO[Unit] =
+  def shutdown(logger: Logger, system: ActorSystem, materializer: ActorMaterializer): IO[Unit] =
     for {
-      _ <- IO { println("Shutting down actor system") }
+      _ <- IO { logger.info("Shutting down actor system") }
       _ <- IO { materializer.shutdown() }
       _ <- IO.fromFuture { IO(system.terminate()) }
     } yield ()
@@ -45,22 +49,22 @@ trait BaseApplication[T] {
 
   import BaseApplication._
 
-  def acquire(config: Config, system: ActorSystem, mat: ActorMaterializer): IO[T]
+  def acquire(logger: Logger, config: Config, system: ActorSystem, mat: ActorMaterializer): IO[T]
 
   def release: T => IO[Unit]
 
   def start: IndexedStateT[IO, Stopped.type, Started[T], Unit] = IndexedStateT { _ =>
     val resourcePromise = Promise[T]()
     val start: IO[Unit] =
-      loadResources.bracket { case (c, s, m) =>
+      loadResources.bracket { case (l, c, s, m) =>
         for {
-          t <- acquire(c, s, m).attempt
+          t <- acquire(l, c, s, m).attempt
           _ <- IO.pure(t.fold(resourcePromise.failure, resourcePromise.success))
           _ <- IO.fromEither(t)
           _ <- IO.never
         } yield ()
       } {
-        case (_, s, m) => shutdown(s, m)
+        case (l, _, s, m) => shutdown(l, s, m)
       }
     start.runCancelable {
       case Left(_) => IO.unit // IO { throwable.printStackTrace(Console.err) }
