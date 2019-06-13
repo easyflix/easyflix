@@ -34,7 +34,7 @@ object BaseApplication {
 
   def shutdown(system: ActorSystem, materializer: ActorMaterializer): IO[Unit] =
     for {
-      _ <- IO { println("Shutting down") }
+      _ <- IO { println("Shutting down actor system") }
       _ <- IO { materializer.shutdown() }
       _ <- IO.fromFuture { IO(system.terminate()) }
     } yield ()

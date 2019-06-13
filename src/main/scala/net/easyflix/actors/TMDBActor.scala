@@ -15,7 +15,7 @@ import net.easyflix.model._
 import net.easyflix.tmdb
 import spray.json.DefaultJsonProtocol._
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
@@ -480,7 +480,7 @@ class TMDBActor(bus: ApplicationBus, config: Config)(implicit materializer: Mate
   }
 
   override def postStop(): Unit = {
-    connectionPool.shutdown()
+    Await.result(connectionPool.shutdown(), 5.seconds)
   }
 
 }

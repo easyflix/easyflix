@@ -1,46 +1,80 @@
 package net.easyflix.app
-import akka.actor.{ActorRef, ActorSystem}
-import akka.stream.ActorMaterializer
-import cats.effect.{IO, Timer}
+import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.server.Directives.pathPrefix
+import akka.http.scaladsl.server.Route
+import akka.stream.{ActorMaterializer, KillSwitches, SharedKillSwitch}
+import cats.effect.IO
 import com.typesafe.config.Config
-import net.easyflix.actors.{LibrarySupervisor, TMDBActor}
+import net.easyflix.actors.{LibrarySupervisor, SocketActor, TMDBActor}
 import net.easyflix.events.ApplicationBus
+import net.easyflix.http.actors.{SocketSinkActor, SocketSinkSupervisor}
+import net.easyflix.routes.Routes
 
-import scala.concurrent.{ExecutionContext, Promise}
-import scala.concurrent.duration._
+object Application2 extends BaseApplication[(SharedKillSwitch, Http.ServerBinding)] {
 
-class Application2 extends BaseApplication {
+  def createSocketProps(conf: Config, bus: ApplicationBus, apiRoute: Route, mat: ActorMaterializer): IO[Props] = IO {
+    val socketActorProps: Props = SocketActor.props(pathPrefix("api")(Route.seal(apiRoute)), bus, conf)(mat)
+    SocketSinkActor.props(socketActorProps)(mat)
+  }
 
-  implicit val timer: Timer[IO] = IO.timer(ExecutionContext.global)
+  def createVideosRoute(libs: ActorRef): IO[Route] =
+    IO { Routes.createVideosRoute(libs) }
+
+  def createApiRoute(
+      libs: ActorRef,
+      tmdb: ActorRef): IO[Route] =
+    IO { Routes.createApiRoute(libs, tmdb) }
+
+  def createRoute(
+      conf: Config,
+      api: Route,
+      vid: Route,
+      ss: ActorRef,
+      sp: Props,
+      sk: SharedKillSwitch): IO[Route] =
+    IO { Routes.createRoute(conf, api, vid, ss, sp, sk) }
+
+  val createSocketKillSwitch: IO[SharedKillSwitch] =
+    IO.pure(KillSwitches.shared("sockets"))
 
   val createApplicationBus: IO[ApplicationBus] =
     IO.pure(new ApplicationBus)
 
-  def createLibrariesActor(system: ActorSystem): IO[ActorRef] =
-    IO { system.actorOf(LibrarySupervisor.props()(???), "libraries") }
+  def createSocketSupervisor(sys: ActorSystem): IO[ActorRef] =
+    IO { sys.actorOf(SocketSinkSupervisor.props(), "sockets") }
 
-  def createTmdbActor(system: ActorSystem): IO[ActorRef] =
-    IO { system.actorOf(TMDBActor.props()(???), "tmdb") }
+  def createLibrariesActor(bus: ApplicationBus, sys: ActorSystem, mat: ActorMaterializer): IO[ActorRef] =
+    IO { sys.actorOf(LibrarySupervisor.props(bus)(mat), "libraries") }
 
-  def startServer: IO[ActorRef] = ???
+  def createTmdbActor(bus: ApplicationBus, conf: Config, sys: ActorSystem, mat: ActorMaterializer): IO[ActorRef] =
+    IO { sys.actorOf(TMDBActor.props(bus, conf)(mat), "tmdb") }
 
-  def waitForTermination: IO[Unit] = IO.sleep(10.seconds)
+  def startServer(host: String, port: Int, routes: Route)(implicit sys: ActorSystem, mat: ActorMaterializer)
+      : IO[Http.ServerBinding] =
+    IO.fromFuture(IO(Http().bindAndHandle(Route.handlerFlow(routes), host, port)))
 
-  override def initialize(config: Config, system: ActorSystem, mat: ActorMaterializer): IO[Unit] =
+  override def acquire(conf: Config, sys: ActorSystem, mat: ActorMaterializer): IO[(SharedKillSwitch, Http.ServerBinding)] =
     for {
-      _ <- IO(println("Initializing"))
-      _ <- createApplicationBus
+         _ <- IO(println("Creating top actors and routes"))
+       bus <- createApplicationBus
+        sk <- createSocketKillSwitch
+        ss <- createSocketSupervisor(sys)
+      libs <- createLibrariesActor(bus, sys, mat)
+      tmdb <- createTmdbActor(bus, conf, sys, mat)
+       api <- createApiRoute(libs, tmdb)
+       vid <- createVideosRoute(libs)
+        sp <- createSocketProps(conf, bus, api, mat)
+     route <- createRoute(conf, api, vid, ss, sp, sk)
+         _ <- IO(println("Starting server"))
+       hsb <- startServer("0.0.0.0", 8081, route)(sys, mat)
+    } yield (sk, hsb)
+
+  override def release(resource: (SharedKillSwitch, Http.ServerBinding)): IO[Unit] =
+    for {
+      _ <- IO(println("Killing sockets and unbinding"))
+      _ <- IO(resource._1.shutdown())
+      _ <- IO.fromFuture(IO(resource._2.unbind()))
     } yield ()
-
-
-  /*  def initialize(config: Config, system: ActorSystem, materializer: ActorMaterializer): IO[T]*/
-  /*    for {
-        _ <- createApplicationBus
-        //_ <- createLibrariesActor(system)
-        //_ <- createTmdbActor(system)
-        // _ <- startServer
-        //_ <- waitForTermination
-        // _ <- IO.sleep(10.seconds)
-      } yield ()*/
 
 }
