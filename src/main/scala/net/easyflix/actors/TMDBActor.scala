@@ -14,8 +14,8 @@ import net.easyflix.exceptions.NotFoundException
 import net.easyflix.model._
 import net.easyflix.tmdb
 
+import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success, Try}
 
 object TMDBActor {
@@ -58,12 +58,12 @@ class TMDBActor(
   bus.subscribe(self, classOf[FileDeleted])
   bus.subscribe(self, classOf[LibraryDeleted])
 
-  val ((tmdbActor: ActorRef, connectionPool: Http.HostConnectionPool), poolKillSwitch: KillSwitch) =
+  val ((tmdbActor: ActorRef, poolKillSwitch: KillSwitch), connectionPool: Http.HostConnectionPool) =
     Source.actorRef(10000, OverflowStrategy.dropNew)
       .via(Flow[(HttpRequest, Context)].throttle(40, 10.seconds))
+      .viaMat(KillSwitches.single)(Keep.both)
       .viaMat(Http()(context.system).cachedHostConnectionPoolHttps[Context]("api.themoviedb.org"))(Keep.both)
       .log("TMDB error")
-      .viaMat(KillSwitches.single)(Keep.both)
       .to(Sink.actorRef(self, Done))
       .run()
 
@@ -404,19 +404,18 @@ class TMDBActor(
 
   def parseEntity[T](entity: ResponseEntity)(implicit reader: spray.json.RootJsonReader[T]): Future[T] = {
     import spray.json._
-    entity.dataBytes.runFold(ByteString(""))(_ ++ _).map { body =>
-      val f = Try(body.utf8String.parseJson.convertTo[T])
+    entity.dataBytes.runFold(ByteString(""))(_ ++ _).flatMap { body =>
+      val f = Future.fromTry(Try(body.utf8String.parseJson.convertTo[T]))
       f.failed.foreach { exception =>
         logger.error(exception, "Error parsing response entity: " + body.utf8String)
-        throw exception
       }
-      f.get
+      f
     }
   }
 
   override def postStop(): Unit = {
     poolKillSwitch.shutdown()
-    Await.result(connectionPool.shutdown(), 5.seconds)
+    connectionPool.shutdown()
   }
 
 }
