@@ -4,18 +4,15 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import cats.data.IndexedStateT
 import cats.effect.{CancelToken, IO}
+import cats.implicits._
 import com.typesafe.config.{Config, ConfigFactory}
-import net.easyflix.app.BaseApplication.{Started, Stopped}
 
 import scala.concurrent.Promise
 
 object BaseApplication {
   sealed trait State
-  case class Started(cancel: CancelToken[IO]) extends State
+  case class Started[T](stop: CancelToken[IO], resources: IO[T]) extends State
   case object Stopped extends State
-}
-
-trait BaseApplication {
 
   val loadConfig: IO[Config] =
     IO { ConfigFactory.load().getConfig("easyflix") }
@@ -42,35 +39,47 @@ trait BaseApplication {
       _ <- IO.fromFuture { IO(system.terminate()) }
     } yield ()
 
-  def initialize(config: Config, system: ActorSystem, mat: ActorMaterializer): IO[Unit]
+}
 
-  def start: IndexedStateT[IO, Stopped.type, Started, Promise[Unit]] = IndexedStateT { _ =>
-    val promise = Promise[Unit]()
-    val start: IO[Unit] = loadResources.bracket { case (c, s, m) =>
-      for {
-        _ <- initialize(c, s, m)
-        _ <- IO.fromFuture(IO(promise.future))
-      } yield ()
-    } {
-      case (_, s, m) => shutdown(s, m)
-    }
+trait BaseApplication[T] {
+
+  import BaseApplication._
+
+  def acquire(config: Config, system: ActorSystem, mat: ActorMaterializer): IO[T]
+
+  def release(resource: T): IO[Unit]
+
+  def start: IndexedStateT[IO, Stopped.type, Started[T], IO[Unit]] = IndexedStateT { _ =>
+    val resultPromise = Promise[Unit]()
+    val resourcePromise = Promise[T]()
+    val start: IO[Unit] =
+      loadResources.bracket { case (c, s, m) =>
+        for {
+          t <- acquire(c, s, m).attempt
+          _ <- IO.pure(t.fold(resourcePromise.failure, resourcePromise.success))
+          _ <- IO.fromEither(t) *> IO.fromFuture(IO(resultPromise.future))
+        } yield ()
+      } {
+        case (_, s, m) => shutdown(s, m)
+      }
     val stop: IO[Unit] =
-      IO { promise.trySuccess(()) }.flatMap {
-        case false => IO.fromFuture(IO.pure(promise.future))
+      IO { resultPromise.trySuccess(()) }.flatMap {
+        case false => IO.fromFuture(IO.pure(resultPromise.future))
         case true  => IO.unit
       }
+    val state = Started[T](stop, IO.fromFuture(IO(resourcePromise.future)))
     start.runAsync {
-      case Left(throwable) => IO { promise.failure(throwable) }
+      case Left(throwable) => IO { resultPromise.failure(throwable) }
       case Right(_) => IO.unit
-    }.map(_ => (Started(stop), promise)).toIO
+    }.map(_ => (state, IO.fromFuture(IO(resultPromise.future)))).toIO
   }
 
-  def stop: IndexedStateT[IO, Started, Stopped.type, Unit] = IndexedStateT {
-    case Started(cancel) => cancel.map(_ => (Stopped, ()))
+  def stop: IndexedStateT[IO, Started[T], Stopped.type, Unit] = IndexedStateT {
+    case Started(stop, t) => t.flatMap(release) *> stop.map(_ => (Stopped, ()))
   }
 
-  def run(io: IO[Unit]): IndexedStateT[IO, Started, Started, Unit] = IndexedStateT {
-    case s @ Started(_) => io.map(_ => (s, ()))
+  def run(io: T => IO[Unit]): IndexedStateT[IO, Started[T], Started[T], Either[Throwable, Unit]] = IndexedStateT {
+    case s @ Started(_, t) => t.flatMap(io).attempt.map(e => (s, e))
   }
 
 }
