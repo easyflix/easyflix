@@ -31,8 +31,7 @@
   <logger name="net.easyflix.actors.LibraryActor" level="INFO" />
 
   <logger name="akka.event.slf4j.Slf4jLogger" level="WARN" />
-  <logger name="akka.actor.ActorSystemImpl" level="INFO" />
-
+  <logger name="akka.actor.ActorSystemImpl" level="ERROR" />
   <!-- TODO: report to alpakka the issue with partial read of ftp file -->
   <logger name="akka.actor.RepointableActorRef" level="OFF" />
 

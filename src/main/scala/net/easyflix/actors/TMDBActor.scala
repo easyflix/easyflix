@@ -13,10 +13,9 @@ import net.easyflix.events._
 import net.easyflix.exceptions.NotFoundException
 import net.easyflix.model._
 import net.easyflix.tmdb
-import spray.json.DefaultJsonProtocol._
 
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success, Try}
 
 object TMDBActor {
@@ -27,19 +26,15 @@ object TMDBActor {
   final case class GetMovie(id: Int)
   final case class GetShow(id: Int)
 
-  def props(bus: ApplicationBus, config: Config)(implicit materializer: Materializer): Props =
-    Props(new TMDBActor(bus, config))
+  def props(tmdbConf: TMDBConfiguration, bus: ApplicationBus, config: Config)(implicit materializer: Materializer): Props =
+    Props(new TMDBActor(tmdbConf, bus, config))
 
-  sealed trait Context
-  private case object ConfigurationContext extends Context
-  private case object LanguagesContext extends Context
-
-  sealed private abstract class RuntimeContext(val log: String) extends Context
-  private final case class MovieSearchContext(query: String, year: Int) extends RuntimeContext(s"Search movie: $query")
-  private final case class MovieDetailsContext(id: Int) extends RuntimeContext(s"Movie details: $id")
-  private final case class TVSearchContext(query: String) extends RuntimeContext(s"Search TV: $query")
-  private final case class TVDetailsContext(id: Int) extends RuntimeContext(s"TV Details: $id")
-  private final case class TVEpisodeContext(id: Int, season: Int, episode: Int) extends RuntimeContext(s"TV Episode: $id - S$season/E$episode")
+  sealed abstract class Context(val log: String)
+  private final case class MovieSearchContext(query: String, year: Int) extends Context(s"Search movie: $query")
+  private final case class MovieDetailsContext(id: Int) extends Context(s"Movie details: $id")
+  private final case class TVSearchContext(query: String) extends Context(s"Search TV: $query")
+  private final case class TVDetailsContext(id: Int) extends Context(s"TV Details: $id")
+  private final case class TVEpisodeContext(id: Int, season: Int, episode: Int) extends Context(s"TV Episode: $id - S$season/E$episode")
 
   sealed trait Metadata
   private final case class MovieMetadata(name: String, year: Int, file: LibraryFile) extends Metadata
@@ -47,7 +42,10 @@ object TMDBActor {
   private final case class UnknownMetadata(file: LibraryFile) extends Metadata
 }
 
-class TMDBActor(bus: ApplicationBus, config: Config)(implicit materializer: Materializer) extends Actor with Stash {
+class TMDBActor(
+    tmdbConf: TMDBConfiguration,
+    bus: ApplicationBus,
+    config: Config)(implicit materializer: Materializer) extends Actor with Stash {
 
   import TMDBActor._
   import context.dispatcher
@@ -68,13 +66,6 @@ class TMDBActor(bus: ApplicationBus, config: Config)(implicit materializer: Mate
       .viaMat(KillSwitches.single)(Keep.both)
       .to(Sink.actorRef(self, Done))
       .run()
-
-  /**
-    * Load configuration
-    */
-  Seq(ConfigurationContext, LanguagesContext)
-    .map(createRequest)
-    .foreach(tmdbActor ! _)
 
   val moviesActor: ActorRef = context.actorOf(Props(new Actor {
     var movies: Map[Int, Movie] = Map.empty
@@ -274,61 +265,7 @@ class TMDBActor(bus: ApplicationBus, config: Config)(implicit materializer: Mate
     }
   }), "shows")
 
-  override def receive: Receive = loading(Configuration(None, None))
-
-  private[this] case class Images(images: net.easyflix.tmdb.Configuration.Images)
-  private[this] case class Languages(languages: net.easyflix.tmdb.Configuration.Languages)
-
-  def loading(config: Configuration): Receive = {
-
-    case (Success(HttpResponse(StatusCodes.OK, _, entity, _)), ConfigurationContext) =>
-      parseEntity[net.easyflix.tmdb.Configuration](entity).foreach { conf =>
-        self ! Images(conf.images)
-      }
-
-    case (Success(HttpResponse(StatusCodes.OK, _, entity, _)), LanguagesContext) =>
-      parseEntity[net.easyflix.tmdb.Configuration.Languages](entity).foreach { languages =>
-        self ! Languages(languages)
-      }
-
-    case (Success(HttpResponse(_, _, entity, _)), requestContext) =>
-      requestContext match {
-        case ConfigurationContext =>
-          entity.discardBytes()
-          logger.error("Got a non-200 response for configuration request.")
-        case LanguagesContext =>
-          entity.discardBytes()
-          logger.error("Got a non-200 response for languages request.")
-        case _ => stash()
-      }
-
-    case (Failure(exception), requestContext) =>
-      logger.error("An error occurred for context: " + requestContext, exception)
-
-    case Images(images) =>
-      val configuration = config.copy(images = Some(images))
-      if (configuration.languages.isDefined & configuration.images.isDefined) {
-        unstashAll()
-        logger.info("Configuration loaded successfully")
-        context.become(behavior(configuration))
-      } else {
-        context.become(loading(configuration))
-      }
-
-    case Languages(languages) =>
-      val configuration = config.copy(languages = Some(languages))
-      if (configuration.languages.isDefined & configuration.images.isDefined) {
-        unstashAll()
-        logger.info("Configuration loaded successfully")
-        context.become(behavior(configuration))
-      } else {
-        context.become(loading(configuration))
-      }
-
-    case _ => stash()
-  }
-
-  def behavior(config: Configuration): Receive = {
+  override def receive: Receive = {
 
     // Events
     case FileAdded(file) =>
@@ -353,7 +290,7 @@ class TMDBActor(bus: ApplicationBus, config: Config)(implicit materializer: Mate
       showsActor ! libraryDeleted
 
     // TMDB responses
-    case (Success(HttpResponse(StatusCodes.OK, _, entity, _)), requestContext: RuntimeContext) =>
+    case (Success(HttpResponse(StatusCodes.OK, _, entity, _)), requestContext: Context) =>
       requestContext match {
         case searchContext: MovieSearchContext =>
           parseEntity[tmdb.SearchMovies](entity).foreach(moviesActor ! (searchContext, _))
@@ -367,7 +304,7 @@ class TMDBActor(bus: ApplicationBus, config: Config)(implicit materializer: Mate
           parseEntity[Episode](entity).foreach(showsActor ! (episodeContext, _))
       }
 
-    case (Success(HttpResponse(StatusCodes.TooManyRequests, headers, entity, _)), requestContext: RuntimeContext) =>
+    case (Success(HttpResponse(StatusCodes.TooManyRequests, headers, entity, _)), requestContext: Context) =>
       entity.discardBytes()
       val retryIn = headers
         .find(_.lowercaseName == "retry-after")
@@ -376,15 +313,15 @@ class TMDBActor(bus: ApplicationBus, config: Config)(implicit materializer: Mate
       logger.info(s"Rescheduling request in $retryIn seconds: " + requestContext.log)
       context.system.scheduler.scheduleOnce(FiniteDuration(retryIn, SECONDS))(tmdbActor ! createRequest(requestContext))
 
-    case (Success(HttpResponse(code, _, entity, _)), _) =>
+    case (Success(HttpResponse(code, _, entity, _)), ct) =>
       entity.discardBytes()
-      logger.warning(s"Unhandled response: $code")
+      logger.warning(s"Unhandled response: $code, $ct")
 
     case (Failure(exception), requestContext) =>
       logger.error("An error occurred for context: " + requestContext, exception)
 
     // Actor API
-    case GetConfig => sender() ! config
+    case GetConfig => sender() ! tmdbConf
     case GetMovies => moviesActor forward GetMovies
     case GetMovie(id) => moviesActor forward GetMovie(id)
     case GetShows => showsActor forward GetShows
@@ -453,10 +390,6 @@ class TMDBActor(bus: ApplicationBus, config: Config)(implicit materializer: Mate
   }
 
   def contextToUri(context: Context): String = context match {
-    case ConfigurationContext =>
-      tmdb.Configuration.get(api_key)
-    case LanguagesContext =>
-      tmdb.Configuration.Language.get(api_key)
     case MovieSearchContext(name, year) =>
       tmdb.SearchMovies.get(api_key, name, year = Some(year), primary_release_year = Some(year))
     case MovieDetailsContext(id) =>
@@ -471,12 +404,13 @@ class TMDBActor(bus: ApplicationBus, config: Config)(implicit materializer: Mate
 
   def parseEntity[T](entity: ResponseEntity)(implicit reader: spray.json.RootJsonReader[T]): Future[T] = {
     import spray.json._
-    entity.dataBytes.runFold(ByteString(""))(_ ++ _).flatMap { body =>
-      val f = Future(body.utf8String.parseJson.convertTo[T])
-      f.failed.foreach(exception =>
+    entity.dataBytes.runFold(ByteString(""))(_ ++ _).map { body =>
+      val f = Try(body.utf8String.parseJson.convertTo[T])
+      f.failed.foreach { exception =>
         logger.error(exception, "Error parsing response entity: " + body.utf8String)
-      )
-      f
+        throw exception
+      }
+      f.get
     }
   }
 

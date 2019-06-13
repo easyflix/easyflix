@@ -29,7 +29,7 @@ class Application {
 
   val bus: ApplicationBus = new ApplicationBus
   val libraries: ActorRef = system.actorOf(LibrarySupervisor.props(bus)(materializer), "libraries")
-  val tmdb: ActorRef = system.actorOf(TMDBActor.props(bus, config)(materializer), "tmdb")
+  val tmdb: ActorRef = ??? //system.actorOf(TMDBActor.props(bus, config)(materializer), "tmdb")
 
   def shutdown() {
     system.log.info("Shutting down.")

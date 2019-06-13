@@ -11,6 +11,7 @@ import com.typesafe.config.Config
 import net.easyflix.actors.{LibrarySupervisor, SocketActor, TMDBActor}
 import net.easyflix.events.ApplicationBus
 import net.easyflix.http.actors.{SocketSinkActor, SocketSinkSupervisor}
+import net.easyflix.model.TMDBConfiguration
 import net.easyflix.routes.Routes
 import net.easyflix.tmdb
 import org.slf4j.Logger
@@ -56,8 +57,8 @@ object Application2 extends BaseApplication[(Logger, SharedKillSwitch, Http.Serv
   def createLibrariesActor(bus: ApplicationBus, sys: ActorSystem, mat: ActorMaterializer): IO[ActorRef] =
     IO { sys.actorOf(LibrarySupervisor.props(bus)(mat), "libraries") }
 
-  def createTmdbActor(bus: ApplicationBus, conf: Config, sys: ActorSystem, mat: ActorMaterializer): IO[ActorRef] =
-    IO { sys.actorOf(TMDBActor.props(bus, conf)(mat), "tmdb") }
+  def createTmdbActor(tmdbConf: TMDBConfiguration, bus: ApplicationBus, conf: Config, sys: ActorSystem, mat: ActorMaterializer): IO[ActorRef] =
+    IO { sys.actorOf(TMDBActor.props(tmdbConf, bus, conf)(mat), "tmdb") }
 
   def startServer(
       host: String,
@@ -65,9 +66,7 @@ object Application2 extends BaseApplication[(Logger, SharedKillSwitch, Http.Serv
       routes: Route)(implicit sys: ActorSystem, mat: ActorMaterializer): IO[Http.ServerBinding] =
     IO.fromFuture(IO(Http().bindAndHandle(Route.handlerFlow(routes), host, port)))
 
-  type TMDBConf = (tmdb.Configuration, tmdb.Configuration.Languages)
-
-  def loadTmdbConfig(conf: Config)(implicit sys: ActorSystem, mat: ActorMaterializer): IO[TMDBConf] = {
+  def loadTmdbConfig(conf: Config)(implicit sys: ActorSystem, mat: ActorMaterializer): IO[TMDBConfiguration] = {
     import spray.json._
     import spray.json.DefaultJsonProtocol._
     implicit val ec: ExecutionContext = sys.dispatcher
@@ -91,7 +90,7 @@ object Application2 extends BaseApplication[(Logger, SharedKillSwitch, Http.Serv
       key <- getApiKey
       conf <- loadConfiguration(key)
       lang <- loadLanguages(key)
-    } yield (conf, lang)
+    } yield TMDBConfiguration(conf.images, lang)
   }
 
   override def acquire(
@@ -107,7 +106,7 @@ object Application2 extends BaseApplication[(Logger, SharedKillSwitch, Http.Serv
       libs <- createLibrariesActor(bus, sys, mat)
          _ <- IO(log.info("Loading TMDB configuration"))
         tc <- loadTmdbConfig(conf)(sys, mat)
-      tmdb <- createTmdbActor(bus, conf, sys, mat)
+      tmdb <- createTmdbActor(tc, bus, conf, sys, mat)
        api <- createApiRoute(libs, tmdb)
        vid <- createVideosRoute(libs)
         sp <- createSocketProps(conf, bus, api, mat)

@@ -134,7 +134,7 @@ class APIRoutes(librariesActor: ActorRef, tmdbActor: ActorRef) extends Directive
 
   def config: Route =
     get {
-      onSuccess((tmdbActor ? TMDBActor.GetConfig).mapTo[Configuration])(complete(_))
+      onSuccess((tmdbActor ? TMDBActor.GetConfig).mapTo[TMDBConfiguration])(complete(_))
     }
 
 }
