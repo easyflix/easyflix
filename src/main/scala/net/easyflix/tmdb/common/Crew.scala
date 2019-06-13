@@ -3,7 +3,7 @@ package net.easyflix.tmdb.common
 import net.easyflix.json.JsonSupport
 import spray.json.RootJsonFormat
 
-case class Crew(
+final case class Crew(
     credit_id: String,
     department: String,
     gender: Option[Int],

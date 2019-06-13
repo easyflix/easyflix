@@ -4,7 +4,7 @@ import spray.json.{JsValue, RootJsonFormat}
 
 import scala.util.Try
 
-case class JsonMessage(method: String, id: Int, entity: JsValue)
+final case class JsonMessage(method: String, id: Int, entity: JsValue)
 
 object JsonMessage extends JsonSupport {
 

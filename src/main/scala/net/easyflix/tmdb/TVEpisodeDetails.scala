@@ -6,7 +6,7 @@ import spray.json.RootJsonFormat
 
 // https://developers.themoviedb.org/3/tv-episodes/get-tv-episode-details
 
-case class TVEpisodeDetails(
+final case class TVEpisodeDetails(
     air_date: String,
     crew: List[Crew],
     episode_number: Int,

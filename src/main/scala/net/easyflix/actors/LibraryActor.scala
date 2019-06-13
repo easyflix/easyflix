@@ -17,8 +17,8 @@ object LibraryActor {
 
   case object GetFiles
   // TODO is that still necessary ?
-  case class GetFile(path: Path)
-  case class GetFileById(id: String)
+  final case class GetFile(path: Path)
+  final case class GetFileById(id: String)
 
   case object Scan
 

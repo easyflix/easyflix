@@ -10,7 +10,7 @@ import scala.concurrent.Await
 
 object Application {
 
-  case class Config(
+  final case class Config(
       port: Int,
       host: String,
       tmdbApiKey: String,

@@ -24,8 +24,8 @@ object TMDBActor {
   case object GetConfig
   case object GetMovies
   case object GetShows
-  case class GetMovie(id: Int)
-  case class GetShow(id: Int)
+  final case class GetMovie(id: Int)
+  final case class GetShow(id: Int)
 
   def props(bus: ApplicationBus, config: Config)(implicit materializer: Materializer): Props =
     Props(new TMDBActor(bus, config))
@@ -35,16 +35,16 @@ object TMDBActor {
   private case object LanguagesContext extends Context
 
   sealed private abstract class RuntimeContext(val log: String) extends Context
-  private case class MovieSearchContext(query: String, year: Int) extends RuntimeContext(s"Search movie: $query")
-  private case class MovieDetailsContext(id: Int) extends RuntimeContext(s"Movie details: $id")
-  private case class TVSearchContext(query: String) extends RuntimeContext(s"Search TV: $query")
-  private case class TVDetailsContext(id: Int) extends RuntimeContext(s"TV Details: $id")
-  private case class TVEpisodeContext(id: Int, season: Int, episode: Int) extends RuntimeContext(s"TV Episode: $id - S$season/E$episode")
+  private final case class MovieSearchContext(query: String, year: Int) extends RuntimeContext(s"Search movie: $query")
+  private final case class MovieDetailsContext(id: Int) extends RuntimeContext(s"Movie details: $id")
+  private final case class TVSearchContext(query: String) extends RuntimeContext(s"Search TV: $query")
+  private final case class TVDetailsContext(id: Int) extends RuntimeContext(s"TV Details: $id")
+  private final case class TVEpisodeContext(id: Int, season: Int, episode: Int) extends RuntimeContext(s"TV Episode: $id - S$season/E$episode")
 
   sealed trait Metadata
-  private case class MovieMetadata(name: String, year: Int, file: LibraryFile) extends Metadata
-  private case class TVEpisodeMetadata(name: String, season: Int, episode: Int, file: LibraryFile) extends Metadata
-  private case class UnknownMetadata(file: LibraryFile) extends Metadata
+  private final case class MovieMetadata(name: String, year: Int, file: LibraryFile) extends Metadata
+  private final case class TVEpisodeMetadata(name: String, season: Int, episode: Int, file: LibraryFile) extends Metadata
+  private final case class UnknownMetadata(file: LibraryFile) extends Metadata
 }
 
 class TMDBActor(bus: ApplicationBus, config: Config)(implicit materializer: Materializer) extends Actor with Stash {

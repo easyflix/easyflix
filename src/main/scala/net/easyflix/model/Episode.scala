@@ -4,7 +4,7 @@ import net.easyflix.json.JsonSupport
 import net.easyflix.tmdb.common.Crew
 import spray.json.RootJsonFormat
 
-case class Episode(
+final case class Episode(
     air_date: String,
     crew: List[Crew],
     episode_number: Int,

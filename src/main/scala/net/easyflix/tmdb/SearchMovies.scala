@@ -7,7 +7,7 @@ import spray.json.RootJsonFormat
 
 // https://developers.themoviedb.org/3/search/search-movies
 
-case class SearchMovies(
+final case class SearchMovies(
     page: Int,
     results: List[SearchMovies.MovieListResult],
     total_results: Int,
@@ -36,7 +36,7 @@ object SearchMovies extends JsonSupport {
 
   implicit val format: RootJsonFormat[SearchMovies] = jsonFormat4(SearchMovies.apply)
 
-  case class MovieListResult(
+  final case class MovieListResult(
       poster_path: Option[String],
       adult: Boolean,
       overview: String,

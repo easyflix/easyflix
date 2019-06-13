@@ -7,7 +7,7 @@ import spray.json.RootJsonFormat
 // https://developers.themoviedb.org/3/movies/get-movie-details
 
 // Dropped three fields: homepage, belongs_to_collection and video
-case class MovieDetails(
+final case class MovieDetails(
     adult: Boolean,
     backdrop_path: Option[String],
     budget: Int,
@@ -46,17 +46,17 @@ object MovieDetails extends JsonSupport {
 
   implicit val format: RootJsonFormat[MovieDetails] = jsonFormat22(MovieDetails.apply)
 
-  case class Company(name: String, id: Int, logo_path: Option[String], origin_country: String)
+  final case class Company(name: String, id: Int, logo_path: Option[String], origin_country: String)
   object Company {
     implicit val format: RootJsonFormat[Company] = jsonFormat4(Company.apply)
   }
 
-  case class Country(iso_3166_1: String, name: String)
+  final case class Country(iso_3166_1: String, name: String)
   object Country {
     implicit val format: RootJsonFormat[Country] = jsonFormat2(Country.apply)
   }
 
-  case class Language(iso_639_1: String, name: String)
+  final case class Language(iso_639_1: String, name: String)
   object Language {
     implicit val format: RootJsonFormat[Language] = jsonFormat2(Language.apply)
   }

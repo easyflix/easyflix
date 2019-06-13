@@ -19,15 +19,15 @@ import scala.util.{Failure, Success, Try}
 object LibrarySupervisor extends JsonSupport {
 
   case object Purge
-  case class Purge(paths: Seq[Path])
+  final case class Purge(paths: Seq[Path])
 
   case object GetLibraries
-  case class AddLibrary(library: Library)
-  case class GetLibrary(name: String)
-  case class GetLibraryFiles(name: String)
-  case class ScanLibrary(name: String)
-  case class RemoveLibrary(name: String)
-  case class GetFileById(libraryName: String, id: String)
+  final case class AddLibrary(library: Library)
+  final case class GetLibrary(name: String)
+  final case class GetLibraryFiles(name: String)
+  final case class ScanLibrary(name: String)
+  final case class RemoveLibrary(name: String)
+  final case class GetFileById(libraryName: String, id: String)
 
   def props(bus: ApplicationBus)(implicit materializer: Materializer): Props =
     Props(new LibrarySupervisor(bus))

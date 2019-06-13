@@ -59,7 +59,7 @@ object Library extends JsonSupport {
     def watch(path: Path): Source[LibraryFileChange, NotUsed]
   }
 
-  case class Local(
+  final case class Local(
       name: String,
       path: Path,
       totalSpace: Long = 1,
@@ -119,7 +119,7 @@ object Library extends JsonSupport {
     }
   }
 
-  case class FTP(
+  final case class FTP(
       name: String,
       path: Path,
       hostname: String,
@@ -193,7 +193,7 @@ object Library extends JsonSupport {
       } yield this
   }
 
-  case class S3(
+  final case class S3(
       name: String,
       path: Path, // The path prefix
       bucket: String,

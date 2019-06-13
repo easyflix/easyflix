@@ -8,7 +8,7 @@ import spray.json.RootJsonFormat
 // https://developers.themoviedb.org/3/tv/get-tv-details
 
 // Dropped homepage, last_episode_to_air, next_episode_to_air, type, popularity
-case class TVDetails(
+final case class TVDetails(
     backdrop_path: Option[String],
     created_by: List[Creator],
     episode_run_time: List[Int],
@@ -47,7 +47,7 @@ object TVDetails extends JsonSupport {
 
   implicit val format: RootJsonFormat[TVDetails] = jsonFormat22(TVDetails.apply)
 
-  case class Creator(
+  final case class Creator(
       id: Int,
       credit_id: String,
       name: String,
@@ -58,7 +58,7 @@ object TVDetails extends JsonSupport {
     implicit val format: RootJsonFormat[Creator] = jsonFormat5(Creator.apply)
   }
 
-  case class Network(
+  final case class Network(
       name: String,
       id: Int,
       logo_path: Option[String],
@@ -68,7 +68,7 @@ object TVDetails extends JsonSupport {
     implicit val format: RootJsonFormat[Network] = jsonFormat4(Network.apply)
   }
 
-  case class Season(
+  final case class Season(
       air_date: Option[String],
       episode_count: Int,
       id: Int,

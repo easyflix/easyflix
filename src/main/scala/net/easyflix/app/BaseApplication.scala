@@ -11,7 +11,7 @@ import scala.concurrent.Promise
 
 object BaseApplication {
   sealed trait State
-  case class Started[T](stop: CancelToken[IO], resources: IO[T]) extends State
+  final case class Started[T](stop: CancelToken[IO], resources: IO[T]) extends State
   case object Stopped extends State
 
   val loadConfig: IO[Config] =

@@ -3,7 +3,7 @@ package net.easyflix.tmdb.common
 import net.easyflix.json.JsonSupport
 import spray.json.RootJsonFormat
 
-case class Cast(
+final case class Cast(
     cast_id: Option[Int],
     character: String,
     credit_id: String,

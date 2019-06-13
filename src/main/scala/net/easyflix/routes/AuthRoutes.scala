@@ -13,7 +13,7 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 object AuthRoutes extends JsonSupport {
-  case class LoginRequest(password: String)
+  final case class LoginRequest(password: String)
   implicit val loginRequestFormat: RootJsonFormat[LoginRequest] = jsonFormat1(LoginRequest.apply)
   /*final case class Claim(username: String)
   implicit val claimFormat: RootJsonFormat[Claim] = jsonFormat1(Claim.apply)*/

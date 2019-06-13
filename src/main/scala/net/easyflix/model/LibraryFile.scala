@@ -5,7 +5,7 @@ import java.nio.file.Path
 import net.easyflix.json.JsonSupport
 import spray.json._
 
-case class LibraryFile(
+final case class LibraryFile(
     id: String,
     name: String,
     path: Path,

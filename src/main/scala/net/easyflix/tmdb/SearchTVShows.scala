@@ -7,7 +7,7 @@ import spray.json.RootJsonFormat
 
 // https://developers.themoviedb.org/3/search/search-tv-shows
 
-case class SearchTVShows(page: Int, results: List[SearchTVShows.TVListResult], total_results: Int, total_pages: Int)
+final case class SearchTVShows(page: Int, results: List[SearchTVShows.TVListResult], total_results: Int, total_pages: Int)
 
 object SearchTVShows extends JsonSupport {
 
@@ -26,7 +26,7 @@ object SearchTVShows extends JsonSupport {
 
   implicit val format: RootJsonFormat[SearchTVShows] = jsonFormat4(SearchTVShows.apply)
 
-  case class TVListResult(
+  final case class TVListResult(
       poster_path: Option[String],
       popularity: Float,
       id: Int,

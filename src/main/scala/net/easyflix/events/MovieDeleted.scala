@@ -1,3 +1,3 @@
 package net.easyflix.events
 
-case class MovieDeleted(id: Int) extends ApplicationBus.Event
+final case class MovieDeleted(id: Int) extends ApplicationBus.Event

@@ -4,7 +4,7 @@ import net.easyflix.json.JsonSupport
 import net.easyflix.tmdb.common.{Credits, Genre}
 import spray.json.RootJsonFormat
 
-case class Movie(
+final case class Movie(
     id: Int,
     title: String,
     original_title: String,
@@ -28,7 +28,7 @@ object Movie extends JsonSupport {
 
   implicit val format: RootJsonFormat[Movie] = jsonFormat11(Movie.apply)
 
-  case class Details(
+  final case class Details(
       id: Int,
       budget: Int,
       genres: List[Genre],
