@@ -1,18 +1,23 @@
 package net.easyflix.app
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives.pathPrefix
 import akka.http.scaladsl.server.Route
 import akka.stream.{ActorMaterializer, KillSwitches, SharedKillSwitch}
+import akka.util.ByteString
 import cats.effect.IO
 import com.typesafe.config.Config
 import net.easyflix.actors.{LibrarySupervisor, SocketActor, TMDBActor}
 import net.easyflix.events.ApplicationBus
 import net.easyflix.http.actors.{SocketSinkActor, SocketSinkSupervisor}
 import net.easyflix.routes.Routes
+import net.easyflix.tmdb
 import org.slf4j.Logger
 
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 object Application2 extends BaseApplication[(Logger, SharedKillSwitch, Http.ServerBinding)] {
 
@@ -60,6 +65,35 @@ object Application2 extends BaseApplication[(Logger, SharedKillSwitch, Http.Serv
       routes: Route)(implicit sys: ActorSystem, mat: ActorMaterializer): IO[Http.ServerBinding] =
     IO.fromFuture(IO(Http().bindAndHandle(Route.handlerFlow(routes), host, port)))
 
+  type TMDBConf = (tmdb.Configuration, tmdb.Configuration.Languages)
+
+  def loadTmdbConfig(conf: Config)(implicit sys: ActorSystem, mat: ActorMaterializer): IO[TMDBConf] = {
+    import spray.json._
+    import spray.json.DefaultJsonProtocol._
+    implicit val ec: ExecutionContext = sys.dispatcher
+    def makeRequest[A: RootJsonReader](uri: String): Future[A] =
+      Http().singleRequest(HttpRequest(uri = s"https://api.themoviedb.org$uri")).transformWith {
+        case Success(HttpResponse(StatusCodes.OK, _, entity, _)) =>
+          entity.dataBytes.runFold(ByteString(""))(_ ++ _).map { body =>
+            body.utf8String.parseJson.convertTo[A]
+          }
+        case Success(HttpResponse(code, _, entity, _)) =>
+          entity.discardBytes()
+          Future.failed(new Exception(s"Could not retrieve TMDB configuration. Response code is: $code"))
+        case Failure(exception) => Future.failed(exception)
+      }
+    val getApiKey: IO[String] = IO { conf.getString("tmdb.api-key") }
+    def loadConfiguration(key: String): IO[tmdb.Configuration] =
+      IO.fromFuture(IO(makeRequest[tmdb.Configuration](tmdb.Configuration.get(key))))
+    def loadLanguages(key: String): IO[tmdb.Configuration.Languages] =
+      IO.fromFuture(IO(makeRequest[tmdb.Configuration.Languages](tmdb.Configuration.Language.get(key))))
+    for {
+      key <- getApiKey
+      conf <- loadConfiguration(key)
+      lang <- loadLanguages(key)
+    } yield (conf, lang)
+  }
+
   override def acquire(
       log: Logger,
       conf: Config,
@@ -71,6 +105,8 @@ object Application2 extends BaseApplication[(Logger, SharedKillSwitch, Http.Serv
         sk <- createSocketKillSwitch
         ss <- createSocketSupervisor(sys)
       libs <- createLibrariesActor(bus, sys, mat)
+         _ <- IO(log.info("Loading TMDB configuration"))
+        tc <- loadTmdbConfig(conf)(sys, mat)
       tmdb <- createTmdbActor(bus, conf, sys, mat)
        api <- createApiRoute(libs, tmdb)
        vid <- createVideosRoute(libs)
