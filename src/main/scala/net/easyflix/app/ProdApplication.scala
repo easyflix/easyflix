@@ -20,7 +20,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-object Application2 extends BaseApplication[(Logger, SharedKillSwitch, Http.ServerBinding)] {
+object ProdApplication extends Application[(Logger, SharedKillSwitch, Http.ServerBinding)] {
 
   def createSocketProps(conf: Config, bus: ApplicationBus, apiRoute: Route, mat: ActorMaterializer): IO[Props] =
     IO {

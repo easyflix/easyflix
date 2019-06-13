@@ -2,15 +2,21 @@ package net.easyflix.model
 
 import java.nio.file.Paths
 
-import akka.stream.KillSwitches
+import akka.actor.ActorSystem
+import akka.stream.{ActorMaterializer, KillSwitches}
 import akka.stream.scaladsl.{Keep, Sink}
 import net.easyflix.model.LibraryFileChange.{Creation, Deletion}
-import net.easyflix.util.{SimpleTest, WithFTPServer, WithLibrary}
+import net.easyflix.util.{WithFTPServer, WithLibrary}
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.{Matchers, WordSpecLike}
 import org.scalatest.time.{Seconds, Span}
 
 import scala.concurrent.duration._
 
-class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer  {
+class LibraryTest extends WordSpecLike with Matchers with WithLibrary with ScalaFutures with WithFTPServer  {
+
+  implicit val system: ActorSystem = ActorSystem("TestSystem")
+  implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   "A Local Library" should {
 
@@ -110,21 +116,6 @@ class LibraryTest extends SimpleTest with WithLibrary with WithFTPServer  {
       files.length should be (1)
       files.head should matchPattern { case Creation(LibraryFile(_, `fileName`, _, false, _, _, "name", _, _, _)) => }
     }
-
-/*    "fail to create with an invalid name" in {
-
-      val regex = """^[^\\/:*?"<>|\r\n]+$""".r
-
-      val invalidName = "<invalid>"
-
-      invalidName match {
-        case regex(_*) => fail()
-        case _ =>
-      }
-
-      assertThrows[java.lang.IllegalArgumentException](Library.Local(invalidName, Paths.get("")))
-
-    }*/
 
   }
 

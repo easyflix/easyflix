@@ -3,6 +3,7 @@ package net.easyflix.actors
 import java.nio.file.Paths
 
 import akka.actor.Status
+import net.easyflix.events.ApplicationBus
 import net.easyflix.exceptions.NotFoundException
 import net.easyflix.model.{Library, LibraryFile}
 import net.easyflix.util.{SimpleActorTest, WithLibrary}
@@ -11,10 +12,12 @@ import scala.concurrent.duration._
 
 class LibraryActorTest extends SimpleActorTest with WithLibrary {
 
+  val bus = new ApplicationBus
+
   "A LibraryActor" should {
 
     val pollInterval = 100.milliseconds
-    val actor = system.actorOf(LibraryActor.props(Library.Local("name", libraryPath, pollInterval = pollInterval), application.bus))
+    val actor = system.actorOf(LibraryActor.props(Library.Local("name", libraryPath, pollInterval = pollInterval), bus))
 
     "scan its library" in {
 

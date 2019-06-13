@@ -3,15 +3,18 @@ package net.easyflix.actors
 import akka.Done
 import akka.actor.Status
 import akka.testkit.TestActorRef
+import net.easyflix.events.ApplicationBus
 import net.easyflix.exceptions.{NotFoundException, ValidationException}
 import net.easyflix.util.{SimpleActorTest, WithLibrary}
 import net.easyflix.model.{Library, LibraryFile}
 
 class LibrarySupervisorTest extends SimpleActorTest with WithLibrary {
 
+  val bus = new ApplicationBus
+
   "A LibrarySupervisor" should {
 
-    val supervisor = TestActorRef[LibrarySupervisor](LibrarySupervisor.props(application.bus))
+    val supervisor = TestActorRef[LibrarySupervisor](LibrarySupervisor.props(bus))
 
     "add a Library successfully" in {
 

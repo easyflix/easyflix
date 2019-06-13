@@ -1,8 +1,11 @@
 package net.easyflix.routes
 
+import akka.actor.ActorRef
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit._
-import net.easyflix.app.Application
+import com.typesafe.config.{Config, ConfigFactory}
+import net.easyflix.app.ProdApplication
+import net.easyflix.events.ApplicationBus
 import net.easyflix.json.JsonSupport
 import net.easyflix.model.{Library, LibraryFile}
 import net.easyflix.util.WithLibrary
@@ -16,16 +19,16 @@ class APIRoutesTest
     with ScalatestRouteTest
     with JsonSupport {
 
-  val application = new Application
+  val bus: ApplicationBus = new ApplicationBus
+  val libraries: ActorRef = ProdApplication.createLibrariesActor(bus, system, materializer).unsafeRunSync()
+  val config: Config = ConfigFactory.load().getConfig("easyflix")
+  val tmdb: ActorRef = ProdApplication.createTmdbActor(null, bus, config, system, materializer).unsafeRunSync()
 
-  override def afterAll(): Unit = {
-    application.shutdown()
-    super.afterAll()
-  }
+  override def afterAll(): Unit = super.afterAll()
 
   "API routes (libraries)" should {
 
-    val route = new APIRoutes(application.libraries, application.tmdb).routes
+    val route = new APIRoutes(libraries, tmdb).routes
 
     val lib = Library.Local("name", libraryPath)
 

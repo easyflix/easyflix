@@ -5,7 +5,7 @@ import akka.http.scaladsl.model.{HttpHeader, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit._
-import net.easyflix.app.Application
+import com.typesafe.config.{Config, ConfigFactory}
 import net.easyflix.json.JsonSupport
 import net.easyflix.util.WithLibrary
 import net.easyflix.routes.AuthRoutes.LoginRequest
@@ -18,14 +18,10 @@ class AuthRoutesTest
     with ScalatestRouteTest
     with JsonSupport {
 
-  val application = new Application
+  val config: Config = ConfigFactory.load().getConfig("easyflix")
+  val auth = new AuthRoutes(config)
 
-  override def afterAll(): Unit = {
-    application.shutdown()
-    super.afterAll()
-  }
-
-  val auth = new AuthRoutes(application.config)
+  override def afterAll(): Unit = super.afterAll()
 
   "Auth routes" should {
 
