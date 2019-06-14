@@ -1,3 +1,5 @@
+![Logo](https://raw.githubusercontent.com/easyflix/easyflix-assets/master/logo/easyflix_logo_tmdb.png)
+
 # Easyflix
 
 Easyflix is a self-hosted and reactive video-streaming server. Use it to stream your digitalized movies and TV shows (or any other videos) to your family and friends devices.
