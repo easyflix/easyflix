@@ -15,7 +15,12 @@ object Main extends PureApp[IO] {
   sealed trait Cmd
   object Cmd {
     case object Empty extends Cmd // No input
-    case object Start extends Cmd // Start command
+    case class Start(
+        port: Option[Int],
+        host: Option[String],
+        tmdbApiKey: Option[String],
+        authKey: Option[String],
+        password: Option[String]) extends Cmd // Start command
     // case object Stop extends Cmd // Stop command
     case object Exit extends Cmd // Exit command
     final case class Print(msg: String, color: String) extends Cmd // Print to out
@@ -25,8 +30,8 @@ object Main extends PureApp[IO] {
   sealed trait Result
   object Result {
     final case class Parsed(cmd: Cmd) extends Result // A command was parsed
-    case object Final extends Result // Final command result, app will quit
-    case object Stopped extends Result // Application was stopped
+    final case object Final extends Result // Final command result, app will quit
+    final case class Stopped(result: Either[Throwable, Unit]) extends Result // Application was stopped
     // case class Started(cancel: CancelToken[IO]) extends Result // Application was started
   }
 
@@ -63,7 +68,9 @@ object Main extends PureApp[IO] {
 
     // case Started(cancel) => (model.copy(cancel = Some(cancel)), Cmd.Empty)
 
-    case Result.Stopped => (model, Cmd.Empty)
+    case Result.Stopped(Left(error)) => (model, Cmd.PrintErr(error.getMessage))
+
+    case Result.Stopped(_) => (model, Cmd.Empty)
 
   }
 
@@ -75,19 +82,16 @@ object Main extends PureApp[IO] {
       case Cmd.Empty => promptF(C)
       case Cmd.Print(msg, color) => C.print(msg, color) *> promptF(C)
       case Cmd.PrintErr(msg) => C.printErr(msg) *> promptF(C)
-      case Cmd.Start => C.print("Starting application") *> {
-        // model.cancel.map(c => C.print("Application already started.") *> IO.pure(Started(c)))
-        // .getOrElse {
-        val app = ProdApplication
-        val a = for {
-          _ <- app.start
-          _ <- app.run(_ => C.readLine("started> ").map(_ => ()))
-          _ <- app.stop
-        } yield Result.Stopped
-        a.runA(Application.Stopped) // TODO attempt
-      }
-            /*E.start.map(Started)*/
-          // }
+      case Cmd.Start(port, host, tmdb, auth, pass) =>
+        C.print("Starting application", ConsoleColors.GREEN) *> {
+          val app = new ProdApplication(port, host, tmdb, auth, pass)
+          val a = for {
+            _ <- app.start
+            r <- app.run(_ => C.readLine("started> ").map(_ => ()))
+            _ <- app.stop
+          } yield r
+          a.runA(Application.Stopped).attempt.map(r => Result.Stopped(r.joinRight))
+        }
 /*      case Cmd.Stop =>
         C.print(model.cancel.map(_ => "Stopping application").getOrElse("Not started!")) *>
           model.cancel.map(_.map(_ => Stopped)).getOrElse(IO.pure(Stopped))*/
@@ -99,49 +103,84 @@ object Main extends PureApp[IO] {
   def io(model: Model, cmd: Cmd): IO[Result] =
     ioF(ConsoleInterpreter)(model, cmd)
 
-}
+  object InputParser {
 
-object InputParser {
+    import com.monovore.decline.{Command, Opts}
 
-  import Main._
-  import com.monovore.decline.{Command, Opts}
+    private val port =
+      Opts.option[Int](
+        long ="port",
+        short = "p",
+        metavar = "port",
+        help = "The port to run on. Defaults to 8081.")
+        .orNone
 
-  private val port =
-    Opts.option[Int]("port", short = "p", metavar = "port", help = "The port to run on.").withDefault(8081)
+    private val host =
+      Opts.option[String](
+        long = "host",
+        short = "h",
+        metavar = "host",
+        help = "The IP address or hostname to bind on. Defaults to 0.0.0.0 which binds on all IPs.")
+        .orNone
 
-  private val start =
-    Opts.subcommand("start", help = "Starts the server.")(port.map(_ => Cmd.Start))
+    private val tmdbApiKey =
+      Opts.option[String](
+        long = "tmdbApiKey",
+        short = "t",
+        metavar = "your-api-key",
+        help = "A valid TMDb API key.")
+        .orNone
 
-  /*private val stop =
-    Opts.subcommand("stop", help = "Stops the server.")(Opts(Cmd.Stop))*/
+    private val authKey =
+      Opts.option[String](
+        long = "authKey",
+        short = "a",
+        metavar = "secret-key",
+        help = "A hexadecimal key (preferably 128 bits) for authentication.")
+        .orNone
 
-  private val quit =
-    Opts.subcommand("exit", help = "Stops the server and exits.")(Opts(Cmd.Exit))
+    private val password =
+      Opts.option[String](
+        long = "password",
+        short = "",
+        metavar = "your-password",
+        help = "The login password.")
+        .orNone
 
-  private val app = Command(
-    name = "",
-    header = """Type "<command> --help" to display a specific command help message."""
-  ) {
-    start /*orElse stop*/ orElse quit
-  }
+    private val start =
+      Opts.subcommand("start", help = "Starts the server."){
+        (port, host, tmdbApiKey, authKey, password).mapN(Cmd.Start)
+      }
 
-  def parse(input: String): Cmd = {
-    if (input == null || input.trim == "") Cmd.Empty
-    else parse(input.trim.split(" ").toSeq)
-  }
+    /*private val stop =
+      Opts.subcommand("stop", help = "Stops the server.")(Opts(Cmd.Stop))*/
 
-  def parse(args: Seq[String]): Cmd = {
-    if (args.isEmpty) {
-      Cmd.Empty
-    } else {
-      app.parse(args) match {
-        case Right(msg) => msg
-        case Left(msg) if msg.errors.nonEmpty => Cmd.PrintErr(msg.toString())
-        case Left(msg) => Cmd.Print(msg.toString(), ConsoleColors.GREEN)
+    private val quit =
+      Opts.subcommand("exit", help = "Stops the server and exits.")(Opts(Cmd.Exit))
+
+    private val app = Command(
+      name = "",
+      header = """Type "<command> --help" to display a specific command help message."""
+    ) {
+      start /*orElse stop*/ orElse quit
+    }
+
+    def parse(input: String): Cmd = {
+      if (input == null || input.trim == "") Cmd.Empty
+      else parse(input.trim.split(" ").toSeq)
+    }
+
+    def parse(args: Seq[String]): Cmd = {
+      if (args.isEmpty) {
+        Cmd.Empty
+      } else {
+        app.parse(args) match {
+          case Right(msg) => msg
+          case Left(msg) if msg.errors.nonEmpty => Cmd.PrintErr(msg.toString())
+          case Left(msg) => Cmd.Print(msg.toString(), ConsoleColors.CYAN)
+        }
       }
     }
   }
 
 }
-
-

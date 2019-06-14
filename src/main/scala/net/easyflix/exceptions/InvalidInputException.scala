@@ -1,3 +1,3 @@
 package net.easyflix.exceptions
 
-final case class InvalidInputException(msg: String) extends Throwable(msg)
+final case class InvalidInputException(msg: String) extends RuntimeException(msg)

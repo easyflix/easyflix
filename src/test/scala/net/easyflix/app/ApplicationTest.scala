@@ -3,7 +3,6 @@ package net.easyflix.app
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import cats.effect.IO
-import com.typesafe.config.Config
 import net.easyflix.app.Application._
 import org.scalatest.{Matchers, WordSpecLike}
 import org.slf4j.Logger
@@ -13,7 +12,7 @@ class ApplicationTest extends WordSpecLike with Matchers {
   "A BaseApplication" should {
 
     val app = new Application[String] {
-      def acquire(log: Logger, conf: Config, sys: ActorSystem, mat: ActorMaterializer): IO[String] =
+      def acquire(log: Logger, sys: ActorSystem, mat: ActorMaterializer): IO[String] =
         IO.pure("resources")
       def release: String => IO[Unit] = _ => IO.unit
     }
@@ -67,7 +66,7 @@ class ApplicationTest extends WordSpecLike with Matchers {
       case object CustomException extends Exception("boom")
 
       val app = new Application[Unit] {
-        def acquire(logger: Logger, conf: Config, sys: ActorSystem, mat: ActorMaterializer): IO[Unit] =
+        def acquire(logger: Logger, sys: ActorSystem, mat: ActorMaterializer): IO[Unit] =
           IO.raiseError(CustomException)
         def release: Unit => IO[Unit] = _ => IO.unit
       }

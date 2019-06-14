@@ -1,4 +1,6 @@
 package net.easyflix.app
+import java.io.File
+
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes}
@@ -9,10 +11,11 @@ import akka.util.ByteString
 import cats.Show
 import cats.effect.IO
 import cats.implicits._
-import com.typesafe.config.Config
+import com.typesafe.config.{Config, ConfigFactory}
 import net.easyflix.actors.{LibrarySupervisor, SocketActor, TMDBActor}
 import net.easyflix.app.ProdConfiguration.ConfigError
 import net.easyflix.events.ApplicationBus
+import net.easyflix.exceptions.ConfigurationException
 import net.easyflix.http.actors.{SocketSinkActor, SocketSinkSupervisor}
 import net.easyflix.model.TMDBConfiguration
 import net.easyflix.routes.Routes
@@ -23,9 +26,15 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-object ProdApplication extends ProdApplication
+object ProdApplication extends ProdApplication(None, None, None, None, None)
 
-trait ProdApplication extends Application[(Logger, SharedKillSwitch, Http.ServerBinding)] {
+class ProdApplication(
+    port: Option[Int] = None,
+    host: Option[String] = None,
+    tmdbApiKey: Option[String] = None,
+    authKey: Option[String] = None,
+    password: Option[String] = None
+) extends Application[(Logger, SharedKillSwitch, Http.ServerBinding)] {
 
   def createSocketProps(conf: ProdConfiguration, bus: ApplicationBus, apiRoute: Route, mat: ActorMaterializer): IO[Props] =
     IO {
@@ -96,29 +105,47 @@ trait ProdApplication extends Application[(Logger, SharedKillSwitch, Http.Server
     } yield TMDBConfiguration(conf.images, lang)
   }
 
-  def parseConfiguration(conf: Config): IO[ProdConfiguration] = {
+  val parseConfiguration: IO[ProdConfiguration] = {
     implicit val show: Show[ConfigError] = (t: ConfigError) => t.msg
-    val e: Either[Exception, ProdConfiguration] = ProdConfiguration.validateConf(conf).toEither.left.map { errorChain =>
-      val message = errorChain.mkString_("\n")
-      new Exception(message)
-    }
-    IO.fromEither(e)
+    def parse(conf: Config): Either[ConfigurationException, ProdConfiguration] =
+      ProdConfiguration.validateConf(
+        conf = conf,
+        port = port,
+        host = host,
+        tmdbApiKey = tmdbApiKey,
+        authKey = authKey,
+        None,
+        password = password
+      ).toEither.left.map { errorChain =>
+        val message = errorChain.mkString_("\n")
+        ConfigurationException(message)
+      }
+    for {
+      c <- IO {
+        ConfigFactory.invalidateCaches()
+        val f = ConfigFactory.parseFile(new File("./easyflix.conf")) // Start by looking for a file in cwd
+        val e = ConfigFactory.load("easyflix")
+        val r = ConfigFactory.load("easyflix-reference")
+        f.withFallback(e).withFallback(r)
+      }
+      r <- IO.fromEither(parse(c))
+    } yield r
   }
 
+  // TODO make system and mat implicit
   override def acquire(
       log: Logger,
-      conf: Config,
       sys: ActorSystem,
       mat: ActorMaterializer): IO[(Logger, SharedKillSwitch, Http.ServerBinding)] =
     for {
          _ <- IO(log.info("Parsing configuration"))
-         c <- parseConfiguration(conf)
+         c <- parseConfiguration
          _ <- IO(log.info("Creating top actors and routes"))
        bus <- createApplicationBus
         sk <- createSocketKillSwitch
         ss <- createSocketSupervisor(sys)
       libs <- createLibrariesActor(bus, sys, mat)
-         _ <- IO(log.info("Loading TMDB configuration"))
+         _ <- IO(log.info("Loading TMDb configuration"))
         tc <- loadTmdbConfig(c)(sys, mat)
       tmdb <- createTmdbActor(tc, bus, c, sys, mat)
        api <- createApiRoute(libs, tmdb)

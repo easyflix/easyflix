@@ -5,7 +5,6 @@ import akka.stream.ActorMaterializer
 import cats.data.IndexedStateT
 import cats.effect.{CancelToken, IO}
 import cats.implicits._
-import com.typesafe.config.{Config, ConfigFactory}
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.concurrent.Promise
@@ -22,13 +21,10 @@ trait Application[T] {
 
   import Application._
 
-  def loadConfig: IO[Config] =
-    IO { ConfigFactory.load().getConfig("easyflix") }
-
   def createLogger = IO { LoggerFactory.getLogger(this.getClass.getCanonicalName) }
 
-  def createSystem(config: Config): IO[ActorSystem] =
-    IO { ActorSystem("Easyflix", config) }
+  val createSystem: IO[ActorSystem] =
+    IO { ActorSystem.create("Easyflix") }
 
   def createMaterializer(system: ActorSystem): IO[ActorMaterializer] =
     IO { ActorMaterializer()(system) }
@@ -40,32 +36,31 @@ trait Application[T] {
       _ <- IO.fromFuture { IO(system.terminate()) }
     } yield ()
 
-  val loadResources: IO[(Logger, Config, ActorSystem, ActorMaterializer)] = {
+  val loadResources: IO[(Logger, ActorSystem, ActorMaterializer)] = {
     for {
       logger <- createLogger
       _ <- IO { logger.info("Creating actor system") }
-      config <- loadConfig
-      system <- createSystem(config)
+      system <- createSystem
       materializer <- createMaterializer(system)
-    } yield (logger, config, system, materializer)
+    } yield (logger, system, materializer)
   }
 
-  def acquire(logger: Logger, config: Config, system: ActorSystem, mat: ActorMaterializer): IO[T]
+  def acquire(logger: Logger, system: ActorSystem, mat: ActorMaterializer): IO[T]
 
   def release: T => IO[Unit]
 
   def start: IndexedStateT[IO, Stopped.type, Started[T], Unit] = IndexedStateT { _ =>
     val resourcePromise = Promise[T]()
     val start: IO[Unit] =
-      loadResources.bracket { case (l, c, s, m) =>
+      loadResources.bracket { case (l, s, m) =>
         for {
-          t <- acquire(l, c, s, m).attempt
+          t <- acquire(l, s, m).attempt
           _ <- IO.pure(t.fold(resourcePromise.failure, resourcePromise.success))
           _ <- IO.fromEither(t)
           _ <- IO.never
         } yield ()
       } {
-        case (l, _, s, m) => shutdown(l, s, m)
+        case (l, s, m) => shutdown(l, s, m)
       }
     start.runCancelable {
       case Left(_) => IO.unit // IO { throwable.printStackTrace(Console.err) }

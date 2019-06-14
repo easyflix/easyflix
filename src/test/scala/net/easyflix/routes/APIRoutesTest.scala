@@ -3,7 +3,6 @@ package net.easyflix.routes
 import akka.actor.ActorRef
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit._
-import com.typesafe.config.ConfigFactory
 import net.easyflix.app.{ProdApplication, ProdConfiguration}
 import net.easyflix.events.ApplicationBus
 import net.easyflix.json.JsonSupport
@@ -22,7 +21,7 @@ class APIRoutesTest
   val app: ProdApplication = ProdApplication
   val bus: ApplicationBus = new ApplicationBus
   val libraries: ActorRef = app.createLibrariesActor(bus, system, materializer).unsafeRunSync()
-  val config: ProdConfiguration = app.parseConfiguration(ConfigFactory.load().getConfig("easyflix")).unsafeRunSync()
+  val config: ProdConfiguration = app.parseConfiguration.unsafeRunSync()
   val tmdb: ActorRef = app.createTmdbActor(null, bus, config, system, materializer).unsafeRunSync()
 
   override def afterAll(): Unit = super.afterAll()

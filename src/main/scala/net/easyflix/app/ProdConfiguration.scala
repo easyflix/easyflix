@@ -19,8 +19,9 @@ case class ProdConfiguration(
 
 object ProdConfiguration {
 
-  case class ConfigError(msg: String) extends Show[ConfigError] {
-    override def show(t: ConfigError): String = msg
+  case class ConfigError(msg: String)
+  object ConfigError extends Show[ConfigError] {
+    override def show(t: ConfigError): String = t.msg
   }
 
   type ValidationResult[A] = ValidatedNec[ConfigError, A]
@@ -46,13 +47,20 @@ object ProdConfiguration {
   private def validateAuthPassword(conf: Config): ValidationResult[String] =
     parse(conf.getString("auth.password"))
 
-  def validateConf(conf: Config): ValidationResult[ProdConfiguration] = {
-    (validatePort(conf),
-      validateHost(conf),
-      validateTMDbApiKey(conf),
-      validateAuthKey(conf),
-      validateAuthTokenExpiration(conf),
-      validateAuthPassword(conf)).mapN(ProdConfiguration.apply)
+  def validateConf(
+      conf: Config,
+      port: Option[Int] = None,
+      host: Option[String] = None,
+      tmdbApiKey: Option[String] = None,
+      authKey: Option[String] = None,
+      authTokenExpiration: Option[Duration] = None,
+      password: Option[String] = None): ValidationResult[ProdConfiguration] = {
+    (port.map(_.validNec).getOrElse(validatePort(conf)),
+      host.map(_.validNec).getOrElse(validateHost(conf)),
+      tmdbApiKey.map(_.validNec).getOrElse(validateTMDbApiKey(conf)),
+      authKey.map(_.validNec).getOrElse(validateAuthKey(conf)),
+      authTokenExpiration.map(_.validNec).getOrElse(validateAuthTokenExpiration(conf)),
+      password.map(_.validNec).getOrElse(validateAuthPassword(conf))).mapN(ProdConfiguration.apply)
   }
 
 }
