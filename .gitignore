@@ -48,6 +48,7 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# Application
 /data
-/config
 /src/test/resources/ftp/users.properties
+easyflix.conf

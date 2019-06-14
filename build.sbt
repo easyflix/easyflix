@@ -4,6 +4,7 @@ ThisBuild / scalaVersion     := "2.12.8"
 ThisBuild / version          := "1.0.0"
 ThisBuild / organization     := "net.easyflix"
 ThisBuild / scalacOptions    := Seq("-unchecked", "-deprecation", "-feature")
+// ThisBuild / Test / parallelExecution := false
 
 lazy val root = (project in file("."))
   .settings(
@@ -31,7 +32,6 @@ lazy val root = (project in file("."))
     libraryDependencies += akkaHttpTestkit % Test,
     libraryDependencies += apacheFtpServer % Test,
 
-    unmanagedResourceDirectories in Compile += baseDirectory.value / "config",
     unmanagedResourceDirectories in Compile += target.value / "front",
 
   ).enablePlugins(JavaAppPackaging)

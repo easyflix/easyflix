@@ -123,10 +123,9 @@ class ProdApplication(
     for {
       c <- IO {
         ConfigFactory.invalidateCaches()
-        val f = ConfigFactory.parseFile(new File("./easyflix.conf")) // Start by looking for a file in cwd
-        val e = ConfigFactory.load("easyflix")
+        val f = ConfigFactory.parseFile(new File("./easyflix.conf"))
         val r = ConfigFactory.load("easyflix-reference")
-        f.withFallback(e).withFallback(r)
+        f.withFallback(r)
       }
       r <- IO.fromEither(parse(c))
     } yield r

@@ -10,6 +10,9 @@ import net.easyflix.main.{ConsoleColors, ConsoleInterpreter, PureApp}
 
 import scala.language.higherKinds
 
+// For color support in PowerShell see:
+// https://stackoverflow.com/questions/51680709/colored-text-output-in-powershell-console-using-ansi-vt100-codes
+
 object Main extends PureApp[IO] {
 
   sealed trait Cmd

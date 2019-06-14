@@ -16,7 +16,8 @@
     "sbt:compile": "sbt compile",
     "sbt:stage": "sbt stage",
     "sbt:stage:zip": "sbt universal:packageBin",
-    "sbt:stage:tar": "sbt universal:packageZipTarball"
+    "sbt:stage:tar": "sbt universal:packageZipTarball",
+    "stage": "npm run ng:build:prod & npm run sbt:stage"
   },
   "private": true,
   "dependencies": {
