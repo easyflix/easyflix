@@ -58,7 +58,7 @@ auth.key: "<any-secret-key>"
 auth.password: "<a-password>"
 ```
 Notes:
-  * Check what configuration keys your can override by consulting [easyflix-reference.conf](https://github.com/easyflix/easyflix/blob/master/src/main/resources/easyflix-reference.conf)
+  * Check what configuration keys you can override by consulting [easyflix-reference.conf](https://github.com/easyflix/easyflix/blob/master/src/main/resources/easyflix-reference.conf)
   * `auth.key` can be anything but should preferably be a 128 bits hexadecimal key for security
   * `auth.password` is the password you will use to log into your Easyflix instance
 3. Run `bin\easyflix` and then type `start` or run `bin\easyflix start` directly
