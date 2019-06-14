@@ -112,7 +112,7 @@ object ProdApplication extends Application[(Logger, SharedKillSwitch, Http.Serve
         sp <- createSocketProps(conf, bus, api, mat)
      route <- createRoute(conf, api, vid, ss, sp, sk)
          _ <- IO(log.info("Starting server"))
-       hsb <- startServer("0.0.0.0", 8081, route)(sys, mat)
+       hsb <- startServer("0.0.0.0", 8081, route)(sys, mat) // TODO pass correct host and port configuration
          _ <- IO(log.info("Server online at http://127.0.0.1:8081"))
     } yield (log, sk, hsb)
 
