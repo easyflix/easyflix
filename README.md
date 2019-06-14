@@ -1,8 +1,8 @@
-![Logo](https://raw.githubusercontent.com/easyflix/easyflix-assets/master/logo/easyflix_logo_tmdb.png)
+![Easyflix](https://raw.githubusercontent.com/easyflix/easyflix-assets/master/logo/easyflix_logo_tmdb.png)
 
 # Easyflix
 
-Easyflix is a self-hosted and reactive video-streaming server. Use it to stream your digitalized movies and TV shows (or any other videos) to your family and friends devices.
+Easyflix is a self-hosted and reactive video-streaming server powered by [The Movie Database](https://www.themoviedb.org/). Use it to stream your digitalized movies and TV shows (or any other videos) to your family and friends devices.
 
 It is written in Typescript and Scala, and is licensed under the GNU Affero General Public License v3.
 
