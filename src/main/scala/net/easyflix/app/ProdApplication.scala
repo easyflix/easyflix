@@ -81,7 +81,7 @@ object ProdApplication extends Application[(Logger, SharedKillSwitch, Http.Serve
           Future.failed(new Exception(s"Could not retrieve TMDB configuration. Response code is: $code"))
         case Failure(exception) => Future.failed(exception)
       }
-    val getApiKey: IO[String] = IO { conf.getString("tmdb.api-key") }
+    val getApiKey: IO[String] = IO { conf.getString("tmdb.apiKey") }
     def loadConfiguration(key: String): IO[tmdb.Configuration] =
       IO.fromFuture(IO(makeRequest[tmdb.Configuration](tmdb.Configuration.get(key))))
     def loadLanguages(key: String): IO[tmdb.Configuration.Languages] =

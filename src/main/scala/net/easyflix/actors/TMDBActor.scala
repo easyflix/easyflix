@@ -52,7 +52,7 @@ class TMDBActor(
 
   val logger = Logging(context.system, this)
 
-  private val api_key = config.getString("tmdb.api-key")
+  private val api_key = config.getString("tmdb.apiKey")
 
   bus.subscribe(self, classOf[FileAdded])
   bus.subscribe(self, classOf[FileDeleted])
