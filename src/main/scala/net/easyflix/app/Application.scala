@@ -72,7 +72,7 @@ trait Application[T] {
     case Started(stop, t) => t.flatMap(release) *> stop.map(_ => (Stopped, ()))
   }
 
-  def run(io: T => IO[Unit]): IndexedStateT[IO, Started[T], Started[T], Either[Throwable, Unit]] = IndexedStateT {
+  def run[A](io: T => IO[A]): IndexedStateT[IO, Started[T], Started[T], Either[Throwable, A]] = IndexedStateT {
     case s @ Started(_, t) => t.flatMap(io).attempt.map(e => (s, e))
   }
 

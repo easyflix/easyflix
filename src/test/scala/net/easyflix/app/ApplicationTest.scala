@@ -50,7 +50,7 @@ class ApplicationTest extends WordSpecLike with Matchers {
 
       val program = for {
         _ <- app.start
-        r <- app.run(t => IO.raiseError(ex(t)))
+        r <- app.run(t => IO.raiseError[Unit](ex(t)))
         _ <- app.stop
       } yield r
 

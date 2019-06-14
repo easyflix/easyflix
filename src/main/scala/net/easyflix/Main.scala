@@ -21,7 +21,6 @@ object Main extends PureApp[IO] {
         tmdbApiKey: Option[String],
         authKey: Option[String],
         password: Option[String]) extends Cmd // Start command
-    // case object Stop extends Cmd // Stop command
     case object Exit extends Cmd // Exit command
     final case class Print(msg: String, color: String) extends Cmd // Print to out
     final case class PrintErr(msg: String) extends Cmd // Print to err
@@ -31,8 +30,7 @@ object Main extends PureApp[IO] {
   object Result {
     final case class Parsed(cmd: Cmd) extends Result // A command was parsed
     final case object Final extends Result // Final command result, app will quit
-    final case class Stopped(result: Either[Throwable, Unit]) extends Result // Application was stopped
-    // case class Started(cancel: CancelToken[IO]) extends Result // Application was started
+    final case class Stopped(result: Either[Throwable, Started.Result]) extends Result // Application was stopped
   }
 
   final case class Model()
@@ -47,7 +45,7 @@ object Main extends PureApp[IO] {
         |
         | Type "start" to start the server
         | Type "exit" to exit
-        | Type "--help" for additional help
+        | Type "--help" or "<command> --help" for additional help
         |
       """.stripMargin
 
@@ -66,11 +64,11 @@ object Main extends PureApp[IO] {
 
     case Result.Final => (model, Cmd.Empty)
 
-    // case Started(cancel) => (model.copy(cancel = Some(cancel)), Cmd.Empty)
-
     case Result.Stopped(Left(error)) => (model, Cmd.PrintErr(error.getMessage))
 
-    case Result.Stopped(_) => (model, Cmd.Empty)
+    case Result.Stopped(Right(Started.Result.Final)) => (model, Cmd.Exit)
+
+    case Result.Stopped(Right(_)) => (model, Cmd.Empty)
 
   }
 
@@ -83,21 +81,16 @@ object Main extends PureApp[IO] {
       case Cmd.Print(msg, color) => C.print(msg, color) *> promptF(C)
       case Cmd.PrintErr(msg) => C.printErr(msg) *> promptF(C)
       case Cmd.Start(port, host, tmdb, auth, pass) =>
-        C.print("Starting application", ConsoleColors.GREEN) *> {
+        C.print("Starting application...", ConsoleColors.GREEN_BOLD) *> {
           val app = new ProdApplication(port, host, tmdb, auth, pass)
           val a = for {
             _ <- app.start
-            r <- app.run(_ => C.readLine("started> ").map(_ => ()))
+            r <- app.run(_ => Started.program(List.empty).build())
             _ <- app.stop
           } yield r
           a.runA(Application.Stopped).attempt.map(r => Result.Stopped(r.joinRight))
         }
-/*      case Cmd.Stop =>
-        C.print(model.cancel.map(_ => "Stopping application").getOrElse("Not started!")) *>
-          model.cancel.map(_.map(_ => Stopped)).getOrElse(IO.pure(Stopped))*/
       case Cmd.Exit => IO.pure(Final)
-/*        model.cancel.map(C.print("Stopping application") *> _.map(_ => Final))
-          .getOrElse(IO.pure(Final))*/
     }
 
   def io(model: Model, cmd: Cmd): IO[Result] =
@@ -152,17 +145,14 @@ object Main extends PureApp[IO] {
         (port, host, tmdbApiKey, authKey, password).mapN(Cmd.Start)
       }
 
-    /*private val stop =
-      Opts.subcommand("stop", help = "Stops the server.")(Opts(Cmd.Stop))*/
-
     private val quit =
-      Opts.subcommand("exit", help = "Stops the server and exits.")(Opts(Cmd.Exit))
+      Opts.subcommand("exit", help = "Exits the program.")(Opts(Cmd.Exit))
 
     private val app = Command(
       name = "",
       header = """Type "<command> --help" to display a specific command help message."""
     ) {
-      start /*orElse stop*/ orElse quit
+      start orElse quit
     }
 
     def parse(input: String): Cmd = {
@@ -171,16 +161,11 @@ object Main extends PureApp[IO] {
     }
 
     def parse(args: Seq[String]): Cmd = {
-      if (args.isEmpty) {
-        Cmd.Empty
-      } else {
-        app.parse(args) match {
-          case Right(msg) => msg
-          case Left(msg) if msg.errors.nonEmpty => Cmd.PrintErr(msg.toString())
-          case Left(msg) => Cmd.Print(msg.toString(), ConsoleColors.CYAN)
-        }
+      app.parse(args) match {
+        case Right(msg) => msg
+        case Left(msg) if msg.errors.nonEmpty => Cmd.PrintErr(msg.toString())
+        case Left(msg) => Cmd.Print(msg.toString(), ConsoleColors.CYAN)
       }
     }
   }
-
 }
