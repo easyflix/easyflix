@@ -19,10 +19,11 @@ class APIRoutesTest
     with ScalatestRouteTest
     with JsonSupport {
 
+  val app: ProdApplication = ProdApplication
   val bus: ApplicationBus = new ApplicationBus
-  val libraries: ActorRef = ProdApplication.createLibrariesActor(bus, system, materializer).unsafeRunSync()
+  val libraries: ActorRef = app.createLibrariesActor(bus, system, materializer).unsafeRunSync()
   val config: Config = ConfigFactory.load().getConfig("easyflix")
-  val tmdb: ActorRef = ProdApplication.createTmdbActor(null, bus, config, system, materializer).unsafeRunSync()
+  val tmdb: ActorRef = app.createTmdbActor(null, bus, config, system, materializer).unsafeRunSync()
 
   override def afterAll(): Unit = super.afterAll()
 

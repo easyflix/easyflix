@@ -6,9 +6,12 @@ import akka.http.scaladsl.server.Directives.pathPrefix
 import akka.http.scaladsl.server.Route
 import akka.stream.{ActorMaterializer, KillSwitches, SharedKillSwitch}
 import akka.util.ByteString
+import cats.Show
 import cats.effect.IO
+import cats.implicits._
 import com.typesafe.config.Config
 import net.easyflix.actors.{LibrarySupervisor, SocketActor, TMDBActor}
+import net.easyflix.app.ProdConfiguration.ConfigError
 import net.easyflix.events.ApplicationBus
 import net.easyflix.http.actors.{SocketSinkActor, SocketSinkSupervisor}
 import net.easyflix.model.TMDBConfiguration
@@ -20,7 +23,9 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-object ProdApplication extends Application[(Logger, SharedKillSwitch, Http.ServerBinding)] {
+object ProdApplication extends ProdApplication
+
+trait ProdApplication extends Application[(Logger, SharedKillSwitch, Http.ServerBinding)] {
 
   def createSocketProps(conf: Config, bus: ApplicationBus, apiRoute: Route, mat: ActorMaterializer): IO[Props] =
     IO {
@@ -67,8 +72,8 @@ object ProdApplication extends Application[(Logger, SharedKillSwitch, Http.Serve
     IO.fromFuture(IO(Http().bindAndHandle(Route.handlerFlow(routes), host, port)))
 
   def loadTmdbConfig(conf: Config)(implicit sys: ActorSystem, mat: ActorMaterializer): IO[TMDBConfiguration] = {
-    import spray.json._
     import spray.json.DefaultJsonProtocol._
+    import spray.json._
     implicit val ec: ExecutionContext = sys.dispatcher
     def makeRequest[A: RootJsonReader](uri: String): Future[A] =
       Http().singleRequest(HttpRequest(uri = s"https://api.themoviedb.org$uri")).transformWith {
@@ -81,7 +86,7 @@ object ProdApplication extends Application[(Logger, SharedKillSwitch, Http.Serve
           Future.failed(new Exception(s"Could not retrieve TMDB configuration. Response code is: $code"))
         case Failure(exception) => Future.failed(exception)
       }
-    val getApiKey: IO[String] = IO { conf.getString("tmdb.apiKey") }
+    val getApiKey: IO[String] = IO { conf.getString("tmdbApiKey") }
     def loadConfiguration(key: String): IO[tmdb.Configuration] =
       IO.fromFuture(IO(makeRequest[tmdb.Configuration](tmdb.Configuration.get(key))))
     def loadLanguages(key: String): IO[tmdb.Configuration.Languages] =
@@ -93,12 +98,23 @@ object ProdApplication extends Application[(Logger, SharedKillSwitch, Http.Serve
     } yield TMDBConfiguration(conf.images, lang)
   }
 
+  def parseConfiguration(conf: Config): IO[ProdConfiguration] = {
+    implicit val show: Show[ConfigError] = (t: ConfigError) => t.msg
+    val e: Either[Exception, ProdConfiguration] = ProdConfiguration.validateConf(conf).toEither.left.map { errorChain =>
+      val message = errorChain.mkString_("\n")
+      new Exception(message)
+    }
+    IO.fromEither(e)
+  }
+
   override def acquire(
       log: Logger,
       conf: Config,
       sys: ActorSystem,
       mat: ActorMaterializer): IO[(Logger, SharedKillSwitch, Http.ServerBinding)] =
     for {
+         _ <- IO(log.info("Parsing configuration"))
+         c <- parseConfiguration(conf)
          _ <- IO(log.info("Creating top actors and routes"))
        bus <- createApplicationBus
         sk <- createSocketKillSwitch
@@ -110,10 +126,10 @@ object ProdApplication extends Application[(Logger, SharedKillSwitch, Http.Serve
        api <- createApiRoute(libs, tmdb)
        vid <- createVideosRoute(libs)
         sp <- createSocketProps(conf, bus, api, mat)
-     route <- createRoute(conf, api, vid, ss, sp, sk)
+      rout <- createRoute(conf, api, vid, ss, sp, sk)
          _ <- IO(log.info("Starting server"))
-       hsb <- startServer("0.0.0.0", 8081, route)(sys, mat) // TODO pass correct host and port configuration
-         _ <- IO(log.info("Server online at http://127.0.0.1:8081"))
+       hsb <- startServer(c.host, c.port, rout)(sys, mat)
+         _ <- IO(log.info(s"Server online at http://${c.host}:${c.port}"))
     } yield (log, sk, hsb)
 
   override def release: ((Logger, SharedKillSwitch, Http.ServerBinding)) => IO[Unit] = { case (log, ks, hsb) =>

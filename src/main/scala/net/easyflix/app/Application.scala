@@ -12,38 +12,26 @@ import scala.concurrent.Promise
 
 object Application {
 
-  final case class Configuration( // TODO use it
-      port: Int,
-      host: String,
-      tmdbApiKey: String,
-      authKey: String,
-      authTokenExpiration: String,
-      authPassword: String)
-
   sealed trait State
   final case class Started[T](stop: CancelToken[IO], resources: IO[T]) extends State
-  case object Stopped extends State
+  final case object Stopped extends State
 
-  val createLogger = IO { LoggerFactory.getLogger(this.getClass.getCanonicalName) }
+}
 
-  val loadConfig: IO[Config] =
+trait Application[T] {
+
+  import Application._
+
+  def loadConfig: IO[Config] =
     IO { ConfigFactory.load().getConfig("easyflix") }
+
+  def createLogger = IO { LoggerFactory.getLogger(this.getClass.getCanonicalName) }
 
   def createSystem(config: Config): IO[ActorSystem] =
     IO { ActorSystem("Easyflix", config) }
 
   def createMaterializer(system: ActorSystem): IO[ActorMaterializer] =
     IO { ActorMaterializer()(system) }
-
-  val loadResources: IO[(Logger, Config, ActorSystem, ActorMaterializer)] = {
-    for {
-      logger <- createLogger
-           _ <- IO { logger.info("Creating actor system") }
-      config <- loadConfig
-      system <- createSystem(config)
-      materializer <- createMaterializer(system)
-    } yield (logger, config, system, materializer)
-  }
 
   def shutdown(logger: Logger, system: ActorSystem, materializer: ActorMaterializer): IO[Unit] =
     for {
@@ -52,11 +40,15 @@ object Application {
       _ <- IO.fromFuture { IO(system.terminate()) }
     } yield ()
 
-}
-
-trait Application[T] {
-
-  import Application._
+  val loadResources: IO[(Logger, Config, ActorSystem, ActorMaterializer)] = {
+    for {
+      logger <- createLogger
+      _ <- IO { logger.info("Creating actor system") }
+      config <- loadConfig
+      system <- createSystem(config)
+      materializer <- createMaterializer(system)
+    } yield (logger, config, system, materializer)
+  }
 
   def acquire(logger: Logger, config: Config, system: ActorSystem, mat: ActorMaterializer): IO[T]
 

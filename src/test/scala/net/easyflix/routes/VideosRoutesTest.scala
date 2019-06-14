@@ -30,8 +30,9 @@ class VideosRoutesTest
   var testFolder: LibraryFile = _
   var ftpFile: LibraryFile = _
 
+  val app: ProdApplication = ProdApplication
   val bus: ApplicationBus = new ApplicationBus
-  val libraries: ActorRef = ProdApplication.createLibrariesActor(bus, system, materializer).unsafeRunSync()
+  val libraries: ActorRef = app.createLibrariesActor(bus, system, materializer).unsafeRunSync()
 
   override def beforeAll(): Unit = {
     super.beforeAll()

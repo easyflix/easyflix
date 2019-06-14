@@ -84,7 +84,7 @@ object Main extends PureApp[IO] {
           _ <- app.run(_ => C.readLine("started> ").map(_ => ()))
           _ <- app.stop
         } yield Result.Stopped
-        a.runA(Application.Stopped)
+        a.runA(Application.Stopped) // TODO attempt
       }
             /*E.start.map(Started)*/
           // }
