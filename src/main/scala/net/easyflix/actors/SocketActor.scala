@@ -6,7 +6,7 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
-import com.typesafe.config.Config
+import net.easyflix.app.ProdConfiguration
 import net.easyflix.events._
 import net.easyflix.json.{JsonMessage, JsonSupport}
 import pdi.jwt.{JwtAlgorithm, JwtSprayJson}
@@ -17,7 +17,7 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
 object SocketActor {
-  def props(xhrRoutes: Route, bus: ApplicationBus, config: Config)(implicit materializer: ActorMaterializer): Props =
+  def props(xhrRoutes: Route, bus: ApplicationBus, config: ProdConfiguration)(implicit materializer: ActorMaterializer): Props =
     Props(new SocketActor(xhrRoutes, bus, config))
 }
 
@@ -27,14 +27,14 @@ object SocketActor {
   * @param xhrRoutes XHR routes that this socket can handle
   * @param materializer An actor materializer
   */
-class SocketActor(xhrRoutes: Route, bus: ApplicationBus, config: Config)(implicit materializer: ActorMaterializer) extends Actor
+class SocketActor(xhrRoutes: Route, bus: ApplicationBus, config: ProdConfiguration)(implicit materializer: ActorMaterializer) extends Actor
   with Stash with JsonSupport {
 
   import context.dispatcher
 
   private val logger = Logging(context.system, this)
   private val client = context.parent
-  private val key = config.getString("auth.key")
+  private val key = config.authKey
   private val algo = JwtAlgorithm.HS256
 
   private val classMap: Map[String, Class[_]] = Map(

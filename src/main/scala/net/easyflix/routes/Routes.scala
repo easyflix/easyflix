@@ -10,7 +10,7 @@ import akka.pattern.ask
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.stream.{OverflowStrategy, SharedKillSwitch}
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.{cors, corsRejectionHandler}
-import com.typesafe.config.Config
+import net.easyflix.app.ProdConfiguration
 
 import scala.concurrent.duration._
 
@@ -50,7 +50,7 @@ object Routes {
   }
 
   def createRoute(
-      config: Config,
+      config: ProdConfiguration,
       apiRoute: Route,
       videosRoute: Route,
       socketSupervisor: ActorRef,

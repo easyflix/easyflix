@@ -27,7 +27,7 @@ object ProdApplication extends ProdApplication
 
 trait ProdApplication extends Application[(Logger, SharedKillSwitch, Http.ServerBinding)] {
 
-  def createSocketProps(conf: Config, bus: ApplicationBus, apiRoute: Route, mat: ActorMaterializer): IO[Props] =
+  def createSocketProps(conf: ProdConfiguration, bus: ApplicationBus, apiRoute: Route, mat: ActorMaterializer): IO[Props] =
     IO {
       val socketActorProps: Props = SocketActor.props(pathPrefix("api")(Route.seal(apiRoute)), bus, conf)(mat)
       SocketSinkActor.props(socketActorProps)(mat)
@@ -42,7 +42,7 @@ trait ProdApplication extends Application[(Logger, SharedKillSwitch, Http.Server
     IO { Routes.createApiRoute(libs, tmdb) }
 
   def createRoute(
-      conf: Config,
+      conf: ProdConfiguration,
       api: Route,
       vid: Route,
       ss: ActorRef,
@@ -62,7 +62,7 @@ trait ProdApplication extends Application[(Logger, SharedKillSwitch, Http.Server
   def createLibrariesActor(bus: ApplicationBus, sys: ActorSystem, mat: ActorMaterializer): IO[ActorRef] =
     IO { sys.actorOf(LibrarySupervisor.props(bus)(mat), "libraries") }
 
-  def createTmdbActor(tmdbConf: TMDBConfiguration, bus: ApplicationBus, conf: Config, sys: ActorSystem, mat: ActorMaterializer): IO[ActorRef] =
+  def createTmdbActor(tmdbConf: TMDBConfiguration, bus: ApplicationBus, conf: ProdConfiguration, sys: ActorSystem, mat: ActorMaterializer): IO[ActorRef] =
     IO { sys.actorOf(TMDBActor.props(tmdbConf, bus, conf)(mat), "tmdb") }
 
   def startServer(
@@ -71,7 +71,7 @@ trait ProdApplication extends Application[(Logger, SharedKillSwitch, Http.Server
       routes: Route)(implicit sys: ActorSystem, mat: ActorMaterializer): IO[Http.ServerBinding] =
     IO.fromFuture(IO(Http().bindAndHandle(Route.handlerFlow(routes), host, port)))
 
-  def loadTmdbConfig(conf: Config)(implicit sys: ActorSystem, mat: ActorMaterializer): IO[TMDBConfiguration] = {
+  def loadTmdbConfig(c: ProdConfiguration)(implicit sys: ActorSystem, mat: ActorMaterializer): IO[TMDBConfiguration] = {
     import spray.json.DefaultJsonProtocol._
     import spray.json._
     implicit val ec: ExecutionContext = sys.dispatcher
@@ -86,15 +86,13 @@ trait ProdApplication extends Application[(Logger, SharedKillSwitch, Http.Server
           Future.failed(new Exception(s"Could not retrieve TMDB configuration. Response code is: $code"))
         case Failure(exception) => Future.failed(exception)
       }
-    val getApiKey: IO[String] = IO { conf.getString("tmdbApiKey") }
     def loadConfiguration(key: String): IO[tmdb.Configuration] =
       IO.fromFuture(IO(makeRequest[tmdb.Configuration](tmdb.Configuration.get(key))))
     def loadLanguages(key: String): IO[tmdb.Configuration.Languages] =
       IO.fromFuture(IO(makeRequest[tmdb.Configuration.Languages](tmdb.Configuration.Language.get(key))))
     for {
-      key <- getApiKey
-      conf <- loadConfiguration(key)
-      lang <- loadLanguages(key)
+      conf <- loadConfiguration(c.tmdbApiKey)
+      lang <- loadLanguages(c.tmdbApiKey)
     } yield TMDBConfiguration(conf.images, lang)
   }
 
@@ -121,12 +119,12 @@ trait ProdApplication extends Application[(Logger, SharedKillSwitch, Http.Server
         ss <- createSocketSupervisor(sys)
       libs <- createLibrariesActor(bus, sys, mat)
          _ <- IO(log.info("Loading TMDB configuration"))
-        tc <- loadTmdbConfig(conf)(sys, mat)
-      tmdb <- createTmdbActor(tc, bus, conf, sys, mat)
+        tc <- loadTmdbConfig(c)(sys, mat)
+      tmdb <- createTmdbActor(tc, bus, c, sys, mat)
        api <- createApiRoute(libs, tmdb)
        vid <- createVideosRoute(libs)
-        sp <- createSocketProps(conf, bus, api, mat)
-      rout <- createRoute(conf, api, vid, ss, sp, sk)
+        sp <- createSocketProps(c, bus, api, mat)
+      rout <- createRoute(c, api, vid, ss, sp, sk)
          _ <- IO(log.info("Starting server"))
        hsb <- startServer(c.host, c.port, rout)(sys, mat)
          _ <- IO(log.info(s"Server online at http://${c.host}:${c.port}"))

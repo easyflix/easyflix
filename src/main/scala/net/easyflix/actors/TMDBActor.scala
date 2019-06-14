@@ -8,7 +8,7 @@ import akka.http.scaladsl.model.{HttpRequest, HttpResponse, ResponseEntity, Stat
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.stream.{KillSwitch, KillSwitches, Materializer, OverflowStrategy}
 import akka.util.ByteString
-import com.typesafe.config.Config
+import net.easyflix.app.ProdConfiguration
 import net.easyflix.events._
 import net.easyflix.exceptions.NotFoundException
 import net.easyflix.model._
@@ -26,7 +26,7 @@ object TMDBActor {
   final case class GetMovie(id: Int)
   final case class GetShow(id: Int)
 
-  def props(tmdbConf: TMDBConfiguration, bus: ApplicationBus, config: Config)(implicit materializer: Materializer): Props =
+  def props(tmdbConf: TMDBConfiguration, bus: ApplicationBus, config: ProdConfiguration)(implicit materializer: Materializer): Props =
     Props(new TMDBActor(tmdbConf, bus, config))
 
   sealed abstract class Context(val log: String)
@@ -45,14 +45,14 @@ object TMDBActor {
 class TMDBActor(
     tmdbConf: TMDBConfiguration,
     bus: ApplicationBus,
-    config: Config)(implicit materializer: Materializer) extends Actor with Stash {
+    config: ProdConfiguration)(implicit materializer: Materializer) extends Actor with Stash {
 
   import TMDBActor._
   import context.dispatcher
 
   val logger = Logging(context.system, this)
 
-  private val api_key = config.getString("tmdbApiKey")
+  private val api_key = config.tmdbApiKey
 
   bus.subscribe(self, classOf[FileAdded])
   bus.subscribe(self, classOf[FileDeleted])
