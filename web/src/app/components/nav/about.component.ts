@@ -18,7 +18,7 @@ import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
         <!--<dt>Website</dt>
         <dd><a href="https://easyflix.net" target="_blank">https://easyflix.net</a></dd>-->
         <dt>Github</dt>
-        <dd><a href="https://github.com/tgambet/easyflix" target="_blank">https://github.com/tgambet/easyflix</a></dd>
+        <dd><a href="https://github.com/easyflix/easyflix" target="_blank">https://github.com/easyflix/easyflix</a></dd>
       </dl>
       <mat-divider></mat-divider>
       <h3>License</h3>
